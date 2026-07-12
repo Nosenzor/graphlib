@@ -13,6 +13,7 @@ option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
 add_library(graphlib STATIC
     src/core/color.cpp
     src/core/path.cpp
+    src/core/ticker.cpp
     src/core/transforms.cpp
 )
 add_library(graphlib::graphlib ALIAS graphlib)

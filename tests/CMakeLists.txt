@@ -9,6 +9,7 @@ FetchContent_MakeAvailable(Catch2)
 add_executable(graphlib_tests
     unit/test_color.cpp
     unit/test_path.cpp
+    unit/test_ticker.cpp
     unit/test_transforms.cpp
 )
 target_link_libraries(graphlib_tests PRIVATE graphlib::graphlib Catch2::Catch2WithMain)
