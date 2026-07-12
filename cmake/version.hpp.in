@@ -1,0 +1,11 @@
+#pragma once
+// Generated from cmake/version.hpp.in — the version is set in the root CMakeLists.txt.
+#include <string_view>
+
+#define GRAPHLIB_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define GRAPHLIB_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define GRAPHLIB_VERSION_PATCH @PROJECT_VERSION_PATCH@
+
+namespace graphlib {
+inline constexpr std::string_view version = "@PROJECT_VERSION@";
+}
