@@ -1,0 +1,23 @@
+# build trees
+build/
+cmake-build-*/
+out/
+
+# IDE / tooling
+.idea/
+.vscode/
+.vs/
+.cache/
+compile_commands.json
+CMakeUserPresets.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# python tooling (fixture generation)
+__pycache__/
+.venv/
+
+# test artifacts
+tests/image/failures/
