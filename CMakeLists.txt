@@ -10,9 +10,24 @@ option(GRAPHLIB_BUILD_TESTS "Build graphlib tests" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_BUILD_EXAMPLES "Build graphlib examples" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
 
+# Project-wide baseline (also applies to FetchContent deps like Catch2, so
+# their ABI matches ours — e.g. string_view stringification).
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_library(graphlib STATIC
+    src/backends/svg/svg_renderer.cpp
+    src/core/axes.cpp
+    src/core/axis.cpp
     src/core/color.cpp
+    src/core/figure.cpp
+    src/core/graphics_context.cpp
+    src/core/lines.cpp
+    src/core/markers.cpp
     src/core/path.cpp
+    src/core/pyplot.cpp
+    src/core/renderer.cpp
+    src/core/text.cpp
     src/core/ticker.cpp
     src/core/transforms.cpp
 )
@@ -42,4 +57,8 @@ endif()
 if(GRAPHLIB_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if(GRAPHLIB_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

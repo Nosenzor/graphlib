@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="460.8pt" height="345.6pt" viewBox="0 0 460.8 345.6" version="1.1">
+<defs>
+<clipPath id="p1"><rect x="57.6" y="41.47" width="357.12" height="266.11"/></clipPath>
+</defs>
+<g id="figure_1">
+<path d="M 0 345.6 L 460.8 345.6 L 460.8 0 L 0 0 z" fill="#ffffff"/>
+<g id="axes_1">
+<path d="M 57.6 307.58 L 414.72 307.58 L 414.72 41.47 L 57.6 41.47 z" fill="#ffffff"/>
+<g id="grid_1">
+<path d="M 93.31 307.58 L 93.31 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 164.74 307.58 L 164.74 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 236.16 307.58 L 236.16 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 307.58 307.58 L 307.58 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 379.01 307.58 L 379.01 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 307.58 L 414.72 307.58" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 274.32 L 414.72 274.32" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 241.06 L 414.72 241.06" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 207.79 L 414.72 207.79" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 174.53 L 414.72 174.53" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 141.26 L 414.72 141.26" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 108 L 414.72 108" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 74.74 L 414.72 74.74" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+<path d="M 57.6 41.47 L 414.72 41.47" fill="none" stroke="#b0b0b0" stroke-width="0.8" stroke-linejoin="round"/>
+</g>
+<g id="line2d_1">
+<path clip-path="url(#p1)" d="M 21.89 164.85 L 22.96 163.75 L 24.04 162.64 L 25.11 161.5 L 26.18 160.33 L 27.26 159.13 L 28.33 157.9 L 29.41 156.63 L 30.48 155.31 L 31.55 153.96 L 32.63 152.55 L 33.7 151.08 L 34.78 149.55 L 35.85 147.95 L 36.92 146.27 L 38 144.5 L 39.07 142.63 L 40.15 140.66 L 41.22 138.55 L 42.29 136.31 L 43.37 133.9 L 44.44 131.31 L 45.52 128.52 L 46.59 125.47 L 47.67 122.15 L 48.74 118.49 L 49.81 114.45 L 50.89 109.94 L 51.96 104.87 L 53.04 99.12 L 54.11 92.52 L 55.18 84.87 L 56.26 75.87 L 57.33 65.11 L 58.41 51.98 L 59.48 35.58 L 60.55 14.47 L 61.63 -13.8 L 62.7 -53.66 L 63.78 -114.26 L 64.85 -217.71 L 65.92 -434.9 M 69.15 1105.97 L 70.22 679.54 L 71.29 520.52 L 72.37 437.29 L 73.44 386.03 L 74.52 351.23 L 75.59 326.02 L 76.66 306.88 L 77.74 291.84 L 78.81 279.68 L 79.89 269.64 L 80.96 261.18 L 82.03 253.96 L 83.11 247.7 L 84.18 242.22 L 85.26 237.37 L 86.33 233.04 L 87.4 229.15 L 88.48 225.63 L 89.55 222.41 L 90.63 219.47 L 91.7 216.75 L 92.77 214.23 L 93.85 211.89 L 94.92 209.7 L 96 207.65 L 97.07 205.71 L 98.15 203.88 L 99.22 202.15 L 100.29 200.5 L 101.37 198.93 L 102.44 197.42 L 103.52 195.98 L 104.59 194.59 L 105.66 193.25 L 106.74 191.95 L 107.81 190.69 L 108.89 189.48 L 109.96 188.29 L 111.03 187.13 L 112.11 186 L 113.18 184.89 L 114.26 183.8 L 115.33 182.73 L 116.4 181.68 L 117.48 180.64 L 118.55 179.61 L 119.63 178.59 L 120.7 177.58 L 121.77 176.57 L 122.85 175.57 L 123.92 174.57 L 125 173.57 L 126.07 172.57 L 127.14 171.56 L 128.22 170.55 L 129.29 169.53 L 130.37 168.5 L 131.44 167.46 L 132.51 166.41 L 133.59 165.34 L 134.66 164.26 L 135.74 163.15 L 136.81 162.02 L 137.88 160.87 L 138.96 159.68 L 140.03 158.47 L 141.11 157.21 L 142.18 155.92 L 143.26 154.58 L 144.33 153.2 L 145.4 151.76 L 146.48 150.26 L 147.55 148.69 L 148.63 147.05 L 149.7 145.32 L 150.77 143.5 L 151.85 141.58 L 152.92 139.53 L 154 137.35 L 155.07 135.03 L 156.14 132.52 L 157.22 129.83 L 158.29 126.9 L 159.37 123.71 L 160.44 120.21 L 161.51 116.35 L 162.59 112.07 L 163.66 107.27 L 164.74 101.84 L 165.81 95.66 L 166.88 88.52 L 167.96 80.19 L 169.03 70.29 L 170.11 58.34 L 171.18 43.57 L 172.25 24.85 L 173.33 0.25 L 174.4 -33.54 L 175.48 -83.01 L 176.55 -162.51 L 177.62 -311.73 L 178.7 -695.24 M 181.92 813.65 L 182.99 578.91 L 184.07 469.89 L 185.14 406.83 L 186.22 365.67 L 187.29 336.65 L 188.36 315.04 L 189.44 298.31 L 190.51 284.95 L 191.59 274.01 L 192.66 264.88 L 193.74 257.13 L 194.81 250.46 L 195.88 244.64 L 196.96 239.52 L 198.03 234.97 L 199.11 230.89 L 200.18 227.2 L 201.25 223.85 L 202.33 220.79 L 203.4 217.97 L 204.48 215.36 L 205.55 212.94 L 206.62 210.69 L 207.7 208.57 L 208.77 206.58 L 209.85 204.71 L 210.92 202.93 L 211.99 201.25 L 213.07 199.64 L 214.14 198.1 L 215.22 196.63 L 216.29 195.22 L 217.36 193.85 L 218.44 192.54 L 219.51 191.26 L 220.59 190.03 L 221.66 188.83 L 222.73 187.66 L 223.81 186.51 L 224.88 185.4 L 225.96 184.3 L 227.03 183.22 L 228.1 182.16 L 229.18 181.11 L 230.25 180.08 L 231.33 179.06 L 232.4 178.04 L 233.47 177.03 L 234.55 176.03 L 235.62 175.03 L 236.7 174.03 L 237.77 173.03 L 238.85 172.02 L 239.92 171.01 L 240.99 170 L 242.07 168.97 L 243.14 167.94 L 244.22 166.89 L 245.29 165.83 L 246.36 164.76 L 247.44 163.66 L 248.51 162.54 L 249.59 161.4 L 250.66 160.23 L 251.73 159.03 L 252.81 157.79 L 253.88 156.52 L 254.96 155.2 L 256.03 153.84 L 257.1 152.43 L 258.18 150.95 L 259.25 149.42 L 260.33 147.81 L 261.4 146.12 L 262.47 144.35 L 263.55 142.47 L 264.62 140.48 L 265.7 138.37 L 266.77 136.11 L 267.84 133.69 L 268.92 131.09 L 269.99 128.27 L 271.07 125.21 L 272.14 121.86 L 273.21 118.17 L 274.29 114.09 L 275.36 109.54 L 276.44 104.41 L 277.51 98.6 L 278.58 91.92 L 279.66 84.17 L 280.73 75.04 L 281.81 64.11 L 282.88 50.74 L 283.96 34.01 L 285.03 12.41 L 286.1 -16.62 L 287.18 -57.78 L 288.25 -120.83 L 289.33 -229.85 L 290.4 -464.6 M 293.62 1044.29 L 294.7 660.79 L 295.77 511.57 L 296.84 432.06 L 297.92 382.6 L 298.99 348.8 L 300.07 324.21 L 301.14 305.48 L 302.21 290.72 L 303.29 278.77 L 304.36 268.87 L 305.44 260.53 L 306.51 253.4 L 307.58 247.21 L 308.66 241.79 L 309.73 236.99 L 310.81 232.7 L 311.88 228.84 L 312.95 225.35 L 314.03 222.16 L 315.1 219.23 L 316.18 216.53 L 317.25 214.03 L 318.32 211.7 L 319.4 209.52 L 320.47 207.48 L 321.55 205.55 L 322.62 203.73 L 323.69 202.01 L 324.77 200.37 L 325.84 198.8 L 326.92 197.3 L 327.99 195.86 L 329.06 194.47 L 330.14 193.14 L 331.21 191.84 L 332.29 190.59 L 333.36 189.37 L 334.44 188.19 L 335.51 187.03 L 336.58 185.91 L 337.66 184.8 L 338.73 183.71 L 339.81 182.64 L 340.88 181.59 L 341.95 180.55 L 343.03 179.53 L 344.1 178.51 L 345.18 177.5 L 346.25 176.49 L 347.32 175.49 L 348.4 174.49 L 349.47 173.49 L 350.55 172.48 L 351.62 171.48 L 352.69 170.46 L 353.77 169.44 L 354.84 168.42 L 355.92 167.38 L 356.99 166.32 L 358.06 165.25 L 359.14 164.16 L 360.21 163.06 L 361.29 161.92 L 362.36 160.77 L 363.43 159.58 L 364.51 158.36 L 365.58 157.11 L 366.66 155.81 L 367.73 154.47 L 368.8 153.08 L 369.88 151.64 L 370.95 150.13 L 372.03 148.56 L 373.1 146.91 L 374.17 145.17 L 375.25 143.34 L 376.32 141.41 L 377.4 139.35 L 378.47 137.17 L 379.55 134.82 L 380.62 132.31 L 381.69 129.59 L 382.77 126.64 L 383.84 123.43 L 384.92 119.9 L 385.99 116.01 L 387.06 111.68 L 388.14 106.84 L 389.21 101.36 L 390.29 95.1 L 391.36 87.87 L 392.43 79.42 L 393.51 69.37 L 394.58 57.22 L 395.66 42.17 L 396.73 23.04 L 397.8 -2.17 L 398.88 -36.97 L 399.95 -88.24 L 401.03 -171.46 L 402.1 -330.49 L 403.17 -756.91 M 406.4 783.95 L 407.47 566.76 L 408.54 463.32 L 409.62 402.72 L 410.69 362.85 L 411.77 334.59 L 412.84 313.47 L 413.91 297.07 L 414.99 283.95 L 416.06 273.18 L 417.14 264.18 L 418.21 256.53 L 419.28 249.94 L 420.36 244.19 L 421.43 239.12 L 422.51 234.61 L 423.58 230.56 L 424.65 226.91 L 425.73 223.58 L 426.8 220.54 L 427.88 217.74 L 428.95 215.15 L 430.03 212.75 L 431.1 210.5 L 432.17 208.4 L 433.25 206.42 L 434.32 204.56 L 435.4 202.79 L 436.47 201.11 L 437.54 199.51 L 438.62 197.98 L 439.69 196.51 L 440.77 195.1 L 441.84 193.74 L 442.91 192.43 L 443.99 191.16 L 445.06 189.93 L 446.14 188.73 L 447.21 187.56 L 448.28 186.42 L 449.36 185.3 L 450.43 184.21" fill="none" stroke="#1f77b4" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+</g>
+<g id="text_1">
+<text x="71.88" y="68.08" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000">tan(x), poles as gaps</text>
+</g>
+<g id="spines_1">
+<path d="M 57.6 307.58 L 414.72 307.58 L 414.72 41.47 L 57.6 41.47 z" fill="none" stroke="#000000" stroke-width="0.8" stroke-linecap="square" stroke-linejoin="round"/>
+</g>
+<g id="xtick_1">
+<path d="M 93.31 307.58 L 93.31 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="93.31" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">−4</text>
+<path d="M 164.74 307.58 L 164.74 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="164.74" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">−2</text>
+<path d="M 236.16 307.58 L 236.16 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="236.16" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">0</text>
+<path d="M 307.58 307.58 L 307.58 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="307.58" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">2</text>
+<path d="M 379.01 307.58 L 379.01 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="379.01" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">4</text>
+</g>
+<g id="ytick_1">
+<path d="M 57.6 307.58 L 54.1 307.58" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="307.58" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">−4</text>
+<path d="M 57.6 274.32 L 54.1 274.32" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="274.32" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">−3</text>
+<path d="M 57.6 241.06 L 54.1 241.06" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="241.06" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">−2</text>
+<path d="M 57.6 207.79 L 54.1 207.79" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="207.79" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">−1</text>
+<path d="M 57.6 174.53 L 54.1 174.53" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="174.53" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">0</text>
+<path d="M 57.6 141.26 L 54.1 141.26" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="141.26" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">1</text>
+<path d="M 57.6 108 L 54.1 108" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="108" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">2</text>
+<path d="M 57.6 74.74 L 54.1 74.74" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="74.74" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">3</text>
+<path d="M 57.6 41.47 L 54.1 41.47" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="41.47" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">4</text>
+</g>
+<g id="text_2">
+<text x="236.16" y="328.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">x</text>
+</g>
+<g id="text_3">
+<text x="34.6" y="174.53" dy="-0.2em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle" transform="rotate(-90 34.6 174.53)">tan(x)</text>
+</g>
+<g id="text_4">
+<text x="236.16" y="35.47" dy="-0.2em" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#000000" text-anchor="middle">Manual limits + grid</text>
+</g>
+</g>
+</g>
+</svg>

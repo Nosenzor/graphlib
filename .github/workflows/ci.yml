@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-14, arch: arm64 }
+          - { os: ubuntu-24.04, arch: x64 }
+          - { os: ubuntu-24.04-arm, arch: arm64 } # free for public repos only
+          - { os: windows-2025, arch: amd64 }
+          - { os: windows-11-arm, arch: arm64 }   # free for public repos only
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Set up MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: Configure
+        run: cmake --preset ci
+      - name: Build
+        run: cmake --build --preset ci
+      - name: Test
+        run: ctest --preset ci
+      - name: Upload image-diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image_failures-${{ matrix.os }}
+          path: build/ci/tests/image_failures/
+          if-no-files-found: ignore
+
+  asan:
+    name: ASan + UBSan (macOS arm64)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - run: cmake --preset asan
+      - run: cmake --build --preset asan
+      - run: ctest --preset asan
+
+  macos-x86-cross:
+    name: macOS x86_64 cross slice (tier 2, build only)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - run: cmake --preset ci -DCMAKE_OSX_ARCHITECTURES=x86_64
+      - run: cmake --build --preset ci

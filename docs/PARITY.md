@@ -10,15 +10,15 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 
 | Feature | matplotlib | graphlib target | Status |
 |---------|-----------|-----------------|--------|
-| line plots | `plt.plot` (+fmt strings) | `plt::plot` | planned-v0.1 |
-| figure/axes creation | `figure`, `subplots`, `add_subplot` | same | planned-v0.1 (grid: v0.3) |
-| title / xlabel / ylabel | `title`… | same | planned-v0.1 |
-| limits | `xlim`/`ylim`, autoscale+margins | same | planned-v0.1 |
-| grid | `grid` | same | planned-v0.1 |
-| markers | `marker=` + fmt chars | subset v0.1, full set v0.2 | planned-v0.1 |
-| save SVG | `savefig("*.svg")` | same | planned-v0.1 |
+| line plots | `plt.plot` (+fmt strings) | `plt::plot` | done (single x/y pair; multi-pair args: v0.3) |
+| figure/axes creation | `figure`, `subplots`, `add_subplot` | same | done (single axes; grid: v0.3) |
+| title / xlabel / ylabel | `title`… | same | done (fixed-offset layout until v0.2 metrics) |
+| limits | `xlim`/`ylim`, autoscale+margins | same | done (oracle-verified; sticky edges: v0.3) |
+| grid | `grid` | same | done (major ticks; minor: v0.3) |
+| markers | `marker=` + fmt chars | subset v0.1, full set v0.2 | done (11 markers: `o s ^ v < > D + x . *`) |
+| save SVG | `savefig("*.svg")` | same | done (72 dpi pt canvas, like mpl; deterministic) |
 | save PNG (dpi) | `savefig("*.png", dpi=)` | same | planned-v0.2 |
-| text on axes | `text` | same | planned-v0.1 |
+| text on axes | `text` | same | done |
 | legend | `legend` (loc, 'best', frame) | same | planned-v0.2 |
 | scatter | `scatter` (s=, colors) | v0.2; `c=`+cmap v0.4 | planned-v0.2 |
 | bar / barh | `bar`, `barh` (+string x) | same | planned-v0.3 |

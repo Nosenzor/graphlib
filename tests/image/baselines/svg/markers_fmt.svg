@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="460.8pt" height="345.6pt" viewBox="0 0 460.8 345.6" version="1.1">
+<defs>
+<clipPath id="p1"><rect x="57.6" y="41.47" width="357.12" height="266.11"/></clipPath>
+<path id="m1" d="M 0 3 C 0.8 3 1.56 2.68 2.12 2.12 C 2.68 1.56 3 0.8 3 0 C 3 -0.8 2.68 -1.56 2.12 -2.12 C 1.56 -2.68 0.8 -3 0 -3 C -0.8 -3 -1.56 -2.68 -2.12 -2.12 C -2.68 -1.56 -3 -0.8 -3 0 C -3 0.8 -2.68 1.56 -2.12 2.12 C -1.56 2.68 -0.8 3 0 3 z"/>
+<path id="m2" d="M -3 3 L 3 3 L 3 -3 L -3 -3 z"/>
+<path id="m3" d="M 0 -3 L -3 3 L 3 3 z"/>
+<path id="m4" d="M 0 4.24 L 4.24 0 L 0 -4.24 L -4.24 0 z"/>
+<path id="m5" d="M -3 3 L 3 -3 M -3 -3 L 3 3"/>
+<path id="m6" d="M 0 -3 L -0.67 -0.93 L -2.85 -0.93 L -1.09 0.35 L -1.76 2.43 L 0 1.15 L 1.76 2.43 L 1.09 0.35 L 2.85 -0.93 L 0.67 -0.93 z"/>
+</defs>
+<g id="figure_1">
+<path d="M 0 345.6 L 460.8 345.6 L 460.8 0 L 0 0 z" fill="#ffffff"/>
+<g id="axes_1">
+<path d="M 57.6 307.58 L 414.72 307.58 L 414.72 41.47 L 57.6 41.47 z" fill="#ffffff"/>
+<g id="line2d_1">
+<path clip-path="url(#p1)" d="M 73.83 295.49 L 114.41 286.85 L 155 278.21 L 195.58 269.57 L 236.16 260.93 L 276.74 252.29 L 317.32 243.65 L 357.91 235.01 L 398.49 226.37" fill="none" stroke="#1f77b4" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="#1f77b4" stroke="#1f77b4" stroke-width="1" stroke-linejoin="round">
+<use href="#m1" x="73.83" y="295.49"/>
+<use href="#m1" x="114.41" y="286.85"/>
+<use href="#m1" x="155" y="278.21"/>
+<use href="#m1" x="195.58" y="269.57"/>
+<use href="#m1" x="236.16" y="260.93"/>
+<use href="#m1" x="276.74" y="252.29"/>
+<use href="#m1" x="317.32" y="243.65"/>
+<use href="#m1" x="357.91" y="235.01"/>
+<use href="#m1" x="398.49" y="226.37"/>
+</g>
+</g>
+<g id="line2d_2">
+<path clip-path="url(#p1)" d="M 73.83 260.93 L 114.41 252.29 L 155 243.65 L 195.58 235.01 L 236.16 226.37 L 276.74 217.73 L 317.32 209.09 L 357.91 200.45 L 398.49 191.81" fill="none" stroke="#ff7f0e" stroke-width="1.5" stroke-dasharray="5.55,2.4" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="#ff7f0e" stroke="#ff7f0e" stroke-width="1" stroke-linejoin="round">
+<use href="#m2" x="73.83" y="260.93"/>
+<use href="#m2" x="114.41" y="252.29"/>
+<use href="#m2" x="155" y="243.65"/>
+<use href="#m2" x="195.58" y="235.01"/>
+<use href="#m2" x="236.16" y="226.37"/>
+<use href="#m2" x="276.74" y="217.73"/>
+<use href="#m2" x="317.32" y="209.09"/>
+<use href="#m2" x="357.91" y="200.45"/>
+<use href="#m2" x="398.49" y="191.81"/>
+</g>
+</g>
+<g id="line2d_3">
+<path clip-path="url(#p1)" d="M 73.83 226.37 L 114.41 217.73 L 155 209.09 L 195.58 200.45 L 236.16 191.81 L 276.74 183.17 L 317.32 174.53 L 357.91 165.89 L 398.49 157.25" fill="none" stroke="#2ca02c" stroke-width="1.5" stroke-dasharray="1.5,2.475" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="#2ca02c" stroke="#2ca02c" stroke-width="1" stroke-linejoin="round">
+<use href="#m3" x="73.83" y="226.37"/>
+<use href="#m3" x="114.41" y="217.73"/>
+<use href="#m3" x="155" y="209.09"/>
+<use href="#m3" x="195.58" y="200.45"/>
+<use href="#m3" x="236.16" y="191.81"/>
+<use href="#m3" x="276.74" y="183.17"/>
+<use href="#m3" x="317.32" y="174.53"/>
+<use href="#m3" x="357.91" y="165.89"/>
+<use href="#m3" x="398.49" y="157.25"/>
+</g>
+</g>
+<g id="line2d_4">
+<path clip-path="url(#p1)" d="M 73.83 191.81 L 114.41 183.17 L 155 174.53 L 195.58 165.89 L 236.16 157.25 L 276.74 148.61 L 317.32 139.97 L 357.91 131.33 L 398.49 122.69" fill="none" stroke="#d62728" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="#d62728" stroke="#d62728" stroke-width="1" stroke-linejoin="round">
+<use href="#m4" x="73.83" y="191.81"/>
+<use href="#m4" x="114.41" y="183.17"/>
+<use href="#m4" x="155" y="174.53"/>
+<use href="#m4" x="195.58" y="165.89"/>
+<use href="#m4" x="236.16" y="157.25"/>
+<use href="#m4" x="276.74" y="148.61"/>
+<use href="#m4" x="317.32" y="139.97"/>
+<use href="#m4" x="357.91" y="131.33"/>
+<use href="#m4" x="398.49" y="122.69"/>
+</g>
+</g>
+<g id="line2d_5">
+<path clip-path="url(#p1)" d="M 73.83 157.25 L 114.41 148.61 L 155 139.97 L 195.58 131.33 L 236.16 122.69 L 276.74 114.05 L 317.32 105.41 L 357.91 96.77 L 398.49 88.13" fill="none" stroke="#9467bd" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="none" stroke="#9467bd" stroke-width="1" stroke-linejoin="round">
+<use href="#m5" x="73.83" y="157.25"/>
+<use href="#m5" x="114.41" y="148.61"/>
+<use href="#m5" x="155" y="139.97"/>
+<use href="#m5" x="195.58" y="131.33"/>
+<use href="#m5" x="236.16" y="122.69"/>
+<use href="#m5" x="276.74" y="114.05"/>
+<use href="#m5" x="317.32" y="105.41"/>
+<use href="#m5" x="357.91" y="96.77"/>
+<use href="#m5" x="398.49" y="88.13"/>
+</g>
+</g>
+<g id="line2d_6">
+<path clip-path="url(#p1)" d="M 73.83 122.69 L 114.41 114.05 L 155 105.41 L 195.58 96.77 L 236.16 88.13 L 276.74 79.49 L 317.32 70.85 L 357.91 62.21 L 398.49 53.57" fill="none" stroke="#8c564b" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="round"/>
+<g clip-path="url(#p1)" fill="#8c564b" stroke="#8c564b" stroke-width="1" stroke-linejoin="round">
+<use href="#m6" x="73.83" y="122.69"/>
+<use href="#m6" x="114.41" y="114.05"/>
+<use href="#m6" x="155" y="105.41"/>
+<use href="#m6" x="195.58" y="96.77"/>
+<use href="#m6" x="236.16" y="88.13"/>
+<use href="#m6" x="276.74" y="79.49"/>
+<use href="#m6" x="317.32" y="70.85"/>
+<use href="#m6" x="357.91" y="62.21"/>
+<use href="#m6" x="398.49" y="53.57"/>
+</g>
+</g>
+<g id="spines_1">
+<path d="M 57.6 307.58 L 414.72 307.58 L 414.72 41.47 L 57.6 41.47 z" fill="none" stroke="#000000" stroke-width="0.8" stroke-linecap="square" stroke-linejoin="round"/>
+</g>
+<g id="xtick_1">
+<path d="M 73.83 307.58 L 73.83 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="73.83" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">0</text>
+<path d="M 114.41 307.58 L 114.41 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="114.41" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">1</text>
+<path d="M 155 307.58 L 155 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="155" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">2</text>
+<path d="M 195.58 307.58 L 195.58 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="195.58" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">3</text>
+<path d="M 236.16 307.58 L 236.16 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="236.16" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">4</text>
+<path d="M 276.74 307.58 L 276.74 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="276.74" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">5</text>
+<path d="M 317.32 307.58 L 317.32 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="317.32" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">6</text>
+<path d="M 357.91 307.58 L 357.91 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="357.91" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">7</text>
+<path d="M 398.49 307.58 L 398.49 311.08" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="398.49" y="314.58" dy="0.8em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="middle">8</text>
+</g>
+<g id="ytick_1">
+<path d="M 57.6 295.49 L 54.1 295.49" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="295.49" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">0</text>
+<path d="M 57.6 260.93 L 54.1 260.93" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="260.93" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">1</text>
+<path d="M 57.6 226.37 L 54.1 226.37" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="226.37" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">2</text>
+<path d="M 57.6 191.81 L 54.1 191.81" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="191.81" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">3</text>
+<path d="M 57.6 157.25 L 54.1 157.25" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="157.25" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">4</text>
+<path d="M 57.6 122.69 L 54.1 122.69" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="122.69" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">5</text>
+<path d="M 57.6 88.13 L 54.1 88.13" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="88.13" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">6</text>
+<path d="M 57.6 53.57 L 54.1 53.57" fill="none" stroke="#000000" stroke-width="0.8" stroke-linejoin="round"/>
+<text x="50.6" y="53.57" dy="0.35em" font-family="DejaVu Sans, sans-serif" font-size="10" fill="#000000" text-anchor="end">7</text>
+</g>
+</g>
+</g>
+</svg>

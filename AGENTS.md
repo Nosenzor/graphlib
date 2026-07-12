@@ -180,7 +180,8 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
 
 ## Status
 
-- **Phase: v0.0 — scaffolding complete** (this file, skills, ROADMAP, DESIGN, PARITY). No library
-  code yet.
-- **Next milestone: v0.1.0 "First Light"** — see [ROADMAP.md](ROADMAP.md), start with its
-  Bootstrap task list.
+- **Phase: v0.1.0 "First Light" — feature-complete locally** (2026-07-12): core object model,
+  MaxNLocator/ScalarFormatter oracle-verified ports, Line2D + markers + fmt strings, SVG
+  backend with golden tests, pyplot facade, 4 gallery examples, 32 tests green (incl. ASan).
+- **Release gate remaining:** push to GitHub → CI green on all 5 targets → tag v0.1.0
+  (release skill). Then start **v0.2.0 "Raster & Type"** ([ROADMAP.md](ROADMAP.md)).

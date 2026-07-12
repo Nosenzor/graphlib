@@ -1,0 +1,21 @@
+#pragma once
+// Umbrella header. For the matplotlib-style scripting API, include
+// <graphlib/pyplot.hpp> and alias:  namespace plt = graphlib::pyplot;
+#include "graphlib/artist.hpp"
+#include "graphlib/axes.hpp"
+#include "graphlib/axis.hpp"
+#include "graphlib/backend/renderer.hpp"
+#include "graphlib/backend/svg.hpp"
+#include "graphlib/color.hpp"
+#include "graphlib/errors.hpp"
+#include "graphlib/figure.hpp"
+#include "graphlib/graphics_context.hpp"
+#include "graphlib/lines.hpp"
+#include "graphlib/markers.hpp"
+#include "graphlib/path.hpp"
+#include "graphlib/pyplot.hpp"
+#include "graphlib/text.hpp"
+#include "graphlib/ticker.hpp"
+#include "graphlib/transforms.hpp"
+#include "graphlib/util.hpp"
+#include "graphlib/version.hpp"
