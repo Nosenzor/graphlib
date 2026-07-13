@@ -4,6 +4,7 @@
 #include "graphlib/artist.hpp"
 #include "graphlib/axes.hpp"
 #include "graphlib/axis.hpp"
+#include "graphlib/backend/agg.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/color.hpp"

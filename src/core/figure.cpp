@@ -1,8 +1,10 @@
 #include "graphlib/figure.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 
+#include "graphlib/backend/agg.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/errors.hpp"
 
@@ -81,12 +83,24 @@ void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
         return;
     }
     if (ext == "png") {
-        throw ValueError("savefig: format 'png' arrives in v0.2 — supported now: svg");
+        // rc savefig.dpi = 'figure': inherit figure.dpi unless overridden.
+        const double render_dpi = opts.dpi.value_or(dpi);
+        if (render_dpi <= 0) {
+            throw ValueError("savefig: dpi must be positive");
+        }
+        const int w = static_cast<int>(std::lround(figsize[0] * render_dpi));
+        const int h = static_cast<int>(std::lround(figsize[1] * render_dpi));
+        AggRenderer renderer(w, h, render_dpi);
+        transparent_render_ = opts.transparent;
+        draw(renderer);
+        transparent_render_ = false;
+        renderer.write_png(filename);
+        return;
     }
     if (ext == "pdf") {
-        throw ValueError("savefig: format 'pdf' arrives in v0.6 — supported now: svg");
+        throw ValueError("savefig: format 'pdf' arrives in v0.6 — supported now: svg, png");
     }
-    throw ValueError("savefig: unknown format '" + ext + "' (supported: svg)");
+    throw ValueError("savefig: unknown format '" + ext + "' (supported: svg, png)");
 }
 
 } // namespace graphlib
