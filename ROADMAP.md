@@ -30,10 +30,14 @@
 
 ---
 
-## v0.1.0 — "First Light" (SVG line plots, the object model end-to-end)
+## v0.1.0 — "First Light" (SVG line plots, the object model end-to-end) ✅ RELEASED 2026-07-13
 
 **Goal:** prove the whole architecture with the thinnest complete slice: `plt::plot` → correct
 ticks/layout → SVG file. If this milestone is right, everything after is additive.
+
+> Shipped as scoped (multi-pair `plot(x1,y1,x2,y2)` deferred to v0.3). Exit criteria met:
+> CI green on all 5 targets, golden SVGs byte-identical cross-platform, hero example verified
+> side-by-side against python matplotlib.
 
 **Bootstrap (first tasks):**
 - CMake + presets (dev/asan/release) + Ninja; Catch2 wired; `.clang-format`; `version.hpp` generation.

@@ -3,7 +3,12 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased] — v0.1.0 "First Light" candidate
+## [Unreleased]
+
+## [0.1.0] — 2026-07-13 — "First Light"
+
+CI-verified on macOS arm64, Linux x86_64/arm64, Windows x86_64/arm64 (+ASan/UBSan);
+golden SVGs byte-identical across all five targets.
 
 ### Added
 - Core object model mirroring matplotlib: `Figure`, `Axes`, `Axis`, `Artist`, `Line2D`,
