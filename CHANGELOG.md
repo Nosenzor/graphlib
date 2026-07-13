@@ -3,7 +3,12 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased] — v0.2.0 "Raster & Type" candidate
+## [Unreleased]
+
+## [0.2.0] — 2026-07-13 — "Raster & Type"
+
+CI-verified on all five tier-1 targets; glyph-outline SVG goldens byte-identical and PNG
+baselines within RMS ≤ 1.0 across macOS/Linux/Windows on x64 and arm64.
 
 ### Added
 - **PNG output**: vendored AGG 2.4 (matplotlib's own rasterizer, ADR-0002) drives

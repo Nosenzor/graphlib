@@ -181,8 +181,9 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
 ## Status
 
 - **v0.1.0 "First Light" — RELEASED 2026-07-13** ([tag](https://github.com/Nosenzor/graphlib/releases/tag/v0.1.0)).
-- **v0.2.0 "Raster & Type" — feature-complete locally** (2026-07-13): AGG raster→PNG at any
-  dpi, embedded-DejaVu text stack (metrics + glyph outlines on all backends), full marker
-  set, scatter, legend with ported 'best', PNG image-test harness + conformance scene.
-  47 tests green incl. ASan. **Gate: CI green on all 5 targets → tag v0.2.0.**
-- Next after tag: **v0.3.0 "Everyday Plots"** ([ROADMAP.md](ROADMAP.md)).
+- **v0.2.0 "Raster & Type" — tagged 2026-07-13, CI green on all 5 targets**: AGG raster→PNG
+  at any dpi, embedded-DejaVu text stack (metrics + glyph outlines on all backends), full
+  marker set, scatter, legend with ported 'best', PNG image-test harness + conformance
+  scene. 47 tests incl. ASan; goldens byte-identical cross-platform.
+- **Current milestone: v0.3.0 "Everyday Plots"** ([ROADMAP.md](ROADMAP.md)) — bar/hist/
+  fill_between/errorbar/pie, subplots+GridSpec, twin axes, log scales, rcParams + styles.

@@ -208,7 +208,7 @@ void Axes::collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px,
 void Axes::set_xlim(double left, double right) {
     if (left == right) {
         // mpl warns and lets the transform degenerate; we expand like the
-        // locator would. TODO(v0.2): warning infrastructure.
+        // locator would. TODO(v0.3): warning infrastructure (with rc system).
         std::tie(left, right) = detail::nonsingular(left, right, 0.05);
     }
     vx0_ = left;
