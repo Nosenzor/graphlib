@@ -77,9 +77,13 @@ byte-stable across platforms.
 
 ---
 
-## v0.2.0 — "Raster & Type" (PNG, real text metrics, legend, scatter)
+## v0.2.0 — "Raster & Type" (PNG, real text metrics, legend, scatter) — ✅ feature-complete 2026-07-13
 
 **Goal:** pixel output and typography — the release where output looks *professional*.
+
+> Shipped as scoped (the compare.py side-by-side script folded into the gallery workflow).
+> Bonus beyond scope: SVG text-as-paths (mpl's svg.fonttype default) so output renders
+> identically in every viewer.
 
 **In scope:**
 - Vendor AGG 2.4 (ADR-0002 re-check first) → `AggRenderer`: AA strokes/fills, dashes, clipping;

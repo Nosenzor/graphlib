@@ -3,7 +3,23 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased]
+## [Unreleased] — v0.2.0 "Raster & Type" candidate
+
+### Added
+- **PNG output**: vendored AGG 2.4 (matplotlib's own rasterizer, ADR-0002) drives
+  `savefig("*.png", {.dpi})` with `savefig.dpi='figure'` semantics and transparency.
+- **Real typography**: stb_truetype over embedded DejaVu Sans/Bold — exact metrics,
+  kerning, UTF-8, multi-line; text renders as glyph outlines on every backend
+  (matplotlib's `svg.fonttype='path'` default); axis/label layout uses true extents.
+- **`scatter()`** with pt² sizes (broadcast or per-point), cycle colors, `edgecolors='face'`.
+- **`legend()`** with all matplotlib loc codes including a ported `'best'` placement scan,
+  translucent frame, line/marker/scatter handles.
+- Full matplotlib string-marker set (25 markers).
+- PNG image-comparison harness (RMS ≤ 1.0, diff artifacts) + a backend conformance scene
+  pinned as SVG byte-golden and AGG PNG baseline.
+
+### Changed
+- SVG no longer emits native `<text>` (matches mpl's default); goldens regenerated.
 
 ## [0.1.0] — 2026-07-13 — "First Light"
 

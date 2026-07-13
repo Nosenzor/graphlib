@@ -33,12 +33,17 @@ matplotlib itself.
 |---|---|---|
 | ![cycle](docs/gallery/color_cycle.svg) | ![markers](docs/gallery/fmt_and_markers.svg) | ![limits](docs/gallery/limits_grid.svg) |
 
-## Status: v0.1 "First Light" (in progress)
+| | |
+|---|---|
+| ![scatter](docs/gallery/scatter.svg) | ![legend](docs/gallery/legend.svg) |
 
-Line plots with format strings (`"r--o"`), markers, ticks/labels/titles, grids, autoscale,
-manual limits with clipping, NaN gaps, and deterministic **SVG** output. PNG + real text
-metrics + legend land in v0.2 — see [ROADMAP.md](ROADMAP.md) for the full ladder to 1.0
-and [docs/PARITY.md](docs/PARITY.md) for matplotlib feature coverage.
+## Status: v0.2 "Raster & Type"
+
+**SVG and PNG output** (any dpi, via matplotlib's own AGG rasterizer), real DejaVu
+typography with exact metrics, `plot` with format strings (`"r--o"`) and all 25 markers,
+`scatter` with pt² sizes, `legend` with matplotlib's `'best'` placement, grids, autoscale,
+clipping, NaN gaps. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
+[docs/PARITY.md](docs/PARITY.md) for matplotlib feature coverage.
 
 Zero mandatory dependencies. Platforms: macOS (arm64), Linux (x86_64, arm64),
 Windows (x86_64, arm64).

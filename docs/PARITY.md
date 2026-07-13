@@ -15,12 +15,12 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | title / xlabel / ylabel | `title`… | same | done (fixed-offset layout until v0.2 metrics) |
 | limits | `xlim`/`ylim`, autoscale+margins | same | done (oracle-verified; sticky edges: v0.3) |
 | grid | `grid` | same | done (major ticks; minor: v0.3) |
-| markers | `marker=` + fmt chars | subset v0.1, full set v0.2 | done (11 markers: `o s ^ v < > D + x . *`) |
-| save SVG | `savefig("*.svg")` | same | done (72 dpi pt canvas, like mpl; deterministic) |
-| save PNG (dpi) | `savefig("*.png", dpi=)` | same | planned-v0.2 |
-| text on axes | `text` | same | done |
-| legend | `legend` (loc, 'best', frame) | same | planned-v0.2 |
-| scatter | `scatter` (s=, colors) | v0.2; `c=`+cmap v0.4 | planned-v0.2 |
+| markers | `marker=` + fmt chars | full string set | done (all 25 string markers) |
+| save SVG | `savefig("*.svg")` | same | done (72 dpi pt canvas; text as paths = svg.fonttype 'path' default) |
+| save PNG (dpi) | `savefig("*.png", dpi=)` | AGG raster, savefig.dpi='figure' semantics | done |
+| text on axes | `text` | same | done (real DejaVu metrics; rotation anchor-style — see D8) |
+| legend | `legend` (loc, 'best', frame) | ported _find_best_position | done (rect frame — D9; ncols/bbox_to_anchor later) |
+| scatter | `scatter` (s=, colors) | uniform color; `c=`+cmap v0.4 | done (sizes pt², edgecolors='face') |
 | bar / barh | `bar`, `barh` (+string x) | same | planned-v0.3 |
 | hist | `hist` (bins=10 default) | same | planned-v0.3 |
 | fill_between | `fill_between` | same | planned-v0.3 |
@@ -81,3 +81,5 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D5 | `plt::show()` before v0.5 raises with a clear message | interactivity lands as one coherent milestone |
 | D6 | NaN in data = gap (mpl behavior) but no masked-array type | NaN is the C++ idiom |
 | D7 | Figure numbers are `int` only (no string labels) | keep registry simple |
+| D8 | Text rotation uses anchor-style alignment (mpl rotation_mode='anchor'), not mpl's default rotated-bbox mode | simpler; visually close for axis labels — revisit if annotations need it |
+| D9 | Legend frame is a plain rectangle (mpl: slightly rounded FancyBbox) | rounded boxstyle arrives with Patch work (v0.3+) |
