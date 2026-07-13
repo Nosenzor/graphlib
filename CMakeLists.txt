@@ -15,7 +15,34 @@ option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Vendored AGG 2.4 (matplotlib's patched copy — third_party/README.md).
+# Exactly the translation units matplotlib compiles; warnings suppressed
+# (tier-1 vendored code is never edited, so its warnings are not actionable).
+set(GRAPHLIB_AGG_SOURCES
+    third_party/agg/src/agg_bezier_arc.cpp
+    third_party/agg/src/agg_curves.cpp
+    third_party/agg/src/agg_image_filters.cpp
+    third_party/agg/src/agg_trans_affine.cpp
+    third_party/agg/src/agg_vcgen_contour.cpp
+    third_party/agg/src/agg_vcgen_dash.cpp
+    third_party/agg/src/agg_vcgen_stroke.cpp
+    third_party/agg/src/agg_vpgen_segmentator.cpp
+)
+set_source_files_properties(${GRAPHLIB_AGG_SOURCES} PROPERTIES
+    COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
+
+# Embedded DejaVu fonts (build-time generation; no runtime file lookups).
+include(cmake/EmbedResource.cmake)
+graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans.ttf"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans.cpp" graphlib_font_dejavu_sans)
+graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans-Bold.ttf"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
+    graphlib_font_dejavu_sans_bold)
+
 add_library(graphlib STATIC
+    ${GRAPHLIB_AGG_SOURCES}
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans.cpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
     src/backends/svg/svg_renderer.cpp
     src/core/axes.cpp
     src/core/axis.cpp
@@ -40,6 +67,12 @@ configure_file(cmake/version.hpp.in generated/graphlib/version.hpp @ONLY)
 target_include_directories(graphlib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
+)
+# Vendored headers stay an implementation detail (ground rule: backends never
+# leak); SYSTEM keeps our warning flags away from them.
+target_include_directories(graphlib SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/agg/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb
 )
 
 if(MSVC)

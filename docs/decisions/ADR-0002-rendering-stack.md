@@ -1,6 +1,8 @@
 # ADR-0002 — Rendering stack
 
-Date: 2026-07-12 · Status: **accepted** (re-validate at v0.2 kickoff before vendoring)
+Date: 2026-07-12 · Status: **accepted** — re-validated 2026-07-13 at v0.2 kickoff: vendored
+matplotlib's patched AGG (8 TUs from their meson.build) @ matplotlib bde111fb; stb pinned
+31c1ad3; DejaVu Sans/Bold taken from mpl 3.10.8 mpl-data and embedded at build time.
 
 ## Decision
 
