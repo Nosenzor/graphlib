@@ -20,7 +20,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Install Ninja (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        # apt/brew install the arch-correct binary; gha-setup-ninja ships x64-only
+        # archives that break on the arm64 Linux runner.
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update -q && sudo apt-get install -y ninja-build
+          else
+            brew install ninja
+          fi
+      - name: Install Ninja (Windows)
+        if: runner.os == 'Windows'
+        uses: seanmiddleditch/gha-setup-ninja@v5
       - name: Set up MSVC environment
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -45,7 +58,7 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - run: brew install ninja
       - run: cmake --preset asan
       - run: cmake --build --preset asan
       - run: ctest --preset asan
@@ -55,6 +68,6 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - uses: seanmiddleditch/gha-setup-ninja@v5
+      - run: brew install ninja
       - run: cmake --preset ci -DCMAKE_OSX_ARCHITECTURES=x86_64
       - run: cmake --build --preset ci

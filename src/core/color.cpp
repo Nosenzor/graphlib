@@ -9,6 +9,8 @@
 
 #include "graphlib/errors.hpp"
 
+#include "fmt.hpp"
+
 namespace graphlib {
 
 namespace {
@@ -131,14 +133,12 @@ std::optional<Color> try_parse(std::string_view spec) {
         return c;
     }
     // 5. Grayscale string: a float in [0, 1].
-    double gray = 0.0;
-    const auto [ptr, ec] = std::from_chars(spec.data(), spec.data() + spec.size(), gray);
-    if (ec == std::errc{} && ptr == spec.data() + spec.size()) {
-        if (gray < 0.0 || gray > 1.0 || std::isnan(gray)) {
+    if (const auto gray = detail::parse_double(spec)) {
+        if (*gray < 0.0 || *gray > 1.0 || std::isnan(*gray)) {
             throw ValueError("Invalid string grayscale value '" + std::string(spec) +
                              "'. Value must be within 0-1 range");
         }
-        return Color{gray, gray, gray, 1.0};
+        return Color{*gray, *gray, *gray, 1.0};
     }
     return std::nullopt;
 }
