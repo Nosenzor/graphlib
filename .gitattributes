@@ -1,0 +1,5 @@
+# LF everywhere, on every platform — golden SVG tests compare bytes, and the
+# determinism rules (docs/DESIGN.md §13) assume stable line endings.
+* text=auto eol=lf
+*.png binary
+*.ttf binary
