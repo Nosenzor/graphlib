@@ -119,6 +119,27 @@ TEST_CASE("png golden: parabola at 150 dpi (dpi scaling)", "[golden][png]") {
     check_png("parabola_150dpi", fig, 1.0, 150.0);
 }
 
+TEST_CASE("png golden: scatter sizes + legend 'best'", "[golden][png]") {
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    // Data crowds the upper right; 'best' must dodge into another corner.
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> s;
+    for (int i = 0; i < 12; ++i) {
+        x.push_back(1.0 + 0.18 * i);
+        y.push_back(1.0 + 0.16 * i);
+        s.push_back(20.0 + 12.0 * i);
+    }
+    ax.scatter(x, y, {.s = s, .label = "growing"});
+    const std::vector<double> lx{1.0, 3.0};
+    const std::vector<double> ly{2.9, 1.1};
+    ax.plot(lx, ly, "--", {.label = "guide"});
+    ax.legend();
+    ax.grid(true);
+    check_png("scatter_legend_best", fig);
+}
+
 TEST_CASE("png: transparent render has transparent corners", "[png]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

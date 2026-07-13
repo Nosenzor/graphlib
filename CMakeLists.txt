@@ -47,8 +47,10 @@ add_library(graphlib STATIC
     src/backends/svg/svg_renderer.cpp
     src/core/axes.cpp
     src/core/axis.cpp
+    src/core/collections.cpp
     src/core/color.cpp
     src/core/figure.cpp
+    src/core/legend.cpp
     src/core/graphics_context.cpp
     src/core/lines.cpp
     src/core/markers.cpp

@@ -4,6 +4,8 @@ set(GRAPHLIB_EXAMPLES
     02_color_cycle
     03_fmt_and_markers
     04_limits_grid
+    05_scatter
+    06_legend
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)

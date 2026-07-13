@@ -9,6 +9,8 @@
 #include "graphlib/artist.hpp"
 #include "graphlib/axis.hpp"
 #include "graphlib/backend/renderer.hpp"
+#include "graphlib/collections.hpp"
+#include "graphlib/legend.hpp"
 #include "graphlib/lines.hpp"
 #include "graphlib/text.hpp"
 #include "graphlib/transforms.hpp"
@@ -41,6 +43,17 @@ public:
                  const LineOpts& opts = {});
 
     Text& text(double x, double y, std::string s, const TextOpts& opts = {});
+
+    /// Scatter plot of y vs x with per-point sizes (mirrors Axes.scatter;
+    /// c-arrays with colormaps arrive in v0.4).
+    PathCollection& scatter(std::span<const double> x, std::span<const double> y,
+                            const ScatterOpts& opts = {});
+
+    /// Place a legend from the labeled artists (mirrors Axes.legend).
+    Legend& legend(const LegendOpts& opts = {});
+
+    /// Transformed data polylines for legend 'best' placement (internal).
+    void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
 
     // ---- titles & labels ----
     void set_title(std::string t) { title_.text = std::move(t); }
@@ -81,6 +94,7 @@ private:
 
     Figure* figure_;
     std::vector<std::unique_ptr<Artist>> children_;
+    std::unique_ptr<Legend> legend_;
     Axis xaxis_{Axis::Kind::x};
     Axis yaxis_{Axis::Kind::y};
     Text title_, xlabel_, ylabel_;

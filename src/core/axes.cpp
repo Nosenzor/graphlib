@@ -1,6 +1,7 @@
 #include "graphlib/axes.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 
 #include "graphlib/errors.hpp"
@@ -103,6 +104,105 @@ Text& Axes::text(double x, double y, std::string s, const TextOpts& opts) {
     Text& ref = *t;
     children_.push_back(std::move(t));
     return ref;
+}
+
+PathCollection& Axes::scatter(std::span<const double> x, std::span<const double> y,
+                              const ScatterOpts& opts) {
+    if (x.size() != y.size()) {
+        throw ValueError("scatter: x and y must be the same size");
+    }
+    if (!opts.s.empty() && opts.s.size() != 1 && opts.s.size() != x.size()) {
+        throw ValueError("scatter: s must be a scalar or the same size as x");
+    }
+    auto pc = std::make_unique<PathCollection>();
+    pc->axes = this;
+    pc->xdata.assign(x.begin(), x.end());
+    pc->ydata.assign(y.begin(), y.end());
+    if (opts.s.empty()) {
+        pc->sizes = {36.0}; // mpl default: lines.markersize^2
+    } else {
+        pc->sizes.assign(opts.s.begin(), opts.s.end());
+    }
+    const Color face = opts.c.empty() ? next_cycle_color() : to_color(opts.c);
+    pc->facecolor = face;
+    // rc scatter.edgecolors = 'face': the edge follows the face color
+    pc->edgecolor =
+        (opts.edgecolors.empty() || opts.edgecolors == "face") ? face : to_color(opts.edgecolors);
+    pc->marker = &get_marker(opts.marker.empty() ? "o" : opts.marker); // rc scatter.marker
+    pc->linewidth = opts.linewidths.value_or(1.0);
+    pc->alpha = opts.alpha;
+    pc->zorder = opts.zorder.value_or(1.0);
+    pc->label = std::string(opts.label);
+
+    data_lim_.update(pc->data_extents());
+    autoscale_view();
+
+    PathCollection& ref = *pc;
+    children_.push_back(std::move(pc));
+    return ref;
+}
+
+Legend& Axes::legend(const LegendOpts& opts) {
+    auto lg = std::make_unique<Legend>();
+    lg->axes = this;
+    lg->loc_code = Legend::parse_loc(opts.loc.empty() ? "best" : opts.loc); // rc legend.loc
+    lg->fontsize = opts.fontsize.value_or(10.0);   // rc legend.fontsize 'medium'
+    lg->frameon = opts.frameon.value_or(true);     // rc legend.frameon
+    lg->framealpha = opts.framealpha.value_or(0.8); // rc legend.framealpha
+
+    for (const auto& child : children_) {
+        if (child->label.empty()) {
+            continue;
+        }
+        Legend::Entry e;
+        e.label = child->label;
+        if (const auto* line = dynamic_cast<const Line2D*>(child.get())) {
+            e.color = line->color;
+            e.linestyle = line->linestyle;
+            e.linewidth = line->linewidth;
+            e.marker = line->marker;
+            e.markerfacecolor = line->markerfacecolor;
+            e.markeredgecolor = line->markeredgecolor;
+            e.markersize = line->markersize;
+            e.markeredgewidth = line->markeredgewidth;
+        } else if (const auto* pc = dynamic_cast<const PathCollection*>(child.get())) {
+            e.linestyle = LineStyle{LineStyle::Kind::none};
+            e.marker = pc->marker;
+            e.markerfacecolor = pc->facecolor;
+            e.markeredgecolor = pc->edgecolor;
+            e.markersize = std::sqrt(pc->sizes.front());
+            e.markeredgewidth = pc->linewidth;
+        } else {
+            continue; // Text labels don't get legend entries (mpl behavior)
+        }
+        lg->entries.push_back(std::move(e));
+    }
+    legend_ = std::move(lg);
+    return *legend_;
+}
+
+void Axes::collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px,
+                                    Size canvas) const {
+    const Affine2D tf = trans_data(canvas);
+    for (const auto& child : children_) {
+        std::vector<Point> pts;
+        if (const auto* line = dynamic_cast<const Line2D*>(child.get())) {
+            pts.reserve(line->xdata.size());
+            for (size_t i = 0; i < line->xdata.size(); ++i) {
+                if (std::isfinite(line->xdata[i]) && std::isfinite(line->ydata[i])) {
+                    pts.push_back(tf.apply({line->xdata[i], line->ydata[i]}));
+                }
+            }
+        } else if (const auto* pc = dynamic_cast<const PathCollection*>(child.get())) {
+            pts.reserve(pc->xdata.size());
+            for (size_t i = 0; i < pc->xdata.size(); ++i) {
+                pts.push_back(tf.apply({pc->xdata[i], pc->ydata[i]}));
+            }
+        }
+        if (!pts.empty()) {
+            lines_px.push_back(std::move(pts));
+        }
+    }
 }
 
 void Axes::set_xlim(double left, double right) {
@@ -236,9 +336,12 @@ void Axes::draw(Renderer& renderer) {
         renderer.close_group();
     }
 
-    // 5. ticks + tick labels
+    // 5. ticks + tick labels, then the legend on top (zorder 5)
     xaxis_.draw_ticks(renderer, *this, xticks);
     yaxis_.draw_ticks(renderer, *this, yticks);
+    if (legend_) {
+        legend_->draw(renderer);
+    }
 
     // 6. axis labels + title, laid out with real FontManager metrics
     const auto& fm = detail::FontManager::instance();

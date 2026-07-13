@@ -64,6 +64,13 @@ Text& text(double x, double y, std::string s, const TextOpts& opts) {
     return gca().text(x, y, std::move(s), opts);
 }
 
+PathCollection& scatter(std::span<const double> x, std::span<const double> y,
+                        const ScatterOpts& opts) {
+    return gca().scatter(x, y, opts);
+}
+
+Legend& legend(const LegendOpts& opts) { return gca().legend(opts); }
+
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }
 void ylabel(std::string t) { gca().set_ylabel(std::move(t)); }
