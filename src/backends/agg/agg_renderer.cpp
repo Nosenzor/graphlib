@@ -1,5 +1,6 @@
 #include "graphlib/backend/agg.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
