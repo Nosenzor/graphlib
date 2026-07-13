@@ -30,6 +30,11 @@ set(GRAPHLIB_AGG_SOURCES
 )
 set_source_files_properties(${GRAPHLIB_AGG_SOURCES} PROPERTIES
     COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
+# GCC's -Wmaybe-uninitialized is a middle-end warning that escapes -isystem
+# suppression when AGG header templates inline at -O3 (false positive in
+# agg_curves.h). Vendored code is never edited — suppress in the including TU.
+set_source_files_properties(src/backends/agg/agg_renderer.cpp PROPERTIES
+    COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:GNU>:-Wno-maybe-uninitialized>")
 
 # Embedded DejaVu fonts (build-time generation; no runtime file lookups).
 include(cmake/EmbedResource.cmake)
