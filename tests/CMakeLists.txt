@@ -7,6 +7,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(graphlib_tests
+    image/png_golden.cpp
+    image/stb_image_impl.cpp
     image/svg_golden.cpp
     unit/test_axes.cpp
     unit/test_color.cpp
@@ -21,6 +23,10 @@ target_link_libraries(graphlib_tests PRIVATE graphlib::graphlib Catch2::Catch2Wi
 target_include_directories(graphlib_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+target_include_directories(graphlib_tests SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/stb)
+set_source_files_properties(image/stb_image_impl.cpp PROPERTIES
+    COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
 target_compile_definitions(graphlib_tests PRIVATE
     GRAPHLIB_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 if(MSVC)

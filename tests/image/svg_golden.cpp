@@ -16,6 +16,8 @@
 #include "graphlib/figure.hpp"
 #include "graphlib/util.hpp"
 
+#include "conformance_scene.hpp"
+
 using namespace graphlib;
 namespace fs = std::filesystem;
 
@@ -113,6 +115,13 @@ TEST_CASE("golden: manual limits, grid, clipping, NaN gap, text", "[golden]") {
     ax.grid(true);
     ax.text(-3.5, 1.5, "clipped & gapped");
     check_golden("limits_grid_clip", fig);
+}
+
+TEST_CASE("golden: backend conformance scene (SVG)", "[golden]") {
+    // The same scene every backend must draw correctly (new-backend skill).
+    Figure fig;
+    build_conformance_scene(fig);
+    check_golden("conformance_svg", fig);
 }
 
 TEST_CASE("golden: transparent savefig drops patches", "[golden]") {
