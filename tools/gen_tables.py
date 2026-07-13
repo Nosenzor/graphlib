@@ -53,8 +53,9 @@ def gen_tab_and_base() -> None:
     print("tab_base_colors.inc written")
 
 
-# v0.1 marker set (ROADMAP): o s ^ v D + x . *  (plus < > for symmetry, cheap)
-V01_MARKERS = ["o", "s", "^", "v", "<", ">", "D", "+", "x", ".", "*"]
+# The full matplotlib string-marker set (v0.2).
+MARKERS = [".", ",", "o", "v", "^", "<", ">", "1", "2", "3", "4", "8",
+           "s", "p", "P", "*", "h", "H", "+", "x", "X", "D", "d", "|", "_"]
 
 
 def gen_markers() -> None:
@@ -62,7 +63,7 @@ def gen_markers() -> None:
     lines.append("// Vertices are in marker units: 1 unit == markersize (pt); the marker's")
     lines.append("// base transform is pre-baked. Draw scale = points_to_pixels(markersize).")
     lines.append("static const MarkerDef kMarkerDefs[] = {")
-    for m in V01_MARKERS:
+    for m in MARKERS:
         ms = MarkerStyle(m)
         path = ms.get_path().transformed(ms.get_transform())  # bake base transform
         verts = path.vertices
@@ -76,7 +77,7 @@ def gen_markers() -> None:
     lines.append("};")
     lines.append("// clang-format on")
     (OUT / "marker_paths.inc").write_text("\n".join(lines) + "\n")
-    print(f"marker_paths.inc: {len(V01_MARKERS)} markers")
+    print(f"marker_paths.inc: {len(MARKERS)} markers")
 
 
 if __name__ == "__main__":
