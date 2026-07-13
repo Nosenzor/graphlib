@@ -49,11 +49,13 @@ public:
                               const Affine2D& transform,
                               const std::optional<Color>& face = std::nullopt);
 
-    /// Draw text at `pos` (device px). Alignment is resolved by the backend in
-    /// v0.1 (SVG anchors); TODO(v0.2): FontManager metrics move this into Text.
+    /// Draw text at `pos` (device px), rotated `angle_deg` CCW about the anchor.
+    /// The default implementation lays out with FontManager metrics and fills
+    /// glyph outlines through draw_path — matplotlib's svg.fonttype='path'
+    /// behavior, identical on every backend. Backends with native text
+    /// (PDF, GLFW glyph atlas) may override.
     virtual void draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
-                           const FontProperties& font, double angle_deg, HAlign ha,
-                           VAlign va) = 0;
+                           const FontProperties& font, double angle_deg, HAlign ha, VAlign va);
 
     [[nodiscard]] virtual Size canvas_size() const = 0;
 

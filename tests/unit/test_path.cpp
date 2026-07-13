@@ -43,7 +43,7 @@ TEST_CASE("Path builder and close()", "[path]") {
     p.move_to(0, 0);
     p.line_to(1, 0);
     p.line_to(1, 1);
-    p.close();
+    p.close_subpath();
     REQUIRE(p.size() == 4);
     CHECK(p.codes()[0] == PathCode::moveto);
     CHECK(p.codes()[3] == PathCode::closepoly);

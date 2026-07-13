@@ -57,7 +57,11 @@ add_library(graphlib STATIC
     src/core/text.cpp
     src/core/ticker.cpp
     src/core/transforms.cpp
+    src/text/font_manager.cpp
+    src/text/stb_impl.cpp
 )
+set_source_files_properties(src/text/stb_impl.cpp PROPERTIES
+    COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
 add_library(graphlib::graphlib ALIAS graphlib)
 
 target_compile_features(graphlib PUBLIC cxx_std_20)
@@ -74,6 +78,8 @@ target_include_directories(graphlib SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/agg/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb
 )
+# Internal headers (src/text/..., src/core/fmt.hpp) — never installed.
+target_include_directories(graphlib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if(MSVC)
     target_compile_options(graphlib PRIVATE /W4 /permissive- /utf-8)

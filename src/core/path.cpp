@@ -47,33 +47,39 @@ Path Path::line(std::span<const double> x, std::span<const double> y) {
     return p;
 }
 
-void Path::move_to(double x, double y) {
+void Path::materialize_codes() {
     if (codes_.empty() && !vertices_.empty()) {
         codes_.assign(vertices_.size(), PathCode::lineto);
         codes_.front() = PathCode::moveto;
     }
+}
+
+void Path::move_to(double x, double y) {
+    materialize_codes();
+    subpath_start_ = vertices_.size();
     vertices_.push_back({x, y});
     codes_.push_back(PathCode::moveto);
 }
 
 void Path::line_to(double x, double y) {
     vertices_.push_back({x, y});
-    if (!codes_.empty() || vertices_.size() == 1) {
-        if (codes_.empty()) {
-            codes_.push_back(PathCode::moveto);
-        } else {
-            codes_.push_back(PathCode::lineto);
-        }
+    if (!codes_.empty()) {
+        codes_.push_back(PathCode::lineto);
+    } else if (vertices_.size() == 1) {
+        codes_.push_back(PathCode::moveto);
     }
 }
 
+void Path::curve3_to(Point c, Point p) {
+    materialize_codes();
+    vertices_.push_back(c);
+    vertices_.push_back(p);
+    codes_.push_back(PathCode::curve3);
+    codes_.push_back(PathCode::curve3);
+}
+
 void Path::curve4_to(Point c1, Point c2, Point p) {
-    if (codes_.empty()) {
-        codes_.assign(vertices_.size(), PathCode::lineto);
-        if (!codes_.empty()) {
-            codes_.front() = PathCode::moveto;
-        }
-    }
+    materialize_codes();
     vertices_.push_back(c1);
     vertices_.push_back(c2);
     vertices_.push_back(p);
@@ -82,15 +88,12 @@ void Path::curve4_to(Point c1, Point c2, Point p) {
     codes_.push_back(PathCode::curve4);
 }
 
-void Path::close() {
+void Path::close_subpath() {
     if (vertices_.empty()) {
         return;
     }
-    if (codes_.empty()) {
-        codes_.assign(vertices_.size(), PathCode::lineto);
-        codes_.front() = PathCode::moveto;
-    }
-    vertices_.push_back(vertices_.front());
+    materialize_codes();
+    vertices_.push_back(vertices_[subpath_start_]);
     codes_.push_back(PathCode::closepoly);
 }
 

@@ -20,8 +20,8 @@ public:
                       const Affine2D& marker_transform, const Path& positions,
                       const Affine2D& transform,
                       const std::optional<Color>& face = std::nullopt) override;
-    void draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
-                   const FontProperties& font, double angle_deg, HAlign ha, VAlign va) override;
+    // draw_text: inherited glyph-outline implementation (mpl svg.fonttype='path'
+    // default; an svg.fonttype='none' native-text mode can come with rc, v0.3).
     [[nodiscard]] Size canvas_size() const override { return {width_, height_}; }
     void open_group(std::string_view tag) override;
     void close_group() override;

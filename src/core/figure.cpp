@@ -50,7 +50,7 @@ void Figure::draw(Renderer& renderer) const {
         patch.line_to(canvas.width, 0);
         patch.line_to(canvas.width, canvas.height);
         patch.line_to(0, canvas.height);
-        patch.close();
+        patch.close_subpath();
         GraphicsContext gc;
         gc.color.a = 0; // rc figure.edgecolor is effectively invisible by default
         renderer.draw_path(gc, patch, Affine2D::identity(), facecolor);

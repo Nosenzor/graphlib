@@ -11,12 +11,16 @@ add_executable(graphlib_tests
     unit/test_axes.cpp
     unit/test_color.cpp
     unit/test_path.cpp
+    unit/test_text_metrics.cpp
     unit/test_ticker.cpp
     unit/test_transforms.cpp
 )
 target_link_libraries(graphlib_tests PRIVATE graphlib::graphlib Catch2::Catch2WithMain)
-# fixtures/fixtures.inc is included relative to the tests dir
-target_include_directories(graphlib_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+# fixtures/fixtures.inc is included relative to the tests dir; internal
+# headers (text/font_manager.hpp) are white-box-tested from src/.
+target_include_directories(graphlib_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 target_compile_definitions(graphlib_tests PRIVATE
     GRAPHLIB_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 if(MSVC)

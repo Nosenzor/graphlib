@@ -10,30 +10,6 @@ namespace {
 
 using detail::fmt_trim;
 
-std::string xml_escape(std::string_view s) {
-    std::string out;
-    out.reserve(s.size());
-    for (const char c : s) {
-        switch (c) {
-        case '&':
-            out += "&amp;";
-            break;
-        case '<':
-            out += "&lt;";
-            break;
-        case '>':
-            out += "&gt;";
-            break;
-        case '"':
-            out += "&quot;";
-            break;
-        default:
-            out += c;
-        }
-    }
-    return out;
-}
-
 std::string opacity_attr(const char* name, double a) {
     if (a >= 1.0) {
         return {};
@@ -198,40 +174,6 @@ void SvgRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
                  fmt_trim(p.y, 2) + "\"/>\n";
     }
     body_ += "</g>\n";
-}
-
-void SvgRenderer::draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
-                            const FontProperties& font, double angle_deg, HAlign ha, VAlign va) {
-    if (text.empty()) {
-        return;
-    }
-    const Point p = flip(pos);
-    std::string attrs = " x=\"" + fmt_trim(p.x, 2) + "\" y=\"" + fmt_trim(p.y, 2) + "\"";
-    // Baseline shims until FontManager metrics land (TODO(v0.2)).
-    if (va == VAlign::top) {
-        attrs += " dy=\"0.8em\"";
-    } else if (va == VAlign::center) {
-        attrs += " dy=\"0.35em\"";
-    } else if (va == VAlign::bottom) {
-        attrs += " dy=\"-0.2em\"";
-    }
-    attrs += " font-family=\"DejaVu Sans, sans-serif\" font-size=\"" +
-             fmt_trim(points_to_pixels(font.size_pt), 2) + "\"";
-    if (font.bold) {
-        attrs += " font-weight=\"bold\"";
-    }
-    attrs += " fill=\"" + to_hex(gc.color) + "\"" + opacity_attr("fill-opacity", gc.color.a);
-    if (ha == HAlign::center) {
-        attrs += " text-anchor=\"middle\"";
-    } else if (ha == HAlign::right) {
-        attrs += " text-anchor=\"end\"";
-    }
-    if (angle_deg != 0.0) {
-        // CCW in y-up display coords == negative rotation in the y-down document.
-        attrs += " transform=\"rotate(" + fmt_trim(-angle_deg, 2) + " " + fmt_trim(p.x, 2) + " " +
-                 fmt_trim(p.y, 2) + ")\"";
-    }
-    body_ += "<text" + attrs + ">" + xml_escape(text) + "</text>\n";
 }
 
 std::string SvgRenderer::finalize() const {

@@ -5,24 +5,9 @@
 
 #include "graphlib/errors.hpp"
 #include "graphlib/figure.hpp"
+#include "text/font_manager.hpp"
 
 namespace graphlib {
-
-namespace {
-
-// Codepoint count for the crude v0.1 text-width estimate (labels may contain
-// the multi-byte U+2212 minus). TODO(v0.2): real metrics via FontManager.
-size_t utf8_length(std::string_view s) {
-    size_t n = 0;
-    for (const char c : s) {
-        n += (static_cast<unsigned char>(c) & 0xC0) != 0x80;
-    }
-    return n;
-}
-
-constexpr double kAvgCharWidthEm = 0.6; // DejaVu Sans rough average advance
-
-} // namespace
 
 Axes::Axes(Figure& figure, Bbox position_fraction) : position(position_fraction), figure_(&figure) {
     title_.fontsize = 12.0; // rc axes.titlesize 'large' = 1.2 x font.size
@@ -188,7 +173,7 @@ void Axes::draw(Renderer& renderer) {
         p.line_to(bpx.x1(), bpx.y0());
         p.line_to(bpx.x1(), bpx.y1());
         p.line_to(bpx.x0(), bpx.y1());
-        p.close();
+        p.close_subpath();
         return p;
     }();
 
@@ -255,22 +240,26 @@ void Axes::draw(Renderer& renderer) {
     xaxis_.draw_ticks(renderer, *this, xticks);
     yaxis_.draw_ticks(renderer, *this, yticks);
 
-    // 6. axis labels + title (fixed-offset layout; real metrics land in v0.2)
+    // 6. axis labels + title, laid out with real FontManager metrics
+    const auto& fm = detail::FontManager::instance();
     const double cx = (bpx.x0() + bpx.x1()) / 2.0;
     const double cy = (bpx.y0() + bpx.y1()) / 2.0;
-    const double tick_out = (3.5 + 3.5) * ppt; // tick size + pad
+    const double tick_out = (3.5 + 3.5) * ppt;      // tick size + label pad
+    const double tick_label_em = 10.0 * ppt;        // rc xtick.labelsize 'medium'
+    const double labelpad = 4.0 * ppt;              // rc axes.labelpad
     if (!xlabel_.text.empty()) {
-        // below the x tick labels (~one label height) + rc axes.labelpad 4pt
-        xlabel_.position = {cx, bpx.y0() - tick_out - 10.0 * ppt - 4.0 * ppt};
+        // below the x tick label block (ascent+descent), va=top
+        const double tick_label_h =
+            fm.ascent(tick_label_em) + fm.descent(tick_label_em);
+        xlabel_.position = {cx, bpx.y0() - tick_out - tick_label_h - labelpad};
         xlabel_.draw(renderer);
     }
     if (!ylabel_.text.empty()) {
-        double max_chars = 0;
+        double labels_width = 0.0;
         for (const auto& l : yticks.labels) {
-            max_chars = std::max(max_chars, static_cast<double>(utf8_length(l)));
+            labels_width = std::max(labels_width, fm.text_extent(l, tick_label_em).width);
         }
-        const double labels_width = max_chars * kAvgCharWidthEm * 10.0 * ppt;
-        ylabel_.position = {bpx.x0() - tick_out - labels_width - 4.0 * ppt, cy};
+        ylabel_.position = {bpx.x0() - tick_out - labels_width - labelpad, cy};
         ylabel_.draw(renderer);
     }
     if (!title_.text.empty()) {

@@ -31,8 +31,10 @@ public:
 
     void move_to(double x, double y);
     void line_to(double x, double y);
+    void curve3_to(Point c, Point p); // quadratic (TrueType glyph contours)
     void curve4_to(Point c1, Point c2, Point p);
-    void close();
+    /// Close the current subpath (back to its MOVETO, not the first vertex).
+    void close_subpath();
 
     [[nodiscard]] bool empty() const { return vertices_.empty(); }
     [[nodiscard]] size_t size() const { return vertices_.size(); }
@@ -50,8 +52,11 @@ public:
     [[nodiscard]] Path transformed(const Affine2D& t) const;
 
 private:
+    void materialize_codes();
+
     std::vector<Point> vertices_;
     std::vector<PathCode> codes_;
+    size_t subpath_start_ = 0; // index of the current subpath's MOVETO vertex
 };
 
 } // namespace graphlib
