@@ -12,9 +12,9 @@
 namespace graphlib {
 
 struct FigureOpts {
-    std::array<double, 2> figsize{6.4, 4.8}; // rc figure.figsize, inches
-    double dpi = 100.0;                      // rc figure.dpi (SVG renders at 72, like mpl)
-    std::string_view facecolor = "white";    // rc figure.facecolor
+    std::optional<std::array<double, 2>> figsize{}; // rc figure.figsize, inches
+    std::optional<double> dpi{};                    // rc figure.dpi (SVG renders at 72, like mpl)
+    std::string_view facecolor{};                   // rc figure.facecolor
 };
 
 struct SaveOpts {

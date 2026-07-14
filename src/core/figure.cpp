@@ -7,6 +7,7 @@
 #include "graphlib/backend/agg.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/errors.hpp"
+#include "graphlib/rc.hpp"
 
 namespace graphlib {
 
@@ -26,8 +27,16 @@ std::string lower_ext(const std::string& filename) {
 }
 } // namespace
 
-Figure::Figure(const FigureOpts& opts)
-    : figsize(opts.figsize), dpi(opts.dpi), facecolor(to_color(opts.facecolor)) {}
+Figure::Figure(const FigureOpts& opts) {
+    if (opts.figsize) {
+        figsize = *opts.figsize;
+    } else {
+        const auto& v = std::get<std::vector<double>>(rc().at("figure.figsize"));
+        figsize = {v[0], v[1]};
+    }
+    dpi = opts.dpi.value_or(rc().number("figure.dpi"));
+    facecolor = opts.facecolor.empty() ? rc().color("figure.facecolor") : to_color(opts.facecolor);
+}
 
 Axes& Figure::add_subplot() { return add_axes(kDefaultSubplotRect); }
 

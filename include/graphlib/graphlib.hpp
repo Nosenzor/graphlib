@@ -17,6 +17,8 @@
 #include "graphlib/markers.hpp"
 #include "graphlib/path.hpp"
 #include "graphlib/pyplot.hpp"
+#include "graphlib/rc.hpp"
+#include "graphlib/style.hpp"
 #include "graphlib/text.hpp"
 #include "graphlib/ticker.hpp"
 #include "graphlib/transforms.hpp"

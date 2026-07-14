@@ -103,9 +103,10 @@ private:
     double vx0_ = 0, vx1_ = 1, vy0_ = 0, vy1_ = 1;
     bool autoscale_x_ = true;
     bool autoscale_y_ = true;
-    bool grid_on_ = false; // rc axes.grid
+    bool grid_on_ = false;   // seeded from rc axes.grid in the ctor
     double margin_x_ = 0.05; // rc axes.xmargin
     double margin_y_ = 0.05; // rc axes.ymargin
+    std::vector<Color> cycle_; // rc axes.prop_cycle, captured at creation (mpl semantics)
     size_t cycle_index_ = 0;
 };
 

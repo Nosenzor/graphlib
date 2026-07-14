@@ -61,6 +61,7 @@ add_library(graphlib STATIC
     src/core/markers.cpp
     src/core/path.cpp
     src/core/pyplot.cpp
+    src/core/rc.cpp
     src/core/renderer.cpp
     src/core/text.cpp
     src/core/ticker.cpp

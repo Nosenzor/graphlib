@@ -13,6 +13,7 @@ add_executable(graphlib_tests
     unit/test_axes.cpp
     unit/test_color.cpp
     unit/test_path.cpp
+    unit/test_rc.cpp
     unit/test_scatter_legend.cpp
     unit/test_text_metrics.cpp
     unit/test_ticker.cpp

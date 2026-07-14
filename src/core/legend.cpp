@@ -8,6 +8,7 @@
 #include "graphlib/axes.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/errors.hpp"
+#include "graphlib/rc.hpp"
 #include "text/font_manager.hpp"
 
 namespace graphlib {
@@ -168,9 +169,10 @@ void Legend::draw(Renderer& renderer) {
     frame.close_subpath();
     if (frameon) {
         GraphicsContext frame_gc;
-        frame_gc.color = to_color("0.8"); // rc legend.edgecolor
-        frame_gc.linewidth = 1.0;         // rc patch.linewidth
-        const Color face = Color{1, 1, 1, framealpha}; // white @ rc legend.framealpha
+        frame_gc.color = rc().color("legend.edgecolor");
+        frame_gc.linewidth = rc().number("patch.linewidth");
+        Color face = rc().color("axes.facecolor"); // legend face follows the axes background
+        face.a = framealpha;
         renderer.draw_path(frame_gc, frame, Affine2D::identity(), face);
     }
 
@@ -206,7 +208,7 @@ void Legend::draw(Renderer& renderer) {
                                                    : std::nullopt);
         }
         GraphicsContext text_gc;
-        text_gc.color = {0, 0, 0, 1}; // rc legend text color
+        text_gc.color = rc().color("text.color"); // rc legend.labelcolor 'None' -> text.color
         renderer.draw_text(text_gc, {hx0 + handle_len + handle_pad, row_center}, e.label,
                            FontProperties{fontsize, false, false}, 0.0, HAlign::left,
                            VAlign::center);

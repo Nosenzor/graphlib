@@ -6,16 +6,15 @@
 #include "graphlib/axes.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/figure.hpp"
+#include "graphlib/rc.hpp"
 
 namespace graphlib {
 
 namespace {
-// rcParams: xtick/ytick major size 3.5pt, width 0.8pt, pad 3.5pt, direction 'out',
-// labelsize 'medium' (10pt), color black.
-constexpr double kTickSizePt = 3.5;
-constexpr double kTickWidthPt = 0.8;
-constexpr double kTickPadPt = 3.5;
-constexpr double kTickLabelPt = 10.0;
+// Direction 'out' only in v0.3 (in/inout arrive with tick param API).
+std::string rc_key(Axis::Kind kind, const char* suffix) {
+    return std::string(kind == Axis::Kind::x ? "xtick." : "ytick.") + suffix;
+}
 } // namespace
 
 Axis::Axis(Kind kind)
@@ -37,7 +36,8 @@ Axis::TickData Axis::compute_ticks(const Axes& axes) const {
     const auto figsize = axes.figure().figsize;
     const double length_in = kind_ == Kind::x ? axes.position.width() * figsize[0]
                                               : axes.position.height() * figsize[1];
-    locator_->set_tick_space(tick_space(kind_, length_in * 72.0, kTickLabelPt));
+    locator_->set_tick_space(
+        tick_space(kind_, length_in * 72.0, rc().fontsize(rc_key(kind_, "labelsize"))));
     const std::vector<double> locs = locator_->tick_values(v0, v1);
     const std::vector<std::string> labels = formatter_->format_ticks(locs, v0, v1);
 
@@ -57,17 +57,17 @@ void Axis::draw_ticks(Renderer& renderer, const Axes& axes, const TickData& tick
     const Size canvas = renderer.canvas_size();
     const Bbox bbox = axes.bbox_pixels(canvas);
     const Affine2D tf = axes.trans_data(canvas);
-    const double size_px = renderer.points_to_pixels(kTickSizePt);
-    const double pad_px = renderer.points_to_pixels(kTickPadPt);
+    const double size_px = renderer.points_to_pixels(rc().number(rc_key(kind_, "major.size")));
+    const double pad_px = renderer.points_to_pixels(rc().number(rc_key(kind_, "major.pad")));
 
     GraphicsContext gc;
-    gc.color = {0, 0, 0, 1}; // rc xtick.color
-    gc.linewidth = kTickWidthPt;
+    gc.color = rc().color(rc_key(kind_, "color"));
+    gc.linewidth = rc().number(rc_key(kind_, "major.width"));
     gc.capstyle = CapStyle::butt;
 
     GraphicsContext label_gc;
-    label_gc.color = {0, 0, 0, 1}; // rc xtick.labelcolor
-    const FontProperties font{kTickLabelPt, false, false};
+    label_gc.color = gc.color; // rc tick labelcolor follows tick color ('inherit')
+    const FontProperties font{rc().fontsize(rc_key(kind_, "labelsize")), false, false};
 
     renderer.open_group(kind_ == Kind::x ? "xtick" : "ytick");
     for (size_t i = 0; i < ticks.locs.size(); ++i) {

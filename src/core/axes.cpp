@@ -6,19 +6,29 @@
 
 #include "graphlib/errors.hpp"
 #include "graphlib/figure.hpp"
+#include "graphlib/rc.hpp"
 #include "text/font_manager.hpp"
 
 namespace graphlib {
 
 Axes::Axes(Figure& figure, Bbox position_fraction) : position(position_fraction), figure_(&figure) {
-    title_.fontsize = 12.0; // rc axes.titlesize 'large' = 1.2 x font.size
+    // rc is read at creation time, like matplotlib artists.
+    title_.fontsize = rc().fontsize("axes.titlesize");
+    title_.color = rc().color("text.color");
     title_.ha = HAlign::center;
     title_.va = VAlign::bottom;
-    xlabel_.ha = HAlign::center;
+    for (Text* label : {&xlabel_, &ylabel_}) {
+        label->fontsize = rc().fontsize("axes.labelsize");
+        label->color = rc().color("axes.labelcolor");
+        label->ha = HAlign::center;
+    }
     xlabel_.va = VAlign::top;
-    ylabel_.ha = HAlign::center;
     ylabel_.va = VAlign::bottom;
     ylabel_.rotation_deg = 90.0;
+    grid_on_ = rc().flag("axes.grid");
+    margin_x_ = rc().number("axes.xmargin");
+    margin_y_ = rc().number("axes.ymargin");
+    cycle_ = rc().color_cycle();
 }
 
 Line2D& Axes::plot(std::span<const double> x, std::span<const double> y, std::string_view fmt,
@@ -59,17 +69,17 @@ Line2D& Axes::plot(std::span<const double> x, std::span<const double> y, std::st
     line->xdata.assign(x.begin(), x.end());
     line->ydata.assign(y.begin(), y.end());
     line->color = col;
-    line->linewidth = opts.linewidth.value_or(1.5);           // rc lines.linewidth
+    line->linewidth = opts.linewidth.value_or(rc().number("lines.linewidth"));
     line->linestyle = LineStyle::parse(ls_token);
     if (!marker_token.empty() && marker_token != "None") {
         line->marker = &get_marker(marker_token);
     }
-    line->markersize = opts.markersize.value_or(6.0);         // rc lines.markersize
+    line->markersize = opts.markersize.value_or(rc().number("lines.markersize"));
     line->markerfacecolor =
         opts.markerfacecolor.empty() ? col : to_color(opts.markerfacecolor);
     line->markeredgecolor =
         opts.markeredgecolor.empty() ? col : to_color(opts.markeredgecolor);
-    line->markeredgewidth = opts.markeredgewidth.value_or(1.0); // rc lines.markeredgewidth
+    line->markeredgewidth = opts.markeredgewidth.value_or(rc().number("lines.markeredgewidth"));
     line->alpha = opts.alpha;
     line->zorder = opts.zorder.value_or(2.0);
     line->label = std::string(opts.label);
@@ -96,8 +106,8 @@ Text& Axes::text(double x, double y, std::string s, const TextOpts& opts) {
     t->coords = Text::Coords::data;
     t->position = {x, y};
     t->text = std::move(s);
-    t->fontsize = opts.fontsize.value_or(10.0); // rc font.size
-    t->color = opts.color.empty() ? Color{0, 0, 0, 1} : to_color(opts.color);
+    t->fontsize = opts.fontsize.value_or(rc().number("font.size"));
+    t->color = opts.color.empty() ? rc().color("text.color") : to_color(opts.color);
     t->ha = opts.ha;
     t->va = opts.va;
     t->rotation_deg = opts.rotation;
@@ -125,10 +135,13 @@ PathCollection& Axes::scatter(std::span<const double> x, std::span<const double>
     }
     const Color face = opts.c.empty() ? next_cycle_color() : to_color(opts.c);
     pc->facecolor = face;
-    // rc scatter.edgecolors = 'face': the edge follows the face color
-    pc->edgecolor =
-        (opts.edgecolors.empty() || opts.edgecolors == "face") ? face : to_color(opts.edgecolors);
-    pc->marker = &get_marker(opts.marker.empty() ? "o" : opts.marker); // rc scatter.marker
+    const std::string_view edge_spec =
+        opts.edgecolors.empty() ? std::string_view(rc().str("scatter.edgecolors"))
+                                : opts.edgecolors;
+    pc->edgecolor = edge_spec == "face" ? face : to_color(edge_spec);
+    pc->marker =
+        &get_marker(opts.marker.empty() ? std::string_view(rc().str("scatter.marker"))
+                                        : opts.marker);
     pc->linewidth = opts.linewidths.value_or(1.0);
     pc->alpha = opts.alpha;
     pc->zorder = opts.zorder.value_or(1.0);
@@ -145,10 +158,11 @@ PathCollection& Axes::scatter(std::span<const double> x, std::span<const double>
 Legend& Axes::legend(const LegendOpts& opts) {
     auto lg = std::make_unique<Legend>();
     lg->axes = this;
-    lg->loc_code = Legend::parse_loc(opts.loc.empty() ? "best" : opts.loc); // rc legend.loc
-    lg->fontsize = opts.fontsize.value_or(10.0);   // rc legend.fontsize 'medium'
-    lg->frameon = opts.frameon.value_or(true);     // rc legend.frameon
-    lg->framealpha = opts.framealpha.value_or(0.8); // rc legend.framealpha
+    lg->loc_code =
+        Legend::parse_loc(opts.loc.empty() ? std::string_view(rc().str("legend.loc")) : opts.loc);
+    lg->fontsize = opts.fontsize.value_or(rc().fontsize("legend.fontsize"));
+    lg->frameon = opts.frameon.value_or(rc().flag("legend.frameon"));
+    lg->framealpha = opts.framealpha.value_or(rc().number("legend.framealpha"));
 
     for (const auto& child : children_) {
         if (child->label.empty()) {
@@ -225,9 +239,7 @@ void Axes::set_ylim(double bottom, double top) {
     autoscale_y_ = false;
 }
 
-Color Axes::next_cycle_color() {
-    return colors::tab10[cycle_index_++ % colors::tab10.size()];
-}
+Color Axes::next_cycle_color() { return cycle_[cycle_index_++ % cycle_.size()]; }
 
 void Axes::add_line_datalim(const Line2D& line) { data_lim_.update(line.data_extents()); }
 
@@ -277,12 +289,12 @@ void Axes::draw(Renderer& renderer) {
         return p;
     }();
 
-    // 1. axes patch (rc axes.facecolor white, edge drawn by the spines)
+    // 1. axes patch (edge drawn by the spines)
     if (!figure_->transparent_render()) {
         GraphicsContext patch_gc;
         patch_gc.color.a = 0; // no stroke
         renderer.draw_path(patch_gc, rect_path, Affine2D::identity(),
-                           Color{1, 1, 1, 1});
+                           rc().color("axes.facecolor"));
     }
 
     // Ticks are computed at draw time from the current view (DESIGN §3).
@@ -293,8 +305,9 @@ void Axes::draw(Renderer& renderer) {
     // 2. grid, below the data (rc axes.axisbelow 'line')
     if (grid_on_) {
         GraphicsContext grid_gc;
-        grid_gc.color = to_color("#b0b0b0"); // rc grid.color
-        grid_gc.linewidth = 0.8;             // rc grid.linewidth
+        grid_gc.color = rc().color("grid.color");
+        grid_gc.color.a *= rc().number("grid.alpha");
+        grid_gc.linewidth = rc().number("grid.linewidth");
         renderer.open_group("grid");
         for (const double loc : xticks.locs) {
             const double px = tf.apply({loc, 0}).x;
@@ -325,11 +338,11 @@ void Axes::draw(Renderer& renderer) {
         artist->draw(renderer);
     }
 
-    // 4. spines (rc axes.edgecolor black, axes.linewidth 0.8)
+    // 4. spines
     {
         GraphicsContext spine_gc;
-        spine_gc.color = {0, 0, 0, 1};
-        spine_gc.linewidth = 0.8;
+        spine_gc.color = rc().color("axes.edgecolor");
+        spine_gc.linewidth = rc().number("axes.linewidth");
         spine_gc.capstyle = CapStyle::projecting;
         renderer.open_group("spines");
         renderer.draw_path(spine_gc, rect_path, Affine2D::identity());
@@ -347,9 +360,10 @@ void Axes::draw(Renderer& renderer) {
     const auto& fm = detail::FontManager::instance();
     const double cx = (bpx.x0() + bpx.x1()) / 2.0;
     const double cy = (bpx.y0() + bpx.y1()) / 2.0;
-    const double tick_out = (3.5 + 3.5) * ppt;      // tick size + label pad
-    const double tick_label_em = 10.0 * ppt;        // rc xtick.labelsize 'medium'
-    const double labelpad = 4.0 * ppt;              // rc axes.labelpad
+    const double tick_out =
+        (rc().number("xtick.major.size") + rc().number("xtick.major.pad")) * ppt;
+    const double tick_label_em = rc().fontsize("xtick.labelsize") * ppt;
+    const double labelpad = rc().number("axes.labelpad") * ppt;
     if (!xlabel_.text.empty()) {
         // below the x tick label block (ascent+descent), va=top
         const double tick_label_h =
@@ -366,7 +380,7 @@ void Axes::draw(Renderer& renderer) {
         ylabel_.draw(renderer);
     }
     if (!title_.text.empty()) {
-        title_.position = {cx, bpx.y1() + 6.0 * ppt}; // rc axes.titlepad
+        title_.position = {cx, bpx.y1() + rc().number("axes.titlepad") * ppt};
         title_.draw(renderer);
     }
     renderer.close_group();
