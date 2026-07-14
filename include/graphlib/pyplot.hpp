@@ -67,6 +67,12 @@ void grid(bool on = true);
 
 void savefig(const std::string& filename, const SaveOpts& opts = {});
 
+/// Open windows for every figure and block until all are closed (plt.show).
+/// Requires a build with -DGRAPHLIB_INTERACTIVE=ON; throws ValueError otherwise.
+void show();
+/// Pump window events for `seconds` (plt.pause) — the animation heartbeat.
+void pause(double seconds);
+
 void close(int num);
 void close_all();
 

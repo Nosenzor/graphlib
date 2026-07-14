@@ -14,6 +14,8 @@ set(GRAPHLIB_EXAMPLES
     12_contour_gaussian
     13_pcolormesh
     14_scatter_cmap
+    15_interactive_signal
+    16_live_sine
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)

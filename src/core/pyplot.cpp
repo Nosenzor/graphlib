@@ -1,5 +1,7 @@
 #include "graphlib/pyplot.hpp"
 
+#include "graphlib/backend/interactive.hpp"
+
 #include <map>
 #include <memory>
 
@@ -147,6 +149,20 @@ void ylim(double bottom, double top) { gca().set_ylim(bottom, top); }
 void grid(bool on) { gca().grid(on); }
 
 void savefig(const std::string& filename, const SaveOpts& opts) { gcf().savefig(filename, opts); }
+
+namespace {
+std::vector<Figure*> all_figures() {
+    std::vector<Figure*> out;
+    for (auto& [num, fig] : registry().figures) {
+        out.push_back(fig.get());
+    }
+    return out;
+}
+} // namespace
+
+void show() { backend::show(all_figures()); }
+
+void pause(double seconds) { backend::pause(all_figures(), seconds); }
 
 void close(int num) {
     Registry& r = registry();

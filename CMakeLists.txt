@@ -9,6 +9,7 @@ project(graphlib
 option(GRAPHLIB_BUILD_TESTS "Build graphlib tests" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_BUILD_EXAMPLES "Build graphlib examples" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
+option(GRAPHLIB_INTERACTIVE "Build the GLFW window backend (fetches GLFW)" OFF)
 
 # Project-wide baseline (also applies to FetchContent deps like Catch2, so
 # their ABI matches ours — e.g. string_view stringification).
@@ -78,6 +79,25 @@ add_library(graphlib STATIC
 set_source_files_properties(src/text/stb_impl.cpp PROPERTIES
     COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
 add_library(graphlib::graphlib ALIAS graphlib)
+
+# Interactive backend: GLFW window + legacy-GL blit (dependency tier 2 —
+# optional, OFF by default; ADR-0002).
+if(GRAPHLIB_INTERACTIVE)
+    include(FetchContent)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4)
+    FetchContent_MakeAvailable(glfw)
+    find_package(OpenGL REQUIRED)
+    target_sources(graphlib PRIVATE src/backends/glfw/glfw_canvas.cpp)
+    target_link_libraries(graphlib PRIVATE glfw OpenGL::GL)
+else()
+    target_sources(graphlib PRIVATE src/backends/glfw/show_stub.cpp)
+endif()
 
 target_compile_features(graphlib PUBLIC cxx_std_20)
 set_target_properties(graphlib PROPERTIES CXX_EXTENSIONS OFF)
