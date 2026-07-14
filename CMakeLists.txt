@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(graphlib
-    VERSION 0.4.0
+    VERSION 0.5.0
     DESCRIPTION "A modern C++ plotting library that mimics matplotlib"
     HOMEPAGE_URL "https://github.com/Nosenzor/graphlib"
     LANGUAGES CXX)

@@ -3,7 +3,11 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased] — v0.5.0 "It Moves" candidate
+## [Unreleased]
+
+## [0.5.0] — 2026-07-15 — "It Moves"
+
+CI-verified on all five tier-1 targets + the xvfb interactive job (82 tests incl. ASan).
 
 ### Added
 - **Interactive windows** (`-DGRAPHLIB_INTERACTIVE=ON`, fetches GLFW — first tier-2

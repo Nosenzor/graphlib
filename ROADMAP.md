@@ -151,7 +151,7 @@ polylines within tolerance; colorbar ticks = axis ticks rules.
 
 ---
 
-## v0.5.0 — "It Moves" (interactive window)
+## v0.5.0 — "It Moves" (interactive window) — ✅ tagged 2026-07-15
 
 **Goal:** `plt::show()` opens a real window; the figure becomes an instrument, not just a file.
 
