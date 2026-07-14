@@ -104,9 +104,13 @@ figure (long title, rotated labels) lays out correctly; legend 'best' avoids dat
 
 ---
 
-## v0.3.0 — "Everyday Plots" (the workhorse release)
+## v0.3.0 — "Everyday Plots" (the workhorse release) — ✅ tagged 2026-07-14
 
 **Goal:** cover ~80% of day-to-day plotting scripts.
+
+> Shipped as scoped. Deviations logged: D10 (log labels as unicode superscripts until
+> mathtext), D11 (tight_layout per-cell v1). Multi-pair plot(x1,y1,x2,y2) deferred again
+> (v0.4 candidate); minorticks default off exactly like mpl.
 
 **In scope:**
 - New artists/methods: `bar`/`barh` (string x-labels via fixed positions), `hist` (bins=int/edges),

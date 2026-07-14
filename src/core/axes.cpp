@@ -9,6 +9,7 @@
 #include "graphlib/errors.hpp"
 #include "graphlib/figure.hpp"
 #include "graphlib/rc.hpp"
+#include "core/warn.hpp"
 #include "text/font_manager.hpp"
 
 namespace graphlib {
@@ -701,8 +702,8 @@ void Axes::set_yticks(std::vector<double> locs, std::vector<std::string> labels)
 
 void Axes::set_xlim(double left, double right) {
     if (left == right) {
-        // mpl warns and lets the transform degenerate; we expand like the
-        // locator would. TODO(v0.3): warning infrastructure (with rc system).
+        detail::warn("Attempting to set identical low and high xlims makes transformation "
+                     "singular; automatically expanding.");
         std::tie(left, right) = detail::nonsingular(left, right, 0.05);
     }
     for (Axes* ax : share_x_ ? share_x_->members : std::vector<Axes*>{this}) {
@@ -714,6 +715,8 @@ void Axes::set_xlim(double left, double right) {
 
 void Axes::set_ylim(double bottom, double top) {
     if (bottom == top) {
+        detail::warn("Attempting to set identical low and high ylims makes transformation "
+                     "singular; automatically expanding.");
         std::tie(bottom, top) = detail::nonsingular(bottom, top, 0.05);
     }
     for (Axes* ax : share_y_ ? share_y_->members : std::vector<Axes*>{this}) {

@@ -185,8 +185,9 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   at any dpi, embedded-DejaVu text stack (metrics + glyph outlines on all backends), full
   marker set, scatter, legend with ported 'best', PNG image-test harness + conformance
   scene. 47 tests incl. ASan; goldens byte-identical cross-platform.
-- **v0.3.0 "Everyday Plots" — feature-complete locally** (2026-07-14): bar/barh/hist/
+- **v0.3.0 "Everyday Plots" — tagged 2026-07-14, CI green on all 5 targets**: bar/barh/hist/
   fill_between/errorbar/step/pie/spans, subplots+GridSpec+sharing+twins+tight_layout v1,
   log scales + minor ticks (oracle-exact), rcParams + 3 style sheets, full ScalarFormatter
-  offset machinery. 66 tests incl. ASan. **Gate: CI green → tag v0.3.0 (user's word).**
-- Next after tag: **v0.4.0 "Images & Fields"** ([ROADMAP.md](ROADMAP.md)).
+  offset machinery. 66 tests incl. ASan; ~180 oracle fixture cases.
+- **Current milestone: v0.4.0 "Images & Fields"** ([ROADMAP.md](ROADMAP.md)) — colormaps +
+  Normalize, imshow, pcolormesh, contour/contourf, colorbar, full aspect control.

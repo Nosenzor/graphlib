@@ -3,7 +3,11 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased] — v0.3.0 "Everyday Plots" candidate
+## [Unreleased]
+
+## [0.3.0] — 2026-07-14 — "Everyday Plots"
+
+CI-verified on all five tier-1 targets (66 tests incl. ASan); ~180 oracle fixture cases.
 
 ### Added
 - **The everyday plot types**: `bar`/`barh` (categorical labels, sticky-zero autoscale),
