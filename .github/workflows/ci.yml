@@ -63,6 +63,22 @@ jobs:
       - run: cmake --build --preset asan
       - run: ctest --preset asan
 
+  interactive:
+    name: Interactive backend (Linux + xvfb)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps (ninja, X/GL for GLFW, xvfb)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev xvfb
+      - name: Configure
+        run: cmake --preset ci -DGRAPHLIB_INTERACTIVE=ON
+      - name: Build
+        run: cmake --build --preset ci
+      - name: Window smoke under xvfb
+        run: xvfb-run -a ctest --preset ci -R interactive_smoke --output-on-failure
+
   macos-x86-cross:
     name: macOS x86_64 cross slice (tier 2, build only)
     runs-on: macos-14

@@ -43,9 +43,9 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | contour / contourf | `contour(f)` | marching squares | done (stacked-fill bands, D13; MaxNLocator levels) |
 | colorbar | `colorbar` | space-stealing cax + gradient | done (vertical only; ticks/label right) |
 | axes aspect | `set_aspect` auto/equal/num | adjustable='box' | done |
-| show / interactive | `show`, pan/zoom, keymap | GLFW window | planned-v0.5 |
-| events | `mpl_connect` (button/motion/scroll/key/resize/draw/close) | same names | planned-v0.5 |
-| animation | `FuncAnimation` + blitting | live only (no file export) | planned-v0.5 |
+| show / interactive | `show`, pan/zoom, keymap | GLFW window (GRAPHLIB_INTERACTIVE) | done (direct-manipulation nav, D14; h/s/q keys) |
+| events | `mpl_connect` (button/motion/scroll/key/resize/draw/close) | same names + payload fields | done (xdata/ydata/inaxes hit-testing incl. log) |
+| animation | `FuncAnimation` + blitting | live only | done (full redraw, D15; explicit run(), D16) |
 | save PDF | `savefig("*.pdf")` | vector + font subset | planned-v0.6 |
 | mathtext | `$...$` subset | sub/sup, greek, frac, sqrt | planned-v0.6 |
 | date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based | planned-v0.6 |
@@ -87,3 +87,6 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D11 | tight_layout fits decorations per grid cell, not via mpl's global redistribution | covers the common cases; revisit with constrained layout |
 | D12 | imshow interpolation 'auto' maps to 'nearest' (mpl picks by zoom) | antialiased downsampling is a v0.7 perf topic |
 | D13 | contourf paints ascending stacked threshold fills (opaque bands) | identical pixels to mpl bands; semi-transparent contourf overlaps differ |
+| D14 | Navigation is always-on direct manipulation (drag=pan, scroll=zoom), no modal p/o toolbar modes | fewer modes, same capability; toolbar UI is post-1.0 |
+| D15 | Animation redraws fully each frame (no blitting yet) | AGG full-frame is fast enough pre-v0.7; blitting is a perf milestone topic |
+| D16 | FuncAnimation starts via explicit run(), not implicitly on show() | no hidden timers in a C++ API |

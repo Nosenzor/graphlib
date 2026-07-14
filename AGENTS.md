@@ -193,5 +193,7 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   engine (11 oracle-exact LUTs) + Normalize/LogNorm, draw_image on both backends, imshow
   (inverted-y origin, aspect control), pcolormesh, contour/contourf (marching squares),
   colorbar, scatter c-arrays. 76 tests incl. ASan.
-- Next after tag: **v0.5.0 "It Moves"** ([ROADMAP.md](ROADMAP.md)) — GLFW window, events,
-  pan/zoom, animation.
+- **v0.5.0 "It Moves" — feature-complete locally** (2026-07-15): GLFW window backend
+  (GRAPHLIB_INTERACTIVE, tier-2 optional dep), mpl-named events + mpl_connect, log-correct
+  drag-pan/scroll-zoom + h/s/q keys, FuncAnimation-lite, xvfb CI job. 82 tests incl. ASan.
+  **Gate: CI green → tag v0.5.0 (user's word).** Next: **v0.6.0 "Publication Grade"**.

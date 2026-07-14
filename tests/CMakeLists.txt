@@ -42,6 +42,12 @@ if(MSVC)
     target_compile_options(graphlib_tests PRIVATE /utf-8)
 endif()
 
+if(GRAPHLIB_INTERACTIVE)
+    add_executable(interactive_smoke interactive/smoke.cpp)
+    target_link_libraries(interactive_smoke PRIVATE graphlib::graphlib)
+    add_test(NAME interactive_smoke COMMAND interactive_smoke)
+endif()
+
 # Regenerate golden baselines (review with `git diff` before committing!)
 add_custom_target(update-baselines
     COMMAND ${CMAKE_COMMAND} -E env GRAPHLIB_UPDATE_BASELINES=1

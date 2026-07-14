@@ -3,7 +3,20 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased]
+## [Unreleased] — v0.5.0 "It Moves" candidate
+
+### Added
+- **Interactive windows** (`-DGRAPHLIB_INTERACTIVE=ON`, fetches GLFW — first tier-2
+  optional dependency): one window per figure, retina-aware AGG rendering blitted via
+  loader-free GL, live resize relayout; `plt::show()` / `plt::pause()`.
+- **Navigation**: drag to pan, scroll to zoom at the cursor (log-correct, share-group
+  aware), `h` home / `s` save PNG / `q` quit.
+- **matplotlib-named events**: `fig.mpl_connect("button_press_event", ...)` with
+  `xdata`/`ydata`/`inaxes` hit-testing (log axes inverse-mapped); reentrant-safe registry;
+  headless-testable core (backends only translate native input).
+- **`FuncAnimation`**: live frame-driven animation (~30 fps comfortably).
+- CI: interactive smoke job under xvfb; window path verified on real macOS.
+- Without the option, `plt::show()` throws a ValueError explaining how to enable it.
 
 ## [0.4.0] — 2026-07-14 — "Images & Fields"
 
