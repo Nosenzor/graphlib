@@ -102,6 +102,13 @@ public:
     /// Labels for `locs`; the view interval feeds label-precision decisions.
     [[nodiscard]] virtual std::vector<std::string>
     format_ticks(std::span<const double> locs, double view_vmin, double view_vmax) const = 0;
+
+    /// The axis-end offset/scale text ("1e6", "+2.02e3"); empty when unused.
+    [[nodiscard]] virtual std::string offset_text(std::span<const double> /*locs*/,
+                                                  double /*view_vmin*/,
+                                                  double /*view_vmax*/) const {
+        return {};
+    }
 };
 
 /// Fixed, user-supplied labels (set_xticks(locs, labels), categorical bar()).
@@ -129,17 +136,23 @@ public:
     format_ticks(std::span<const double> locs, double view_vmin, double view_vmax) const override;
 };
 
-/// Default label formatter (mirrors ScalarFormatter).
-/// v0.1 implements fixed notation only; the scientific/offset-text machinery is
-/// TODO(v0.3) — see docs/PARITY.md.
+/// Default label formatter — full ScalarFormatter port: fixed notation plus the
+/// useOffset/orderOfMagnitude machinery with the axis-end offset text
+/// (rc axes.formatter.limits = [-5, 6], offset_threshold = 4).
 class ScalarFormatter final : public Formatter {
 public:
     [[nodiscard]] std::vector<std::string>
     format_ticks(std::span<const double> locs, double view_vmin, double view_vmax) const override;
+    [[nodiscard]] std::string offset_text(std::span<const double> locs, double view_vmin,
+                                          double view_vmax) const override;
 
 private:
-    [[nodiscard]] int decimals_for(std::span<const double> locs, double view_vmin,
-                                   double view_vmax) const;
+    [[nodiscard]] double compute_offset(std::span<const double> locs, double view_vmin,
+                                        double view_vmax) const;
+    [[nodiscard]] int order_of_magnitude(std::span<const double> locs, double offset,
+                                         double view_vmin, double view_vmax) const;
+    [[nodiscard]] int decimals_for(std::span<const double> locs, double offset, int oom,
+                                   double view_vmin, double view_vmax) const;
 };
 
 namespace detail {

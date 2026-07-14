@@ -89,12 +89,19 @@ double round_to_decimals(double x, int n) {
     return std::nearbyint(x * scale) / scale;
 }
 
-// rcParams axes.unicode_minus (default true): U+2212 instead of ASCII hyphen.
+// rcParams axes.unicode_minus (default true): U+2212 instead of ASCII hyphen —
+// everywhere, including exponents ("1e−9").
 std::string fix_minus(std::string s) {
-    if (!s.empty() && s.front() == '-') {
-        s.replace(0, 1, "−");
+    std::string out;
+    out.reserve(s.size());
+    for (const char c : s) {
+        if (c == '-') {
+            out += "−";
+        } else {
+            out += c;
+        }
     }
-    return s;
+    return out;
 }
 
 } // namespace
@@ -177,14 +184,118 @@ std::vector<double> MaxNLocator::raw_ticks(double vmin, double vmax) const {
     return ticks;
 }
 
-// Port of ScalarFormatter._set_format (fixed notation; offset=0, orderOfMagnitude=0).
-int ScalarFormatter::decimals_for(std::span<const double> locs, double view_vmin,
-                                  double view_vmax) const {
-    std::vector<double> ext(locs.begin(), locs.end());
+namespace {
+// rc axes.formatter.limits / .offset_threshold (mpl defaults)
+constexpr int kPowerLimitLo = -5;
+constexpr int kPowerLimitHi = 6;
+constexpr int kOffsetThreshold = 4;
+
+std::vector<double> locs_in_view(std::span<const double> locs, double vmin, double vmax) {
+    if (vmax < vmin) {
+        std::swap(vmin, vmax);
+    }
+    std::vector<double> out;
+    for (const double v : locs) {
+        if (v >= vmin && v <= vmax) {
+            out.push_back(v);
+        }
+    }
+    return out;
+}
+
+// "1e6" / "1.5e-3"-style shortest scientific, mpl format_data-ish, for offsets
+// that are exact decades or simple mantissas.
+std::string sci_string(double v) {
+    const int oom = static_cast<int>(std::floor(std::log10(std::abs(v))));
+    const double mantissa = v / std::pow(10.0, oom);
+    std::string m = graphlib::detail::fmt_trim(mantissa, 10);
+    std::string out = (m == "1" ? std::string("1") : m) + "e" + std::to_string(oom);
+    return out;
+}
+} // namespace
+
+// Port of ScalarFormatter._compute_offset.
+double ScalarFormatter::compute_offset(std::span<const double> locs, double view_vmin,
+                                       double view_vmax) const {
+    const std::vector<double> vis = locs_in_view(locs, view_vmin, view_vmax);
+    if (vis.empty()) {
+        return 0.0;
+    }
+    const auto [mn, mx] = std::minmax_element(vis.begin(), vis.end());
+    const double lmin = *mn;
+    const double lmax = *mx;
+    // Offset only when at least two ticks share a sign.
+    if (lmin == lmax || (lmin <= 0.0 && 0.0 <= lmax)) {
+        return 0.0;
+    }
+    double abs_min = std::abs(lmin);
+    double abs_max = std::abs(lmax);
+    if (abs_min > abs_max) {
+        std::swap(abs_min, abs_max);
+    }
+    const double sign = std::copysign(1.0, lmin);
+    auto floordiv = [](double a, double p) { return std::floor(a / p); };
+    // Smallest power of ten where abs_min and abs_max first differ.
+    const int oom_max = static_cast<int>(std::ceil(std::log10(abs_max)));
+    int oom = oom_max;
+    for (int o = oom_max; o > oom_max - 60; --o) {
+        if (floordiv(abs_min, std::pow(10.0, o)) != floordiv(abs_max, std::pow(10.0, o))) {
+            oom = 1 + o;
+            break;
+        }
+    }
+    if ((abs_max - abs_min) / std::pow(10.0, oom) <= 1e-2) {
+        for (int o = oom_max; o > oom_max - 60; --o) {
+            if (floordiv(abs_max - abs_min, std::pow(10.0, o)) != 0.0) {
+                oom = 1 + o;
+                break;
+            }
+        }
+    }
+    // Apply only when it saves at least offset_threshold digits.
+    const double n = std::pow(10.0, kOffsetThreshold - 1);
+    return floordiv(abs_max, std::pow(10.0, oom)) >= n
+               ? sign * floordiv(abs_max, std::pow(10.0, oom)) * std::pow(10.0, oom)
+               : 0.0;
+}
+
+// Port of ScalarFormatter._set_order_of_magnitude.
+int ScalarFormatter::order_of_magnitude(std::span<const double> locs, double offset,
+                                        double view_vmin, double view_vmax) const {
+    std::vector<double> vis = locs_in_view(locs, view_vmin, view_vmax);
+    if (vis.empty()) {
+        return 0;
+    }
+    int oom = 0;
+    if (offset != 0.0) {
+        const double span = std::abs(view_vmax - view_vmin);
+        oom = static_cast<int>(std::floor(std::log10(span)));
+    } else {
+        double val = 0.0;
+        for (const double v : vis) {
+            val = std::max(val, std::abs(v));
+        }
+        oom = val == 0.0 ? 0 : static_cast<int>(std::floor(std::log10(val)));
+    }
+    if (oom <= kPowerLimitLo || oom >= kPowerLimitHi) {
+        return oom;
+    }
+    return 0;
+}
+
+// Port of ScalarFormatter._set_format, over offset/oom-transformed locations.
+int ScalarFormatter::decimals_for(std::span<const double> locs, double offset, int oom,
+                                  double view_vmin, double view_vmax) const {
+    const double scale = std::pow(10.0, oom);
+    std::vector<double> ext;
+    ext.reserve(locs.size() + 2);
+    for (const double v : locs) {
+        ext.push_back((v - offset) / scale);
+    }
     const bool augmented = ext.size() < 2;
     if (augmented) { // use the axis end points for the range estimate only
-        ext.push_back(view_vmin);
-        ext.push_back(view_vmax);
+        ext.push_back((view_vmin - offset) / scale);
+        ext.push_back((view_vmax - offset) / scale);
     }
     const auto [mn, mx] = std::minmax_element(ext.begin(), ext.end());
     double loc_range = *mx - *mn;
@@ -353,15 +464,43 @@ std::vector<std::string> ScalarFormatter::format_ticks(std::span<const double> l
     if (locs.empty()) {
         return out;
     }
-    const int decimals = decimals_for(locs, view_vmin, view_vmax);
+    const double offset = compute_offset(locs, view_vmin, view_vmax);
+    const int oom = order_of_magnitude(locs, offset, view_vmin, view_vmax);
+    const int decimals = decimals_for(locs, offset, oom, view_vmin, view_vmax);
+    const double scale = std::pow(10.0, oom);
     out.reserve(locs.size());
-    for (double v : locs) {
-        if (std::abs(v) < 1e-8) { // ScalarFormatter.__call__ zero snap
-            v = 0.0;
+    for (const double v : locs) {
+        double xp = (v - offset) / scale;
+        if (std::abs(xp) < 1e-8) { // ScalarFormatter.__call__ zero snap
+            xp = 0.0;
         }
-        out.push_back(detail::fix_minus(detail::fmt_fixed(v, decimals)));
+        out.push_back(detail::fix_minus(detail::fmt_fixed(xp, decimals)));
     }
     return out;
+}
+
+std::string ScalarFormatter::offset_text(std::span<const double> locs, double view_vmin,
+                                         double view_vmax) const {
+    if (locs.empty()) {
+        return {};
+    }
+    const double offset = compute_offset(locs, view_vmin, view_vmax);
+    const int oom = order_of_magnitude(locs, offset, view_vmin, view_vmax);
+    if (offset == 0.0 && oom == 0) {
+        return {};
+    }
+    std::string s;
+    if (oom != 0) {
+        s += "1e" + std::to_string(oom);
+    }
+    if (offset != 0.0) {
+        std::string off = sci_string(offset);
+        if (offset > 0) {
+            off = "+" + off;
+        }
+        s += off;
+    }
+    return detail::fix_minus(s);
 }
 
 } // namespace graphlib

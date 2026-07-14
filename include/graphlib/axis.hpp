@@ -27,6 +27,7 @@ public:
     struct TickData {
         std::vector<double> locs;        // trimmed to the view interval
         std::vector<std::string> labels; // parallel to locs
+        std::string offset_text;         // axis-end offset/scale ("1e6", "+1e8")
     };
 
     /// Run locator + formatter for the current view (ticks are computed at draw

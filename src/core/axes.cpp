@@ -1043,6 +1043,24 @@ void Axes::draw(Renderer& renderer) {
         title_.position = {cx, bpx.y1() + rc().number("axes.titlepad") * ppt};
         title_.draw(renderer);
     }
+
+    // Offset/scale texts at the axis ends (mpl: x right-below, y top-left).
+    if (!axis_off_) {
+        GraphicsContext offset_gc;
+        offset_gc.color = rc().color("xtick.color");
+        const FontProperties offset_font{rc().fontsize("xtick.labelsize"), false, false};
+        if (!xticks.offset_text.empty() && show_x_axis_) {
+            const double label_h = fm.ascent(tick_label_em) + fm.descent(tick_label_em);
+            renderer.draw_text(offset_gc, {bpx.x1(), bpx.y0() - tick_out - label_h},
+                               xticks.offset_text, offset_font, 0.0, HAlign::right, VAlign::top);
+        }
+        if (!yticks.offset_text.empty() && show_y_axis_) {
+            renderer.draw_text(offset_gc,
+                               {yaxis_right_ ? bpx.x1() : bpx.x0(), bpx.y1() + 2.0 * ppt},
+                               yticks.offset_text, offset_font, 0.0, HAlign::left,
+                               VAlign::bottom);
+        }
+    }
     renderer.close_group();
 }
 

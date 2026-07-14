@@ -101,6 +101,7 @@ Axis::TickData Axis::compute_ticks(const Axes& axes) const {
 
     // Trim to the view interval with a small relative slop (mpl trims at draw).
     TickData out;
+    out.offset_text = formatter_->offset_text(locs, v0, v1);
     const double eps = 1e-10 * std::abs(v1 - v0);
     for (size_t i = 0; i < locs.size(); ++i) {
         if (locs[i] >= v0 - eps && locs[i] <= v1 + eps) {
