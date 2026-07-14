@@ -18,7 +18,11 @@ class Axes;
 /// kwargs of Axes::scatter — names/defaults mirror matplotlib.
 struct ScatterOpts {
     std::span<const double> s{};       // sizes in pt^2 (broadcasts); default 36 (markersize^2)
-    std::string_view c{};              // uniform color; "" -> property cycle. c-arrays + cmap: v0.4
+    std::string_view c{};              // uniform color; "" -> property cycle
+    std::span<const double> c_array{}; // mpl's array form of c=: values through cmap/norm
+    std::string_view cmap{};           // rc image.cmap = 'viridis' (with c_array)
+    std::optional<double> vmin{};      // default: c_array min/max
+    std::optional<double> vmax{};
     std::string_view marker{};         // rc scatter.marker = 'o'
     std::optional<double> alpha{};
     std::string_view edgecolors{};     // rc scatter.edgecolors = 'face' (follow the face color)
@@ -37,6 +41,8 @@ public:
     const Marker* marker = nullptr;
     Color facecolor = colors::tab10[0];
     Color edgecolor = colors::tab10[0];
+    std::vector<Color> facecolors; // per-point (c_array through cmap); empty == uniform
+    bool edge_follows_face = true; // rc scatter.edgecolors = 'face'
     double linewidth = 1.0;
 
     Axes* axes = nullptr; // set by Axes::scatter

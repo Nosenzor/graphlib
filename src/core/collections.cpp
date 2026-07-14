@@ -44,8 +44,9 @@ void PathCollection::draw(Renderer& renderer) {
     // draws like markersize=6).
     renderer.open_group("pathcollection");
     const bool uniform =
-        sizes.size() == 1 ||
-        std::all_of(sizes.begin(), sizes.end(), [&](double v) { return v == sizes.front(); });
+        facecolors.empty() &&
+        (sizes.size() == 1 ||
+         std::all_of(sizes.begin(), sizes.end(), [&](double v) { return v == sizes.front(); }));
     Path positions = Path::line(xdata, ydata);
     if (axes->nonlinear_scale()) {
         positions = positions.mapped([this](Point p) { return axes->scale_point(p); });
@@ -59,10 +60,24 @@ void PathCollection::draw(Renderer& renderer) {
             const double s = sizes[std::min(i, sizes.size() - 1)];
             const double scale = renderer.points_to_pixels(std::sqrt(s));
             const Point px = tf.apply(axes->scale_point({xdata[i], ydata[i]}));
-            renderer.draw_path(gc, marker->path,
+            std::optional<Color> point_face = face;
+            GraphicsContext point_gc = gc;
+            if (!facecolors.empty()) {
+                Color fc = facecolors[std::min(i, facecolors.size() - 1)];
+                if (alpha) {
+                    fc.a *= *alpha;
+                }
+                if (marker->filled) {
+                    point_face = fc;
+                }
+                if (edge_follows_face) {
+                    point_gc.color = fc;
+                }
+            }
+            renderer.draw_path(point_gc, marker->path,
                                Affine2D::scaling(scale, scale)
                                    .then(Affine2D::translation(px.x, px.y)),
-                               face);
+                               point_face);
         }
     }
     renderer.close_group();

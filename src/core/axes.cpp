@@ -138,10 +138,24 @@ PathCollection& Axes::scatter(std::span<const double> x, std::span<const double>
     }
     const Color face = opts.c.empty() ? next_cycle_color() : to_color(opts.c);
     pc->facecolor = face;
+    if (!opts.c_array.empty()) { // mpl's c= value array through cmap/norm
+        if (opts.c_array.size() != x.size()) {
+            throw ValueError("scatter: c must be the same size as x");
+        }
+        const Colormap& cmap = get_cmap(opts.cmap.empty() ? "viridis" : opts.cmap);
+        auto [mn, mx] = std::minmax_element(opts.c_array.begin(), opts.c_array.end());
+        const Normalize norm{opts.vmin.value_or(*mn), opts.vmax.value_or(*mx)};
+        pc->facecolors.reserve(opts.c_array.size());
+        for (const double v : opts.c_array) {
+            pc->facecolors.push_back(cmap(std::isnan(v) ? v : norm(v)));
+        }
+        pc->facecolor = pc->facecolors.front(); // legend swatch color
+    }
     const std::string_view edge_spec =
         opts.edgecolors.empty() ? std::string_view(rc().str("scatter.edgecolors"))
                                 : opts.edgecolors;
-    pc->edgecolor = edge_spec == "face" ? face : to_color(edge_spec);
+    pc->edge_follows_face = edge_spec == "face";
+    pc->edgecolor = pc->edge_follows_face ? face : to_color(edge_spec);
     pc->marker =
         &get_marker(opts.marker.empty() ? std::string_view(rc().str("scatter.marker"))
                                         : opts.marker);
