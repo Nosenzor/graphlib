@@ -1,6 +1,7 @@
 #include "graphlib/rc.hpp"
 
 #include <algorithm>
+#include <utility>
 
 #include "graphlib/errors.hpp"
 #include "graphlib/style.hpp"

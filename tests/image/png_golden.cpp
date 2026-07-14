@@ -147,7 +147,7 @@ TEST_CASE("png golden: everyday plots scene (v0.3)", "[golden][png]") {
     Axes& left = *grid[0][0];
     const std::vector<double> h{2.0, 5.0, 3.5};
     left.bar(std::vector<std::string>{"a", "b", "c"}, h, {.label = "bars"});
-    left.axhline(4.0, 0, 1, {.color = "0.3", .linestyle = "--", .linewidth = 0.8});
+    left.axhline(4.0, 0, 1, {.color = "0.3", .linewidth = 0.8, .linestyle = "--"});
     left.set_title("bars + axhline");
 
     Axes& right = *grid[0][1];
