@@ -51,6 +51,18 @@ public:
 
     [[nodiscard]] Path transformed(const Affine2D& t) const;
 
+    /// Vertex-wise remap (nonlinear scale pre-transform — DESIGN §4).
+    template <class Fn> [[nodiscard]] Path mapped(Fn&& fn) const {
+        Path out;
+        out.vertices_.reserve(vertices_.size());
+        for (const Point& p : vertices_) {
+            out.vertices_.push_back(fn(p));
+        }
+        out.codes_ = codes_;
+        out.subpath_start_ = subpath_start_;
+        return out;
+    }
+
 private:
     void materialize_codes();
 

@@ -150,6 +150,9 @@ PathCollection& Axes::scatter(std::span<const double> x, std::span<const double>
     pc->label = std::string(opts.label);
 
     data_lim_.update(pc->data_extents());
+    for (size_t i = 0; i < pc->xdata.size(); ++i) {
+        track_minpos({{Point{pc->xdata[i], pc->ydata[i]}}});
+    }
     autoscale_view();
 
     PathCollection& ref = *pc;
@@ -211,13 +214,13 @@ void Axes::collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px,
             pts.reserve(line->xdata.size());
             for (size_t i = 0; i < line->xdata.size(); ++i) {
                 if (std::isfinite(line->xdata[i]) && std::isfinite(line->ydata[i])) {
-                    pts.push_back(tf.apply({line->xdata[i], line->ydata[i]}));
+                    pts.push_back(tf.apply(scale_point({line->xdata[i], line->ydata[i]})));
                 }
             }
         } else if (const auto* pc = dynamic_cast<const PathCollection*>(child.get())) {
             pts.reserve(pc->xdata.size());
             for (size_t i = 0; i < pc->xdata.size(); ++i) {
-                pts.push_back(tf.apply({pc->xdata[i], pc->ydata[i]}));
+                pts.push_back(tf.apply(scale_point({pc->xdata[i], pc->ydata[i]})));
             }
         }
         if (!pts.empty()) {
@@ -229,6 +232,7 @@ void Axes::collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px,
 Patch& Axes::adopt_patch(std::unique_ptr<Patch> patch) {
     patch->axes = this;
     data_lim_.update(patch->data_extents());
+    track_minpos(patch->get_path().vertices());
     sticky_x_.insert(sticky_x_.end(), patch->sticky_x.begin(), patch->sticky_x.end());
     sticky_y_.insert(sticky_y_.end(), patch->sticky_y.begin(), patch->sticky_y.end());
     Patch& ref = *patch;
@@ -626,6 +630,55 @@ std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts
     return wedges;
 }
 
+namespace {
+Axes::Scale parse_scale(std::string_view scale) {
+    if (scale == "linear") {
+        return Axes::Scale::linear;
+    }
+    if (scale == "log") {
+        return Axes::Scale::log;
+    }
+    throw ValueError("scale must be 'linear' or 'log' (symlog/logit: icebox)");
+}
+} // namespace
+
+void Axes::set_xscale(std::string_view scale) {
+    xscale_ = parse_scale(scale);
+    if (xscale_ == Scale::log) {
+        xaxis_.set_major_locator(std::make_unique<LogLocator>());
+        xaxis_.set_major_formatter(std::make_unique<LogFormatter>());
+        xaxis_.set_minor_locator(std::make_unique<LogLocator>(/*minor_subs=*/true));
+    } else {
+        xaxis_.set_major_locator(std::make_unique<MaxNLocator>());
+        xaxis_.set_major_formatter(std::make_unique<ScalarFormatter>());
+        xaxis_.set_minor_locator(nullptr);
+    }
+    autoscale_view();
+}
+
+void Axes::set_yscale(std::string_view scale) {
+    yscale_ = parse_scale(scale);
+    if (yscale_ == Scale::log) {
+        yaxis_.set_major_locator(std::make_unique<LogLocator>());
+        yaxis_.set_major_formatter(std::make_unique<LogFormatter>());
+        yaxis_.set_minor_locator(std::make_unique<LogLocator>(/*minor_subs=*/true));
+    } else {
+        yaxis_.set_major_locator(std::make_unique<MaxNLocator>());
+        yaxis_.set_major_formatter(std::make_unique<ScalarFormatter>());
+        yaxis_.set_minor_locator(nullptr);
+    }
+    autoscale_view();
+}
+
+void Axes::minorticks_on() {
+    if (xscale_ == Scale::linear) {
+        xaxis_.set_minor_locator(std::make_unique<AutoMinorLocator>(&xaxis_.major_locator()));
+    }
+    if (yscale_ == Scale::linear) {
+        yaxis_.set_minor_locator(std::make_unique<AutoMinorLocator>(&yaxis_.major_locator()));
+    }
+}
+
 void Axes::set_xticks(std::vector<double> locs, std::vector<std::string> labels) {
     if (!labels.empty() && labels.size() != locs.size()) {
         throw ValueError("set_xticks: labels must match the number of locations");
@@ -734,7 +787,23 @@ Axes& Axes::twiny() {
 
 Color Axes::next_cycle_color() { return cycle_[cycle_index_++ % cycle_.size()]; }
 
-void Axes::add_line_datalim(const Line2D& line) { data_lim_.update(line.data_extents()); }
+void Axes::track_minpos(std::span<const Point> pts) {
+    for (const Point& p : pts) {
+        if (p.x > 0 && p.x < minpos_x_) {
+            minpos_x_ = p.x;
+        }
+        if (p.y > 0 && p.y < minpos_y_) {
+            minpos_y_ = p.y;
+        }
+    }
+}
+
+void Axes::add_line_datalim(const Line2D& line) {
+    data_lim_.update(line.data_extents());
+    for (size_t i = 0; i < line.xdata.size(); ++i) {
+        track_minpos({{Point{line.xdata[i], line.ydata[i]}}});
+    }
+}
 
 // Port of autoscale_view's per-axis handling (autolimit_mode='data'):
 // locator.nonsingular, then symmetric margins clamped at sticky edges
@@ -759,7 +828,22 @@ void Axes::autoscale_view() {
         }
     }
     const auto apply = [](double lo, double hi, double margin, std::vector<double> stickies,
-                          const Locator& locator) {
+                          const Locator& locator, Scale scale, double minpos) {
+        if (scale == Scale::log) {
+            // Port of the log branch: clip to positive data, expand margins in
+            // transformed (log) space, no stickies in practice.
+            if (lo <= 0) {
+                lo = std::isfinite(minpos) ? minpos : 1.0;
+            }
+            if (hi <= 0) {
+                hi = 10.0 * lo;
+            }
+            std::tie(lo, hi) = locator.nonsingular(lo, hi);
+            const double lt = std::log10(lo);
+            const double ht = std::log10(hi);
+            const double delta = (ht - lt) * margin;
+            return std::pair{std::pow(10.0, lt - delta), std::pow(10.0, ht + delta)};
+        }
         std::tie(lo, hi) = locator.nonsingular(lo, hi);
         std::sort(stickies.begin(), stickies.end());
         const double tol = 1e-5 * std::abs(hi - lo);
@@ -785,7 +869,8 @@ void Axes::autoscale_view() {
         return std::pair{out_lo, out_hi};
     };
     if (autoscale_x_ && dx0 <= dx1) {
-        std::tie(vx0_, vx1_) = apply(dx0, dx1, margin_x_, sticky_x_, xaxis_.major_locator());
+        std::tie(vx0_, vx1_) = apply(dx0, dx1, margin_x_, sticky_x_, xaxis_.major_locator(),
+                                     xscale_, minpos_x_);
         if (share_x_) { // members stay in lockstep without recomputing
             for (Axes* ax : share_x_->members) {
                 ax->vx0_ = vx0_;
@@ -794,7 +879,8 @@ void Axes::autoscale_view() {
         }
     }
     if (autoscale_y_ && dy0 <= dy1) {
-        std::tie(vy0_, vy1_) = apply(dy0, dy1, margin_y_, sticky_y_, yaxis_.major_locator());
+        std::tie(vy0_, vy1_) = apply(dy0, dy1, margin_y_, sticky_y_, yaxis_.major_locator(),
+                                     yscale_, minpos_y_);
         if (share_y_) {
             for (Axes* ax : share_y_->members) {
                 ax->vy0_ = vy0_;
@@ -818,7 +904,11 @@ Bbox Axes::bbox_pixels(Size canvas) const {
 }
 
 Affine2D Axes::trans_data(Size canvas) const {
-    const Bbox view = Bbox::from_extents(vx0_, vy0_, vx1_, vy1_);
+    // Nonlinear scales: the affine maps scale-space -> px; artists pre-map
+    // their coordinates through scale_point (DESIGN §4).
+    const Point lo = scale_point({vx0_, vy0_});
+    const Point hi = scale_point({vx1_, vy1_});
+    const Bbox view = Bbox::from_extents(lo.x, lo.y, hi.x, hi.y);
     return bbox_transform_from(view).then(bbox_transform_to(bbox_pixels(canvas)));
 }
 
@@ -868,14 +958,14 @@ void Axes::draw(Renderer& renderer) {
         grid_gc.linewidth = rc().number("grid.linewidth");
         renderer.open_group("grid");
         for (const double loc : xticks.locs) {
-            const double px = tf.apply({loc, 0}).x;
+            const double px = tf.apply(scale_point({loc, 1.0})).x;
             Path p;
             p.move_to(px, bpx.y0());
             p.line_to(px, bpx.y1());
             renderer.draw_path(grid_gc, p, Affine2D::identity());
         }
         for (const double loc : yticks.locs) {
-            const double py = tf.apply({0, loc}).y;
+            const double py = tf.apply(scale_point({1.0, loc})).y;
             Path p;
             p.move_to(bpx.x0(), py);
             p.line_to(bpx.x1(), py);
@@ -909,9 +999,13 @@ void Axes::draw(Renderer& renderer) {
         renderer.close_group();
         if (show_x_axis_) {
             xaxis_.draw_ticks(renderer, *this, xticks, xaxis_top_, show_x_ticklabels_);
+            xaxis_.draw_minor_ticks(renderer, *this, xaxis_.compute_minor_ticks(*this),
+                                    xaxis_top_);
         }
         if (show_y_axis_) {
             yaxis_.draw_ticks(renderer, *this, yticks, yaxis_right_, show_y_ticklabels_);
+            yaxis_.draw_minor_ticks(renderer, *this, yaxis_.compute_minor_ticks(*this),
+                                    yaxis_right_);
         }
     }
     if (legend_) {

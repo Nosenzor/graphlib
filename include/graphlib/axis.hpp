@@ -19,7 +19,10 @@ public:
 
     void set_major_locator(std::unique_ptr<Locator> loc) { locator_ = std::move(loc); }
     void set_major_formatter(std::unique_ptr<Formatter> fmt) { formatter_ = std::move(fmt); }
+    void set_minor_locator(std::unique_ptr<Locator> loc) { minor_locator_ = std::move(loc); }
     [[nodiscard]] Locator& major_locator() { return *locator_; }
+    [[nodiscard]] Locator* minor_locator() { return minor_locator_.get(); }
+    [[nodiscard]] Kind kind() const { return kind_; }
 
     struct TickData {
         std::vector<double> locs;        // trimmed to the view interval
@@ -36,6 +39,12 @@ public:
     void draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks,
                     bool far_side = false, bool with_labels = true) const;
 
+    /// Minor tick locations for the current view (empty without a minor locator).
+    [[nodiscard]] std::vector<double> compute_minor_ticks(const Axes& axes) const;
+    /// Minor tick marks only (rc {x,y}tick.minor.*; never labeled in v0.3).
+    void draw_minor_ticks(Renderer& renderer, const Axes& axes,
+                          const std::vector<double>& locs, bool far_side = false) const;
+
     /// Port of X/YAxis.get_tick_space: how many labels fit along `length_pt`
     /// (heuristic: label aspect 3:1 on x, spacing 2 on y).
     static int tick_space(Kind kind, double length_pt, double label_fontsize_pt);
@@ -44,6 +53,7 @@ private:
     Kind kind_;
     std::unique_ptr<Locator> locator_;
     std::unique_ptr<Formatter> formatter_;
+    std::unique_ptr<Locator> minor_locator_;
 };
 
 } // namespace graphlib

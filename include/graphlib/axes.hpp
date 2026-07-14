@@ -1,5 +1,7 @@
 #pragma once
 // Mirrors matplotlib.axes.Axes — the central object; plotting methods live here.
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <span>
 #include <string>
@@ -186,6 +188,28 @@ public:
     void set_xticks(std::vector<double> locs, std::vector<std::string> labels = {});
     void set_yticks(std::vector<double> locs, std::vector<std::string> labels = {});
 
+    /// Axis scales (mirrors set_xscale/set_yscale; 'linear' or 'log').
+    enum class Scale { linear, log };
+    void set_xscale(std::string_view scale);
+    void set_yscale(std::string_view scale);
+    [[nodiscard]] Scale xscale() const { return xscale_; }
+    [[nodiscard]] Scale yscale() const { return yscale_; }
+    /// True when any axis has a nonlinear scale: artists must pre-map their
+    /// coordinates through scale_point before the affine (DESIGN §4).
+    [[nodiscard]] bool nonlinear_scale() const {
+        return xscale_ != Scale::linear || yscale_ != Scale::linear;
+    }
+    [[nodiscard]] Point scale_point(Point p) const {
+        return {xscale_ == Scale::log ? std::log10(p.x) : p.x,
+                yscale_ == Scale::log ? std::log10(p.y) : p.y};
+    }
+    /// Smallest positive data values (log autoscale clips to these, like mpl).
+    [[nodiscard]] double minpos_x() const { return minpos_x_; }
+    [[nodiscard]] double minpos_y() const { return minpos_y_; }
+
+    /// Linear-axis minor ticks (mirrors ax.minorticks_on with AutoMinorLocator).
+    void minorticks_on();
+
     /// Transformed data polylines for legend 'best' placement (internal).
     void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
 
@@ -230,6 +254,7 @@ private:
     void add_line_datalim(const Line2D& line);
     void autoscale_view();
     void recompute_data_lim();
+    void track_minpos(std::span<const Point> pts);
     Patch& adopt_patch(std::unique_ptr<Patch> patch);
 
     Figure* figure_;
@@ -240,6 +265,10 @@ private:
     Text title_, xlabel_, ylabel_;
 
     Bbox data_lim_ = Bbox::null();
+    double minpos_x_ = std::numeric_limits<double>::infinity();
+    double minpos_y_ = std::numeric_limits<double>::infinity();
+    Scale xscale_ = Scale::linear;
+    Scale yscale_ = Scale::linear;
     double vx0_ = 0, vx1_ = 1, vy0_ = 0, vy1_ = 1;
     bool autoscale_x_ = true;
     bool autoscale_y_ = true;

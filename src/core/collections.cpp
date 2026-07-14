@@ -46,15 +46,19 @@ void PathCollection::draw(Renderer& renderer) {
     const bool uniform =
         sizes.size() == 1 ||
         std::all_of(sizes.begin(), sizes.end(), [&](double v) { return v == sizes.front(); });
+    Path positions = Path::line(xdata, ydata);
+    if (axes->nonlinear_scale()) {
+        positions = positions.mapped([this](Point p) { return axes->scale_point(p); });
+    }
     if (uniform) {
         const double scale = renderer.points_to_pixels(std::sqrt(sizes.front()));
-        renderer.draw_markers(gc, marker->path, Affine2D::scaling(scale, scale),
-                              Path::line(xdata, ydata), tf, face);
+        renderer.draw_markers(gc, marker->path, Affine2D::scaling(scale, scale), positions, tf,
+                              face);
     } else {
         for (size_t i = 0; i < xdata.size(); ++i) {
             const double s = sizes[std::min(i, sizes.size() - 1)];
             const double scale = renderer.points_to_pixels(std::sqrt(s));
-            const Point px = tf.apply({xdata[i], ydata[i]});
+            const Point px = tf.apply(axes->scale_point({xdata[i], ydata[i]}));
             renderer.draw_path(gc, marker->path,
                                Affine2D::scaling(scale, scale)
                                    .then(Affine2D::translation(px.x, px.y)),

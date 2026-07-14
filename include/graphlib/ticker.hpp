@@ -52,6 +52,32 @@ private:
     std::vector<double> extended_steps_; // staircase: 0.1*steps[:-1] + steps + 10*steps[1]
 };
 
+/// Decade ticks for log axes (port of matplotlib LogLocator, base 10).
+class LogLocator final : public Locator {
+public:
+    /// minor_subs: subs='auto' behavior — 2..9 per decade, empty when the
+    /// range spans more than 10 decades (mpl rule).
+    explicit LogLocator(bool minor_subs = false) : minor_subs_(minor_subs) {}
+    [[nodiscard]] std::vector<double> tick_values(double vmin, double vmax) const override;
+    [[nodiscard]] std::pair<double, double> nonsingular(double v0, double v1) const override;
+    void set_minpos(double m) { minpos_ = m; } // smallest positive data value
+
+private:
+    bool minor_subs_;
+    double minpos_ = 0.0;
+};
+
+/// Minor ticks between majors (port of matplotlib AutoMinorLocator 'auto':
+/// 5 divisions for 1/2.5/5/10-mantissa major steps, else 4).
+class AutoMinorLocator final : public Locator {
+public:
+    explicit AutoMinorLocator(const Locator* major) : major_(major) {}
+    [[nodiscard]] std::vector<double> tick_values(double vmin, double vmax) const override;
+
+private:
+    const Locator* major_;
+};
+
 /// Fixed, user-supplied locations.
 class FixedLocator final : public Locator {
 public:
@@ -93,6 +119,14 @@ public:
 
 private:
     std::vector<std::string> labels_;
+};
+
+/// Decade labels: 10 with a unicode superscript exponent (deviation D10 —
+/// matplotlib uses mathtext, which arrives in v0.6).
+class LogFormatter final : public Formatter {
+public:
+    [[nodiscard]] std::vector<std::string>
+    format_ticks(std::span<const double> locs, double view_vmin, double view_vmax) const override;
 };
 
 /// Default label formatter (mirrors ScalarFormatter).

@@ -10,7 +10,7 @@ void Text::draw(Renderer& renderer) {
     }
     Point pos = position;
     if (coords == Coords::data) {
-        pos = axes->trans_data(renderer.canvas_size()).apply(pos);
+        pos = axes->trans_data(renderer.canvas_size()).apply(axes->scale_point(pos));
     }
     GraphicsContext gc;
     gc.color = color;

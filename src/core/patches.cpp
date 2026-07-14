@@ -35,8 +35,12 @@ void Patch::draw(Renderer& renderer) {
     const Affine2D tf = (x_axes_fraction || y_axes_fraction)
                             ? axes->blended_transform(x_axes_fraction, y_axes_fraction, canvas)
                             : axes->trans_data(canvas);
+    Path path = get_path();
+    if (axes->nonlinear_scale() && !x_axes_fraction && !y_axes_fraction) {
+        path = path.mapped([this](Point p) { return axes->scale_point(p); });
+    }
     renderer.open_group("patch");
-    renderer.draw_path(gc, get_path(), tf, face);
+    renderer.draw_path(gc, path, tf, face);
     renderer.close_group();
 }
 

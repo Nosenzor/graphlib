@@ -135,6 +135,9 @@ void Line2D::draw(Renderer& renderer) {
         }
         path = Path::line(sx, sy);
     }
+    if (axes->nonlinear_scale()) { // log axes: pre-map, the affine is scale-space
+        path = path.mapped([this](Point p) { return axes->scale_point(p); });
+    }
 
     renderer.open_group("line2d");
     if (linestyle.drawn()) {

@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "fmt.hpp"
+#include "graphlib/errors.hpp"
 
 namespace graphlib {
 
@@ -211,6 +212,139 @@ int ScalarFormatter::decimals_for(std::span<const double> locs, double view_vmin
         }
     }
     return sigfigs + 1;
+}
+
+// Port of LogLocator.tick_values (base 10; numticks 'auto' -> tick space).
+std::vector<double> LogLocator::tick_values(double vmin, double vmax) const {
+    int numticks = tick_space_ ? std::clamp(*tick_space_, 2, 9) : 9;
+    if (vmin <= 0.0) {
+        vmin = minpos_;
+        if (vmin <= 0.0 || !std::isfinite(vmin)) {
+            throw ValueError("Data has no positive values, and therefore cannot be log-scaled.");
+        }
+    }
+    if (vmax < vmin) {
+        std::swap(vmin, vmax);
+    }
+    // Faithful port detail: mpl computes log(v)/log(b), NOT log10(v) — the two
+    // round differently at exact decade boundaries, changing floor/ceil below.
+    const double log_vmin = std::log(vmin) / std::log(10.0);
+    const double log_vmax = std::log(vmax) / std::log(10.0);
+    const auto numdec =
+        static_cast<long>(std::floor(log_vmax)) - static_cast<long>(std::ceil(log_vmin));
+
+    std::vector<double> subs{1.0};
+    if (minor_subs_) {
+        if (numdec > 10) {
+            return {}; // mpl: no minor ticks over huge ranges
+        }
+        subs.clear();
+        for (double s = 2.0; s < 10.0; s += 1.0) {
+            subs.push_back(s);
+        }
+    }
+    long stride = numdec / numticks + 1;
+    if (stride >= numdec) {
+        stride = std::max<long>(1, numdec - 1);
+    }
+    std::vector<double> ticks;
+    const auto d0 = static_cast<long>(std::floor(log_vmin)) - stride;
+    const auto d1 = static_cast<long>(std::ceil(log_vmax)) + 2 * stride;
+    for (long d = d0; d < d1; d += stride) {
+        for (const double s : subs) {
+            ticks.push_back(s * std::pow(10.0, static_cast<double>(d)));
+        }
+    }
+    return ticks;
+}
+
+std::pair<double, double> LogLocator::nonsingular(double v0, double v1) const {
+    // Port of LogLocator.nonsingular: fall back to a decade around the data.
+    if (!std::isfinite(v0) || !std::isfinite(v1)) {
+        return {1.0, 10.0};
+    }
+    if (v1 < v0) {
+        std::swap(v0, v1);
+    }
+    if (v1 <= 0.0) {
+        return {1.0, 10.0};
+    }
+    if (v0 <= 0.0) {
+        v0 = minpos_ > 0.0 && std::isfinite(minpos_) ? minpos_ : v1 / 10.0;
+    }
+    if (v0 == v1) {
+        return {v0 / 10.0, v1 * 10.0};
+    }
+    return {v0, v1};
+}
+
+namespace {
+std::string superscript(long exponent) {
+    static constexpr const char* digits[10] = {"⁰", "¹", "²", "³", "⁴",
+                                               "⁵", "⁶", "⁷", "⁸", "⁹"};
+    std::string out;
+    if (exponent < 0) {
+        out += "⁻";
+        exponent = -exponent;
+    }
+    const std::string dec = std::to_string(exponent);
+    for (const char c : dec) {
+        out += digits[c - '0'];
+    }
+    return out;
+}
+} // namespace
+
+std::vector<std::string> LogFormatter::format_ticks(std::span<const double> locs, double,
+                                                    double) const {
+    std::vector<std::string> out;
+    out.reserve(locs.size());
+    for (const double v : locs) {
+        if (v <= 0) {
+            out.emplace_back();
+            continue;
+        }
+        const double lg = std::log10(v);
+        const double rounded = std::nearbyint(lg);
+        if (std::abs(lg - rounded) < 1e-9) { // exact decade: 10^k
+            out.push_back("10" + superscript(static_cast<long>(rounded)));
+        } else {
+            out.emplace_back(); // minor/sub ticks are unlabeled by default (mpl)
+        }
+    }
+    return out;
+}
+
+// Port of AutoMinorLocator.__call__ (ndivs 'auto').
+std::vector<double> AutoMinorLocator::tick_values(double vmin, double vmax) const {
+    const std::vector<double> majors = major_->tick_values(vmin, vmax);
+    if (majors.size() < 2) {
+        return {};
+    }
+    const double majorstep = majors[1] - majors[0];
+    const double mantissa =
+        std::pow(10.0, std::log10(majorstep) - std::floor(std::log10(majorstep)));
+    const bool nice = std::abs(mantissa - 1.0) < 1e-9 || std::abs(mantissa - 2.5) < 1e-9 ||
+                      std::abs(mantissa - 5.0) < 1e-9 || std::abs(mantissa - 10.0) < 1e-9;
+    const int ndivs = nice ? 5 : 4;
+    const double step = majorstep / ndivs;
+
+    if (vmax < vmin) {
+        std::swap(vmin, vmax);
+    }
+    const double t0 = majors[0];
+    std::vector<double> out;
+    // Same construction as mpl: integer multiples of `step` from the first
+    // major, keeping only those inside the view and not on a major.
+    const auto i0 = static_cast<long>(std::ceil((vmin - t0) / step));
+    const auto i1 = static_cast<long>(std::floor((vmax - t0) / step));
+    for (long i = i0; i <= i1; ++i) {
+        if ((i % ndivs) == 0) {
+            continue; // that's a major tick
+        }
+        out.push_back(t0 + static_cast<double>(i) * step);
+    }
+    return out;
 }
 
 std::vector<std::string> ScalarFormatter::format_ticks(std::span<const double> locs,
