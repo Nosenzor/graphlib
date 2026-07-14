@@ -180,6 +180,36 @@ TEST_CASE("png golden: imshow nearest + bilinear (draw_image contract)", "[golde
     check_png("imshow_interp", fig);
 }
 
+TEST_CASE("png golden: fields scene (contourf, pcolormesh, colorbar, scatter c=)",
+          "[golden][png]") {
+    Figure fig;
+    auto grid = fig.subplots(1, 2);
+    const auto gx = linspace(-2.0, 2.0, 40);
+    const auto gy = linspace(-1.5, 1.5, 30);
+    std::vector<double> z;
+    for (const double yy : gy) {
+        for (const double xx : gx) {
+            z.push_back(xx * xx - yy * yy); // saddle: exercises cases 5/10
+        }
+    }
+    grid[0][0]->contourf(gx, gy, z);
+    grid[0][0]->contour(gx, gy, z, {.colors = "k", .linewidths = 0.5});
+    grid[0][0]->set_title("saddle");
+
+    const auto xe = linspace(0.0, 4.0, 9);
+    const auto ye = linspace(0.0, 3.0, 7);
+    std::vector<double> c;
+    for (size_t r = 0; r + 1 < ye.size(); ++r) {
+        for (size_t k = 0; k + 1 < xe.size(); ++k) {
+            c.push_back(static_cast<double>((r * 2 + k) % 5));
+        }
+    }
+    QuadMesh& mesh = grid[0][1]->pcolormesh(xe, ye, c, {.cmap = "viridis"});
+    grid[0][1]->set_title("mesh");
+    fig.colorbar(mesh, {.label = "level"});
+    check_png("fields_scene", fig);
+}
+
 TEST_CASE("png: transparent render has transparent corners", "[png]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

@@ -20,7 +20,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | save PNG (dpi) | `savefig("*.png", dpi=)` | AGG raster, savefig.dpi='figure' semantics | done |
 | text on axes | `text` | same | done (real DejaVu metrics; rotation anchor-style — see D8) |
 | legend | `legend` (loc, 'best', frame) | ported _find_best_position | done (rect frame — D9; ncols/bbox_to_anchor later) |
-| scatter | `scatter` (s=, colors) | uniform color; `c=`+cmap v0.4 | done (sizes pt², edgecolors='face') |
+| scatter | `scatter` (s=, colors, c=+cmap) | `c_array` field for mpl's array form | done (sizes pt², per-point cmap colors) |
 | bar / barh | `bar`, `barh` (+string x) | same | done (transparent edges, sticky 0, categorical labels) |
 | hist | `hist` (bins=10 default) | same | done (np.histogram-compatible; 'auto' bins later) |
 | fill_between | `fill_between` | same | done (where-mask later) |
@@ -37,12 +37,12 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | suptitle | `suptitle` | same | done |
 | styles / rcParams | `rcParams`, `style.use` | `rc()`, `style::use` — default/ggplot/dark | done (~55 keys; grows on demand) |
 | ScalarFormatter offset | offset/sci text at axis end | same algorithm | done (oracle-exact) |
-| colormaps + norm | `cm`, `Normalize`, `LogNorm` | viridis family + core set | planned-v0.4 |
-| imshow | `imshow` (origin/extent/aspect/interp) | nearest+bilinear | planned-v0.4 |
-| pcolormesh | `pcolormesh` | flat shading | planned-v0.4 |
-| contour / contourf | `contour(f)` | marching squares | planned-v0.4 |
-| colorbar | `colorbar` | same | planned-v0.4 |
-| axes aspect | `set_aspect` auto/equal/num | same | planned-v0.4 |
+| colormaps + norm | `cm`, `Normalize`, `LogNorm` | 11 maps, oracle-exact LUTs | done |
+| imshow | `imshow` (origin/extent/aspect/interp) | nearest+bilinear | done (origin 'upper' inverts y; 'auto' interp -> nearest, D12) |
+| pcolormesh | `pcolormesh` | flat shading, 1D edge arrays | done (sticky edges; works on log axes) |
+| contour / contourf | `contour(f)` | marching squares | done (stacked-fill bands, D13; MaxNLocator levels) |
+| colorbar | `colorbar` | space-stealing cax + gradient | done (vertical only; ticks/label right) |
+| axes aspect | `set_aspect` auto/equal/num | adjustable='box' | done |
 | show / interactive | `show`, pan/zoom, keymap | GLFW window | planned-v0.5 |
 | events | `mpl_connect` (button/motion/scroll/key/resize/draw/close) | same names | planned-v0.5 |
 | animation | `FuncAnimation` + blitting | live only (no file export) | planned-v0.5 |
@@ -85,3 +85,5 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D9 | Legend frame is a plain rectangle (mpl: slightly rounded FancyBbox) | rounded boxstyle arrives with Patch work (v0.4+) |
 | D10 | Log decade labels use unicode superscripts (10⁻³), not mathtext | mathtext arrives v0.6; visually equivalent |
 | D11 | tight_layout fits decorations per grid cell, not via mpl's global redistribution | covers the common cases; revisit with constrained layout |
+| D12 | imshow interpolation 'auto' maps to 'nearest' (mpl picks by zoom) | antialiased downsampling is a v0.7 perf topic |
+| D13 | contourf paints ascending stacked threshold fills (opaque bands) | identical pixels to mpl bands; semi-transparent contourf overlaps differ |

@@ -851,19 +851,14 @@ void Axes::autoscale_view() {
     const auto apply = [](double lo, double hi, double margin, std::vector<double> stickies,
                           const Locator& locator, Scale scale, double minpos) {
         if (scale == Scale::log) {
-            // Port of the log branch: clip to positive data, expand margins in
-            // transformed (log) space, no stickies in practice.
+            // Port of the log branch: clip to positive data, expand in
+            // transformed (log) space.
             if (lo <= 0) {
                 lo = std::isfinite(minpos) ? minpos : 1.0;
             }
             if (hi <= 0) {
                 hi = 10.0 * lo;
             }
-            std::tie(lo, hi) = locator.nonsingular(lo, hi);
-            const double lt = std::log10(lo);
-            const double ht = std::log10(hi);
-            const double delta = (ht - lt) * margin;
-            return std::pair{std::pow(10.0, lt - delta), std::pow(10.0, ht + delta)};
         }
         std::tie(lo, hi) = locator.nonsingular(lo, hi);
         std::sort(stickies.begin(), stickies.end());
@@ -878,9 +873,20 @@ void Axes::autoscale_view() {
                 hi_bound = s; // smallest sticky not below hi
             }
         }
-        const double delta = (hi - lo) * margin;
-        double out_lo = lo - delta;
-        double out_hi = hi + delta;
+        double out_lo = lo;
+        double out_hi = hi;
+        if (scale == Scale::log) { // margins in transformed space (mpl)
+            const double lt = std::log10(lo);
+            const double ht = std::log10(hi);
+            const double delta = (ht - lt) * margin;
+            out_lo = std::pow(10.0, lt - delta);
+            out_hi = std::pow(10.0, ht + delta);
+        } else {
+            const double delta = (hi - lo) * margin;
+            out_lo = lo - delta;
+            out_hi = hi + delta;
+        }
+        // Margins must not cross a sticky value (either scale).
         if (lo_bound) {
             out_lo = std::max(out_lo, *lo_bound);
         }

@@ -10,6 +10,10 @@ set(GRAPHLIB_EXAMPLES
     08_subplots_dashboard
     09_log_scales
     10_styles_gallery
+    11_heatmap_colorbar
+    12_contour_gaussian
+    13_pcolormesh
+    14_scatter_cmap
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)
