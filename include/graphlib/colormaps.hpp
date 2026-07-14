@@ -1,5 +1,6 @@
 #pragma once
 // Mirrors matplotlib.cm / matplotlib.colors norms — LUTs generated from mpl.
+#include <cstdint>
 #include <span>
 #include <string_view>
 
