@@ -130,6 +130,14 @@ QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_
                      std::span<const double> values, const PcolorOpts& opts) {
     return gca().pcolormesh(x_edges, y_edges, values, opts);
 }
+ContourSet& contour(std::span<const double> x, std::span<const double> y,
+                    std::span<const double> z, const ContourOpts& opts) {
+    return gca().contour(x, y, z, opts);
+}
+ContourSet& contourf(std::span<const double> x, std::span<const double> y,
+                     std::span<const double> z, const ContourOpts& opts) {
+    return gca().contourf(x, y, z, opts);
+}
 
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }

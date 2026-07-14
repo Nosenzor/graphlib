@@ -55,6 +55,7 @@ add_library(graphlib STATIC
     src/core/collections.cpp
     src/core/color.cpp
     src/core/colormaps.cpp
+    src/core/contour.cpp
     src/core/figure.cpp
     src/core/legend.cpp
     src/core/graphics_context.cpp

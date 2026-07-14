@@ -53,6 +53,10 @@ AxesImage& imshow(std::span<const double> data, int rows, int cols,
                   const ImshowOpts& opts = {});
 QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
                      std::span<const double> values, const PcolorOpts& opts = {});
+ContourSet& contour(std::span<const double> x, std::span<const double> y,
+                    std::span<const double> z, const ContourOpts& opts = {});
+ContourSet& contourf(std::span<const double> x, std::span<const double> y,
+                     std::span<const double> z, const ContourOpts& opts = {});
 
 void title(std::string t);
 void xlabel(std::string t);

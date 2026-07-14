@@ -12,6 +12,7 @@
 #include "graphlib/axis.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/collections.hpp"
+#include "graphlib/contour.hpp"
 #include "graphlib/image.hpp"
 #include "graphlib/legend.hpp"
 #include "graphlib/lines.hpp"
@@ -158,6 +159,14 @@ public:
     /// arrays: x has cols+1 entries, y rows+1, values rows*cols row-major).
     QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
                          std::span<const double> values, const PcolorOpts& opts = {});
+
+    /// Iso-lines / filled bands over a grid (mirrors Axes.contour/contourf;
+    /// x has cols entries, y rows, z rows*cols row-major). Default levels come
+    /// from MaxNLocator over the data range, like matplotlib.
+    ContourSet& contour(std::span<const double> x, std::span<const double> y,
+                        std::span<const double> z, const ContourOpts& opts = {});
+    ContourSet& contourf(std::span<const double> x, std::span<const double> y,
+                         std::span<const double> z, const ContourOpts& opts = {});
 
     /// Frameless axes: no patch, grid, spines or ticks (mirrors ax.axis('off')).
     void set_axis_off() { axis_off_ = true; }

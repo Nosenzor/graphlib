@@ -973,6 +973,76 @@ QuadMesh& Axes::pcolormesh(std::span<const double> x_edges, std::span<const doub
     return ref;
 }
 
+namespace {
+ContourSet& make_contour(Axes& axes, std::span<const double> x, std::span<const double> y,
+                         std::span<const double> z, const ContourOpts& opts, bool filled,
+                         std::vector<std::unique_ptr<Artist>>& children) {
+    if (x.size() < 2 || y.size() < 2 || z.size() != x.size() * y.size()) {
+        throw ValueError("contour: z must be len(y) x len(x)");
+    }
+    auto cs = std::make_unique<ContourSet>();
+    cs->axes = &axes;
+    cs->x.assign(x.begin(), x.end());
+    cs->y.assign(y.begin(), y.end());
+    cs->z.assign(z.begin(), z.end());
+    cs->filled = filled;
+    double lo = std::numeric_limits<double>::infinity();
+    double hi = -std::numeric_limits<double>::infinity();
+    for (const double v : z) {
+        if (std::isfinite(v)) {
+            lo = std::min(lo, v);
+            hi = std::max(hi, v);
+        }
+    }
+    if (!std::isfinite(lo)) {
+        throw ValueError("contour: z has no finite values");
+    }
+    if (!opts.levels.empty()) {
+        cs->levels.assign(opts.levels.begin(), opts.levels.end());
+    } else {
+        // mpl _autolev: MaxNLocator over the data range; unfilled contours drop
+        // the boundary levels, filled ones keep them so bands cover the data.
+        const MaxNLocator locator;
+        for (const double lev : locator.tick_values(lo, hi)) {
+            if (filled || (lev > lo && lev < hi)) {
+                cs->levels.push_back(lev);
+            }
+        }
+    }
+    if (!opts.colors.empty()) {
+        cs->single_color = to_color(opts.colors);
+    } else {
+        cs->cmap = &get_cmap(opts.cmap.empty() ? "viridis" : opts.cmap);
+    }
+    cs->linewidth = opts.linewidths.value_or(rc().number("lines.linewidth"));
+    cs->alpha = opts.alpha;
+
+    ContourSet& ref = *cs;
+    children.push_back(std::move(cs));
+    return ref;
+}
+} // namespace
+
+ContourSet& Axes::contour(std::span<const double> x, std::span<const double> y,
+                          std::span<const double> z, const ContourOpts& opts) {
+    ContourSet& cs = make_contour(*this, x, y, z, opts, /*filled=*/false, children_);
+    data_lim_.update(cs.data_extents());
+    autoscale_view();
+    return cs;
+}
+
+ContourSet& Axes::contourf(std::span<const double> x, std::span<const double> y,
+                           std::span<const double> z, const ContourOpts& opts) {
+    ContourSet& cs = make_contour(*this, x, y, z, opts, /*filled=*/true, children_);
+    cs.zorder = 1.0; // filled bands sit with patches, below lines (mpl)
+    data_lim_.update(cs.data_extents());
+    // contourf sits tight against its grid, like pcolormesh.
+    sticky_x_.insert(sticky_x_.end(), {x.front(), x.back()});
+    sticky_y_.insert(sticky_y_.end(), {y.front(), y.back()});
+    autoscale_view();
+    return cs;
+}
+
 void Axes::set_aspect(double ratio) {
     if (ratio <= 0 || !std::isfinite(ratio)) {
         throw ValueError("set_aspect: ratio must be positive and finite");
