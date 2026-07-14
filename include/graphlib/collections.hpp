@@ -8,6 +8,7 @@
 
 #include "graphlib/artist.hpp"
 #include "graphlib/color.hpp"
+#include "graphlib/colormaps.hpp"
 #include "graphlib/markers.hpp"
 #include "graphlib/transforms.hpp"
 
@@ -46,6 +47,33 @@ public:
     double linewidth = 1.0;
 
     Axes* axes = nullptr; // set by Axes::scatter
+
+    void draw(Renderer& renderer) override;
+    [[nodiscard]] Bbox data_extents() const;
+};
+
+/// kwargs of Axes::pcolormesh.
+struct PcolorOpts {
+    std::string_view cmap{}; // rc image.cmap = 'viridis'
+    std::optional<double> vmin{};
+    std::optional<double> vmax{};
+    std::optional<double> alpha{};
+};
+
+/// Mirrors matplotlib.collections.QuadMesh (flat shading): a grid of quads
+/// between x/y edge arrays, colored per cell.
+class QuadMesh final : public Artist {
+public:
+    QuadMesh() { zorder = 1.0; }
+
+    std::vector<double> x_edges; // cols + 1
+    std::vector<double> y_edges; // rows + 1
+    std::vector<double> values;  // rows x cols, row-major
+    const Colormap* cmap = nullptr;
+    double vmin = 0.0;
+    double vmax = 1.0;
+
+    Axes* axes = nullptr;
 
     void draw(Renderer& renderer) override;
     [[nodiscard]] Bbox data_extents() const;

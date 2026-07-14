@@ -442,6 +442,8 @@ void Axes::recompute_data_lim() {
             data_lim_.update(pc->data_extents());
         } else if (const auto* im = dynamic_cast<const AxesImage*>(child.get())) {
             data_lim_.update(im->data_extents());
+        } else if (const auto* mesh = dynamic_cast<const QuadMesh*>(child.get())) {
+            data_lim_.update(mesh->data_extents());
         }
     }
 }
@@ -930,6 +932,45 @@ Bbox Axes::bbox_pixels(Size canvas) const {
         }
     }
     return box;
+}
+
+QuadMesh& Axes::pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
+                           std::span<const double> values, const PcolorOpts& opts) {
+    if (x_edges.size() < 2 || y_edges.size() < 2 ||
+        values.size() != (x_edges.size() - 1) * (y_edges.size() - 1)) {
+        throw ValueError("pcolormesh: values must be (len(y)-1) x (len(x)-1)");
+    }
+    auto mesh = std::make_unique<QuadMesh>();
+    mesh->axes = this;
+    mesh->x_edges.assign(x_edges.begin(), x_edges.end());
+    mesh->y_edges.assign(y_edges.begin(), y_edges.end());
+    mesh->values.assign(values.begin(), values.end());
+    mesh->cmap = &get_cmap(opts.cmap.empty() ? "viridis" : opts.cmap); // rc image.cmap
+    double lo = std::numeric_limits<double>::infinity();
+    double hi = -std::numeric_limits<double>::infinity();
+    for (const double v : values) {
+        if (std::isfinite(v)) {
+            lo = std::min(lo, v);
+            hi = std::max(hi, v);
+        }
+    }
+    mesh->vmin = opts.vmin.value_or(std::isfinite(lo) ? lo : 0.0);
+    mesh->vmax = opts.vmax.value_or(std::isfinite(hi) ? hi : 1.0);
+    if (mesh->vmax == mesh->vmin) {
+        mesh->vmax = mesh->vmin + 1.0;
+    }
+    mesh->alpha = opts.alpha;
+
+    // Sticky edges on all four sides: pcolormesh sits tight, like mpl.
+    data_lim_.update(mesh->data_extents());
+    track_minpos({{Point{mesh->x_edges.front(), mesh->y_edges.front()}}});
+    track_minpos({{Point{mesh->x_edges.back(), mesh->y_edges.back()}}});
+    sticky_x_.insert(sticky_x_.end(), {mesh->x_edges.front(), mesh->x_edges.back()});
+    sticky_y_.insert(sticky_y_.end(), {mesh->y_edges.front(), mesh->y_edges.back()});
+    QuadMesh& ref = *mesh;
+    children_.push_back(std::move(mesh));
+    autoscale_view();
+    return ref;
 }
 
 void Axes::set_aspect(double ratio) {

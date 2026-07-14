@@ -154,6 +154,11 @@ public:
     AxesImage& imshow(std::span<const double> data, int rows, int cols,
                       const ImshowOpts& opts = {});
 
+    /// Flat-shaded quadrilateral mesh (mirrors Axes.pcolormesh with 1D edge
+    /// arrays: x has cols+1 entries, y rows+1, values rows*cols row-major).
+    QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
+                         std::span<const double> values, const PcolorOpts& opts = {});
+
     /// Frameless axes: no patch, grid, spines or ticks (mirrors ax.axis('off')).
     void set_axis_off() { axis_off_ = true; }
     /// Aspect control (mirrors set_aspect with adjustable='box'): the axes box

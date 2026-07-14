@@ -126,6 +126,10 @@ std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts) {
 AxesImage& imshow(std::span<const double> data, int rows, int cols, const ImshowOpts& opts) {
     return gca().imshow(data, rows, cols, opts);
 }
+QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
+                     std::span<const double> values, const PcolorOpts& opts) {
+    return gca().pcolormesh(x_edges, y_edges, values, opts);
+}
 
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }
