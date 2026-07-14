@@ -105,6 +105,96 @@ def colors():
             for s in specs]
 
 
+
+
+def log_ticks():
+    """Log-scale axis: major tick locs + labels + minor locs (LogLocator oracle)."""
+    lims = [(1.0, 1000.0), (0.001, 100.0), (5.0, 50000.0), (0.5, 80.0),
+            (1e-6, 1e-2), (2.0, 9.0), (1.0, 1e7)]
+    cases = []
+    for vmin, vmax in lims:
+        fig, ax = plt.subplots()
+        ax.set_xscale("log")
+        ax.set_xlim(vmin, vmax)
+        fig.canvas.draw()
+        cases.append({
+            "vmin": vmin, "vmax": vmax,
+            "major": [float(v) for v in ax.get_xticks()],
+            "labels": [t.get_text() for t in ax.get_xticklabels()],
+            "minor": [float(v) for v in ax.get_xticks(minor=True)],
+        })
+        plt.close(fig)
+    return cases
+
+
+def minor_ticks():
+    """AutoMinorLocator on a default linear axis."""
+    lims = [(0.0, 1.0), (0.0, 10.0), (-2.5, 7.5), (3.0, 17.0), (0.0, 0.35)]
+    cases = []
+    for vmin, vmax in lims:
+        fig, ax = plt.subplots()
+        ax.set_xlim(vmin, vmax)
+        ax.minorticks_on()
+        fig.canvas.draw()
+        cases.append({
+            "vmin": vmin, "vmax": vmax,
+            "minor": [float(v) for v in ax.get_xticks(minor=True)],
+        })
+        plt.close(fig)
+    return cases
+
+
+def offset_labels():
+    """ScalarFormatter offset/scientific: labels + the axis-end offset text."""
+    lims = [(1e6, 2e6), (123456.0, 123789.0), (-1e-9, 1e-9), (99999990.0, 100000010.0),
+            (0.0001, 0.0008), (1e10, 5e10), (0.0, 1.0)]
+    cases = []
+    for vmin, vmax in lims:
+        fig, ax = plt.subplots()
+        ax.set_xlim(vmin, vmax)
+        fig.canvas.draw()
+        cases.append({
+            "vmin": vmin, "vmax": vmax,
+            "ticks": [float(v) for v in ax.get_xticks()],
+            "labels": [t.get_text() for t in ax.get_xticklabels()],
+            "offset_text": ax.xaxis.get_offset_text().get_text(),
+        })
+        plt.close(fig)
+    return cases
+
+
+def hist_bins():
+    """np.histogram-compatible binning (bins=int over data range)."""
+    import numpy as np
+    datasets = [
+        [float(v) for v in np.linspace(0, 10, 47) ** 1.3],
+        [float(v) for v in np.sin(np.linspace(0, 6.283, 100))],
+        [1.0, 1.0, 2.0, 3.5, 3.5, 3.5, 9.0],
+    ]
+    cases = []
+    for data in datasets:
+        for bins in (10, 5):
+            counts, edges = np.histogram(data, bins=bins)
+            cases.append({"data": data, "bins": bins,
+                          "counts": [int(c) for c in counts],
+                          "edges": [float(e) for e in edges]})
+    return cases
+
+
+def bar_autoscale():
+    """bar(): sticky-zero bottom + margined x (autoscale oracle)."""
+    cases = []
+    for heights in ([1.0, 2.0, 3.0], [3.0, -1.0, 2.0], [0.5, 0.9]):
+        fig, ax = plt.subplots()
+        ax.bar(range(len(heights)), heights)
+        fig.canvas.draw()
+        cases.append({"heights": heights,
+                      "xlim": [float(v) for v in ax.get_xlim()],
+                      "ylim": [float(v) for v in ax.get_ylim()]})
+        plt.close(fig)
+    return cases
+
+
 # ---------------------------------------------------------------- emission
 
 def cxx_str(s: str) -> str:
@@ -162,6 +252,50 @@ def emit_inc(data: dict) -> None:
                  f"{cxx_num(a)}}},")
     L.append("};\n")
 
+
+    L.append("struct LogTicksCase { double vmin; double vmax; std::vector<double> major; "
+             "std::vector<std::string> labels; std::vector<double> minor; };")
+    L.append("inline const std::vector<LogTicksCase> log_ticks = {")
+    for c in data["log_ticks"]:
+        L.append(f"    {{{cxx_num(c['vmin'])}, {cxx_num(c['vmax'])}, "
+                 f"{cxx_vec(c['major'], cxx_num)}, {cxx_vec(c['labels'], cxx_str)}, "
+                 f"{cxx_vec(c['minor'], cxx_num)}}},")
+    L.append("};\n")
+
+    L.append("struct MinorTicksCase { double vmin; double vmax; std::vector<double> minor; };")
+    L.append("inline const std::vector<MinorTicksCase> minor_ticks = {")
+    for c in data["minor_ticks"]:
+        L.append(f"    {{{cxx_num(c['vmin'])}, {cxx_num(c['vmax'])}, "
+                 f"{cxx_vec(c['minor'], cxx_num)}}},")
+    L.append("};\n")
+
+    L.append("struct OffsetLabelsCase { double vmin; double vmax; std::vector<double> ticks; "
+             "std::vector<std::string> labels; std::string offset_text; };")
+    L.append("inline const std::vector<OffsetLabelsCase> offset_labels = {")
+    for c in data["offset_labels"]:
+        L.append(f"    {{{cxx_num(c['vmin'])}, {cxx_num(c['vmax'])}, "
+                 f"{cxx_vec(c['ticks'], cxx_num)}, {cxx_vec(c['labels'], cxx_str)}, "
+                 f"{cxx_str(c['offset_text'])}}},")
+    L.append("};\n")
+
+    L.append("struct HistBinsCase { std::vector<double> data; int bins; "
+             "std::vector<int> counts; std::vector<double> edges; };")
+    L.append("inline const std::vector<HistBinsCase> hist_bins = {")
+    for c in data["hist_bins"]:
+        L.append(f"    {{{cxx_vec(c['data'], cxx_num)}, {c['bins']}, "
+                 f"{{{', '.join(str(v) for v in c['counts'])}}}, "
+                 f"{cxx_vec(c['edges'], cxx_num)}}},")
+    L.append("};\n")
+
+    L.append("struct BarAutoscaleCase { std::vector<double> heights; double xlo; double xhi; "
+             "double ylo; double yhi; };")
+    L.append("inline const std::vector<BarAutoscaleCase> bar_autoscale = {")
+    for c in data["bar_autoscale"]:
+        L.append(f"    {{{cxx_vec(c['heights'], cxx_num)}, "
+                 f"{cxx_num(c['xlim'][0])}, {cxx_num(c['xlim'][1])}, "
+                 f"{cxx_num(c['ylim'][0])}, {cxx_num(c['ylim'][1])}}},")
+    L.append("};\n")
+
     L += ["} // namespace fixtures", "// clang-format on", ""]
     (HERE / "fixtures.inc").write_text("\n".join(L), encoding="utf-8")
 
@@ -172,6 +306,11 @@ if __name__ == "__main__":
         "axis_ticks": axis_ticks(),
         "autoscale": autoscale(),
         "colors": colors(),
+        "log_ticks": log_ticks(),
+        "minor_ticks": minor_ticks(),
+        "offset_labels": offset_labels(),
+        "hist_bins": hist_bins(),
+        "bar_autoscale": bar_autoscale(),
     }
     for name, cases in data.items():
         (HERE / f"{name}.json").write_text(json.dumps({**META, "cases": cases}, indent=1),
