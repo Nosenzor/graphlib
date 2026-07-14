@@ -27,6 +27,13 @@ Text& text(double x, double y, std::string s, const TextOpts& opts = {});
 PathCollection& scatter(std::span<const double> x, std::span<const double> y,
                         const ScatterOpts& opts = {});
 Legend& legend(const LegendOpts& opts = {});
+std::vector<Rectangle*> bar(std::span<const double> x, std::span<const double> height,
+                            const BarOpts& opts = {});
+std::vector<Rectangle*> bar(const std::vector<std::string>& labels,
+                            std::span<const double> height, const BarOpts& opts = {});
+std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> width,
+                             const BarOpts& opts = {});
+std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts = {});
 
 void title(std::string t);
 void xlabel(std::string t);

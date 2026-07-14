@@ -71,6 +71,22 @@ PathCollection& scatter(std::span<const double> x, std::span<const double> y,
 
 Legend& legend(const LegendOpts& opts) { return gca().legend(opts); }
 
+std::vector<Rectangle*> bar(std::span<const double> x, std::span<const double> height,
+                            const BarOpts& opts) {
+    return gca().bar(x, height, opts);
+}
+std::vector<Rectangle*> bar(const std::vector<std::string>& labels,
+                            std::span<const double> height, const BarOpts& opts) {
+    return gca().bar(labels, height, opts);
+}
+std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> width,
+                             const BarOpts& opts) {
+    return gca().barh(y, width, opts);
+}
+std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts) {
+    return gca().hist(data, opts);
+}
+
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }
 void ylabel(std::string t) { gca().set_ylabel(std::move(t)); }

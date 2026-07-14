@@ -179,6 +179,19 @@ void Legend::draw(Renderer& renderer) {
     double row_center = origin.y + height - border - row_h / 2.0;
     for (const Entry& e : entries) {
         const double hx0 = origin.x + border;
+        if (e.patch_swatch) { // bar/hist/fill handle: filled rectangle
+            GraphicsContext gc;
+            gc.color = e.patch_edgecolor;
+            gc.linewidth = 1.0;
+            const double half_h = kHandleHeight * fs / 2.0;
+            Path swatch;
+            swatch.move_to(hx0, row_center - half_h);
+            swatch.line_to(hx0 + handle_len, row_center - half_h);
+            swatch.line_to(hx0 + handle_len, row_center + half_h);
+            swatch.line_to(hx0, row_center + half_h);
+            swatch.close_subpath();
+            renderer.draw_path(gc, swatch, Affine2D::identity(), e.patch_facecolor);
+        }
         // handle: line sample and/or marker at its center
         if (e.linestyle.drawn()) {
             GraphicsContext gc;

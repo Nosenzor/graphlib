@@ -15,6 +15,7 @@
 #include "graphlib/graphics_context.hpp"
 #include "graphlib/lines.hpp"
 #include "graphlib/markers.hpp"
+#include "graphlib/patches.hpp"
 #include "graphlib/path.hpp"
 #include "graphlib/pyplot.hpp"
 #include "graphlib/rc.hpp"

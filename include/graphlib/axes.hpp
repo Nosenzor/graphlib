@@ -12,12 +12,33 @@
 #include "graphlib/collections.hpp"
 #include "graphlib/legend.hpp"
 #include "graphlib/lines.hpp"
+#include "graphlib/patches.hpp"
 #include "graphlib/text.hpp"
 #include "graphlib/transforms.hpp"
 
 namespace graphlib {
 
 class Figure;
+
+/// kwargs of Axes::bar / Axes::barh.
+struct BarOpts {
+    std::optional<double> width{}; // 0.8 (bar height for barh)
+    double bottom = 0.0;           // left for barh
+    std::string_view color{};      // "" -> one cycle color for the whole call
+    std::string_view edgecolor{};  // mpl default: fully transparent
+    std::optional<double> linewidth{};
+    std::optional<double> alpha{};
+    std::string_view label{};
+};
+
+/// kwargs of Axes::hist.
+struct HistOpts {
+    std::optional<int> bins{}; // rc hist.bins = 10
+    std::span<const double> edges{}; // explicit bin edges (overrides bins)
+    std::string_view color{};
+    std::optional<double> alpha{};
+    std::string_view label{};
+};
 
 /// kwargs of Axes::text.
 struct TextOpts {
@@ -51,6 +72,30 @@ public:
 
     /// Place a legend from the labeled artists (mirrors Axes.legend).
     Legend& legend(const LegendOpts& opts = {});
+
+    /// Vertical bars at numeric positions (mirrors Axes.bar; returns one
+    /// Rectangle per bar, first one carries the legend label).
+    std::vector<Rectangle*> bar(std::span<const double> x, std::span<const double> height,
+                                const BarOpts& opts = {});
+    /// Categorical bars: labels become the x tick labels at positions 0..N-1.
+    std::vector<Rectangle*> bar(const std::vector<std::string>& labels,
+                                std::span<const double> height, const BarOpts& opts = {});
+    /// Horizontal bars (mirrors Axes.barh).
+    std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> width,
+                                 const BarOpts& opts = {});
+
+    /// Histogram of `data` (np.histogram-compatible binning); returns the bars.
+    std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts = {});
+
+    /// Adopt a patch built by a plotting method (updates dataLim + stickies).
+    Rectangle& add_patch(std::unique_ptr<Rectangle> patch);
+    Polygon& add_patch(std::unique_ptr<Polygon> patch);
+    Wedge& add_patch(std::unique_ptr<Wedge> patch);
+
+    /// Manual major ticks (mirrors set_xticks/set_yticks; empty labels keep the
+    /// default formatter).
+    void set_xticks(std::vector<double> locs, std::vector<std::string> labels = {});
+    void set_yticks(std::vector<double> locs, std::vector<std::string> labels = {});
 
     /// Transformed data polylines for legend 'best' placement (internal).
     void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
@@ -91,6 +136,7 @@ public:
 private:
     void add_line_datalim(const Line2D& line);
     void autoscale_view();
+    Patch& adopt_patch(std::unique_ptr<Patch> patch);
 
     Figure* figure_;
     std::vector<std::unique_ptr<Artist>> children_;
@@ -108,6 +154,8 @@ private:
     double margin_y_ = 0.05; // rc axes.ymargin
     std::vector<Color> cycle_; // rc axes.prop_cycle, captured at creation (mpl semantics)
     size_t cycle_index_ = 0;
+    std::vector<double> sticky_x_; // accumulated artist sticky edges (sorted on use)
+    std::vector<double> sticky_y_;
 };
 
 } // namespace graphlib

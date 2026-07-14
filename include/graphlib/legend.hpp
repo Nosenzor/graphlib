@@ -28,7 +28,7 @@ class Legend final : public Artist {
 public:
     Legend() { zorder = 5.0; }
 
-    /// One row: a handle sample (line and/or marker) + the label text.
+    /// One row: a handle sample (line, marker, or patch swatch) + the label.
     struct Entry {
         std::string label;
         Color color;
@@ -40,6 +40,9 @@ public:
         double markersize = 6.0;
         double markeredgewidth = 1.0;
         double marker_scale = 1.0; // rc legend.markerscale
+        bool patch_swatch = false; // bar/hist/fill handles: a filled rectangle
+        Color patch_facecolor;
+        Color patch_edgecolor;
     };
 
     std::vector<Entry> entries;

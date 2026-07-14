@@ -78,6 +78,23 @@ public:
     format_ticks(std::span<const double> locs, double view_vmin, double view_vmax) const = 0;
 };
 
+/// Fixed, user-supplied labels (set_xticks(locs, labels), categorical bar()).
+class FixedFormatter final : public Formatter {
+public:
+    explicit FixedFormatter(std::vector<std::string> labels) : labels_(std::move(labels)) {}
+    [[nodiscard]] std::vector<std::string> format_ticks(std::span<const double> locs, double,
+                                                        double) const override {
+        std::vector<std::string> out(locs.size());
+        for (size_t i = 0; i < locs.size() && i < labels_.size(); ++i) {
+            out[i] = labels_[i];
+        }
+        return out;
+    }
+
+private:
+    std::vector<std::string> labels_;
+};
+
 /// Default label formatter (mirrors ScalarFormatter).
 /// v0.1 implements fixed notation only; the scientific/offset-text machinery is
 /// TODO(v0.3) — see docs/PARITY.md.

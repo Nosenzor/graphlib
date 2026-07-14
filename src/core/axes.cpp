@@ -186,6 +186,11 @@ Legend& Axes::legend(const LegendOpts& opts) {
             e.markeredgecolor = pc->edgecolor;
             e.markersize = std::sqrt(pc->sizes.front());
             e.markeredgewidth = pc->linewidth;
+        } else if (const auto* patch = dynamic_cast<const Patch*>(child.get())) {
+            e.linestyle = LineStyle{LineStyle::Kind::none};
+            e.patch_swatch = true;
+            e.patch_facecolor = patch->facecolor;
+            e.patch_edgecolor = patch->edgecolor;
         } else {
             continue; // Text labels don't get legend entries (mpl behavior)
         }
@@ -219,6 +224,173 @@ void Axes::collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px,
     }
 }
 
+Patch& Axes::adopt_patch(std::unique_ptr<Patch> patch) {
+    patch->axes = this;
+    data_lim_.update(patch->data_extents());
+    sticky_x_.insert(sticky_x_.end(), patch->sticky_x.begin(), patch->sticky_x.end());
+    sticky_y_.insert(sticky_y_.end(), patch->sticky_y.begin(), patch->sticky_y.end());
+    Patch& ref = *patch;
+    children_.push_back(std::move(patch));
+    autoscale_view();
+    return ref;
+}
+
+Rectangle& Axes::add_patch(std::unique_ptr<Rectangle> patch) {
+    return static_cast<Rectangle&>(adopt_patch(std::move(patch)));
+}
+Polygon& Axes::add_patch(std::unique_ptr<Polygon> patch) {
+    return static_cast<Polygon&>(adopt_patch(std::move(patch)));
+}
+Wedge& Axes::add_patch(std::unique_ptr<Wedge> patch) {
+    return static_cast<Wedge&>(adopt_patch(std::move(patch)));
+}
+
+std::vector<Rectangle*> Axes::bar(std::span<const double> x, std::span<const double> height,
+                                  const BarOpts& opts) {
+    if (x.size() != height.size()) {
+        throw ValueError("bar: x and height must be the same size");
+    }
+    const double width = opts.width.value_or(0.8); // mpl default
+    const Color face = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    // mpl bar edge default: fully transparent (oracle-checked)
+    const Color edge = opts.edgecolor.empty() ? Color::none() : to_color(opts.edgecolor);
+
+    std::vector<Rectangle*> bars;
+    bars.reserve(x.size());
+    for (size_t i = 0; i < x.size(); ++i) {
+        auto r = std::make_unique<Rectangle>(x[i] - width / 2.0, opts.bottom, width,
+                                             height[i]); // align='center'
+        r->facecolor = face;
+        r->edgecolor = edge;
+        r->linewidth = opts.linewidth.value_or(1.0);
+        r->alpha = opts.alpha;
+        r->sticky_y = {opts.bottom}; // margins must not cross the baseline
+        if (i == 0) {
+            r->label = std::string(opts.label); // one legend entry per call
+        }
+        bars.push_back(&add_patch(std::move(r)));
+    }
+    return bars;
+}
+
+std::vector<Rectangle*> Axes::bar(const std::vector<std::string>& labels,
+                                  std::span<const double> height, const BarOpts& opts) {
+    std::vector<double> positions(labels.size());
+    for (size_t i = 0; i < positions.size(); ++i) {
+        positions[i] = static_cast<double>(i);
+    }
+    auto bars = bar(positions, height, opts);
+    set_xticks(positions, labels); // categorical x, like mpl
+    return bars;
+}
+
+std::vector<Rectangle*> Axes::barh(std::span<const double> y, std::span<const double> width,
+                                   const BarOpts& opts) {
+    if (y.size() != width.size()) {
+        throw ValueError("barh: y and width must be the same size");
+    }
+    const double bar_height = opts.width.value_or(0.8);
+    const Color face = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    const Color edge = opts.edgecolor.empty() ? Color::none() : to_color(opts.edgecolor);
+
+    std::vector<Rectangle*> bars;
+    bars.reserve(y.size());
+    for (size_t i = 0; i < y.size(); ++i) {
+        auto r = std::make_unique<Rectangle>(opts.bottom, y[i] - bar_height / 2.0, width[i],
+                                             bar_height);
+        r->facecolor = face;
+        r->edgecolor = edge;
+        r->linewidth = opts.linewidth.value_or(1.0);
+        r->alpha = opts.alpha;
+        r->sticky_x = {opts.bottom};
+        if (i == 0) {
+            r->label = std::string(opts.label);
+        }
+        bars.push_back(&add_patch(std::move(r)));
+    }
+    return bars;
+}
+
+std::vector<Rectangle*> Axes::hist(std::span<const double> data, const HistOpts& opts) {
+    if (data.empty()) {
+        return {};
+    }
+    // np.histogram semantics: `bins` equal-width bins over [min, max];
+    // right-open intervals except the last, which is closed.
+    std::vector<double> edges;
+    if (!opts.edges.empty()) {
+        edges.assign(opts.edges.begin(), opts.edges.end());
+        if (edges.size() < 2) {
+            throw ValueError("hist: need at least two bin edges");
+        }
+    } else {
+        const int bins = opts.bins.value_or(static_cast<int>(rc().number("hist.bins")));
+        if (bins < 1) {
+            throw ValueError("hist: bins must be positive");
+        }
+        auto [mn_it, mx_it] = std::minmax_element(data.begin(), data.end());
+        double lo = *mn_it;
+        double hi = *mx_it;
+        if (lo == hi) { // np.histogram expands a degenerate range by 0.5 each side
+            lo -= 0.5;
+            hi += 0.5;
+        }
+        edges.resize(static_cast<size_t>(bins) + 1);
+        for (size_t i = 0; i < edges.size(); ++i) {
+            edges[i] = lo + (hi - lo) * static_cast<double>(i) / bins;
+        }
+        edges.back() = hi; // exact, no accumulation error
+    }
+    std::vector<double> counts(edges.size() - 1, 0.0);
+    for (const double v : data) {
+        if (std::isnan(v) || v < edges.front() || v > edges.back()) {
+            continue;
+        }
+        const auto it = std::upper_bound(edges.begin(), edges.end(), v);
+        const size_t idx =
+            std::min(counts.size() - 1,
+                     static_cast<size_t>(std::max<std::ptrdiff_t>(
+                         0, std::distance(edges.begin(), it) - 1)));
+        counts[idx] += 1.0;
+    }
+
+    const Color face = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    std::vector<Rectangle*> bars;
+    bars.reserve(counts.size());
+    for (size_t i = 0; i < counts.size(); ++i) {
+        auto r = std::make_unique<Rectangle>(edges[i], 0.0, edges[i + 1] - edges[i], counts[i]);
+        r->facecolor = face;
+        r->edgecolor = Color::none();
+        r->alpha = opts.alpha;
+        r->sticky_y = {0.0};
+        if (i == 0) {
+            r->label = std::string(opts.label);
+        }
+        bars.push_back(&add_patch(std::move(r)));
+    }
+    return bars;
+}
+
+void Axes::set_xticks(std::vector<double> locs, std::vector<std::string> labels) {
+    if (!labels.empty() && labels.size() != locs.size()) {
+        throw ValueError("set_xticks: labels must match the number of locations");
+    }
+    xaxis_.set_major_locator(std::make_unique<FixedLocator>(std::move(locs)));
+    if (!labels.empty()) {
+        xaxis_.set_major_formatter(std::make_unique<FixedFormatter>(std::move(labels)));
+    }
+}
+
+void Axes::set_yticks(std::vector<double> locs, std::vector<std::string> labels) {
+    if (!labels.empty() && labels.size() != locs.size()) {
+        throw ValueError("set_yticks: labels must match the number of locations");
+    }
+    yaxis_.set_major_locator(std::make_unique<FixedLocator>(std::move(locs)));
+    if (!labels.empty()) {
+        yaxis_.set_major_formatter(std::make_unique<FixedFormatter>(std::move(labels)));
+    }
+}
+
 void Axes::set_xlim(double left, double right) {
     if (left == right) {
         // mpl warns and lets the transform degenerate; we expand like the
@@ -244,22 +416,45 @@ Color Axes::next_cycle_color() { return cycle_[cycle_index_++ % cycle_.size()]; 
 void Axes::add_line_datalim(const Line2D& line) { data_lim_.update(line.data_extents()); }
 
 // Port of autoscale_view's per-axis handling (autolimit_mode='data'):
-// locator.nonsingular first, then symmetric margins. Sticky edges: v0.3.
+// locator.nonsingular, then symmetric margins clamped at sticky edges
+// (handle_single_axis in mpl — margins must not cross a sticky value).
 void Axes::autoscale_view() {
     if (data_lim_.is_null()) {
         return; // no data: keep the (0, 1) defaults, like mpl
     }
+    const auto apply = [](double lo, double hi, double margin, std::vector<double> stickies,
+                          const Locator& locator) {
+        std::tie(lo, hi) = locator.nonsingular(lo, hi);
+        std::sort(stickies.begin(), stickies.end());
+        const double tol = 1e-5 * std::abs(hi - lo);
+        std::optional<double> lo_bound;
+        std::optional<double> hi_bound;
+        for (const double s : stickies) {
+            if (s <= lo + tol) {
+                lo_bound = s; // largest sticky not above lo
+            }
+            if (!hi_bound && s >= hi - tol) {
+                hi_bound = s; // smallest sticky not below hi
+            }
+        }
+        const double delta = (hi - lo) * margin;
+        double out_lo = lo - delta;
+        double out_hi = hi + delta;
+        if (lo_bound) {
+            out_lo = std::max(out_lo, *lo_bound);
+        }
+        if (hi_bound) {
+            out_hi = std::min(out_hi, *hi_bound);
+        }
+        return std::pair{out_lo, out_hi};
+    };
     if (autoscale_x_) {
-        auto [x0, x1] = xaxis_.major_locator().nonsingular(data_lim_.x0(), data_lim_.x1());
-        const double delta = (x1 - x0) * margin_x_;
-        vx0_ = x0 - delta;
-        vx1_ = x1 + delta;
+        std::tie(vx0_, vx1_) =
+            apply(data_lim_.x0(), data_lim_.x1(), margin_x_, sticky_x_, xaxis_.major_locator());
     }
     if (autoscale_y_) {
-        auto [y0, y1] = yaxis_.major_locator().nonsingular(data_lim_.y0(), data_lim_.y1());
-        const double delta = (y1 - y0) * margin_y_;
-        vy0_ = y0 - delta;
-        vy1_ = y1 + delta;
+        std::tie(vy0_, vy1_) =
+            apply(data_lim_.y0(), data_lim_.y1(), margin_y_, sticky_y_, yaxis_.major_locator());
     }
 }
 
