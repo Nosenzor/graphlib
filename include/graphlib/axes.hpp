@@ -234,6 +234,9 @@ public:
     /// Linear-axis minor ticks (mirrors ax.minorticks_on with AutoMinorLocator).
     void minorticks_on();
 
+    /// Move y ticks/labels to the right side (mirrors ax.yaxis.tick_right()).
+    void yaxis_tick_right() { yaxis_right_ = true; }
+
     /// Transformed data polylines for legend 'best' placement (internal).
     void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
 

@@ -28,6 +28,11 @@ struct SubplotsOpts {
     bool sharey = false;
 };
 
+/// kwargs of Figure::colorbar.
+struct ColorbarOpts {
+    std::string label{};
+};
+
 class Figure {
 public:
     Figure() : Figure(FigureOpts{}) {}
@@ -45,6 +50,11 @@ public:
 
     /// Centered figure title (mirrors Figure.suptitle).
     void suptitle(std::string text);
+
+    /// Attach a colorbar for the mappable, stealing space from its host axes
+    /// (mirrors fig.colorbar geometry). Returns the colorbar's own Axes.
+    Axes& colorbar(const AxesImage& mappable, const ColorbarOpts& opts = {});
+    Axes& colorbar(const QuadMesh& mappable, const ColorbarOpts& opts = {});
 
     /// Fit decorations (tick labels, axis labels, titles) inside each axes'
     /// grid cell — a metrics-based v1 of mpl's tight_layout.

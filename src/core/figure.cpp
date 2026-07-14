@@ -83,6 +83,47 @@ std::vector<std::vector<Axes*>> Figure::subplots(int nrows, int ncols,
 
 void Figure::suptitle(std::string text) { suptitle_ = std::move(text); }
 
+namespace {
+Axes& make_colorbar(Figure& fig, Axes& host, const Colormap& cmap, double vmin, double vmax,
+                    const ColorbarOpts& opts) {
+    // mpl make_axes-style space stealing (fraction + pad of the host width).
+    const Bbox hp = host.position;
+    const double w = hp.width();
+    host.position = Bbox::from_extents(hp.x0(), hp.y0(), hp.x1() - 0.20 * w, hp.y1());
+    const double cax_x0 = hp.x1() - 0.20 * w + 0.04 * w;
+    Axes& cax = fig.add_axes(Bbox::from_extents(cax_x0, hp.y0(), cax_x0 + 0.045 * w, hp.y1()));
+
+    std::vector<double> gradient(256);
+    for (size_t i = 0; i < gradient.size(); ++i) {
+        gradient[i] = vmin + (vmax - vmin) * static_cast<double>(i) / 255.0;
+    }
+    cax.imshow(gradient, 256, 1,
+               {.cmap = cmap.name(),
+                .vmin = vmin,
+                .vmax = vmax,
+                .origin = "lower",
+                .extent = {{0.0, 1.0, vmin, vmax}},
+                .interpolation = "nearest",
+                .aspect = "auto"});
+    cax.set_xticks({});     // no x axis on a colorbar
+    cax.yaxis_tick_right(); // values read on the right, like mpl
+    if (!opts.label.empty()) {
+        cax.set_ylabel(opts.label);
+    }
+    return cax;
+}
+} // namespace
+
+Axes& Figure::colorbar(const AxesImage& mappable, const ColorbarOpts& opts) {
+    return make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin, mappable.vmax,
+                         opts);
+}
+
+Axes& Figure::colorbar(const QuadMesh& mappable, const ColorbarOpts& opts) {
+    return make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin, mappable.vmax,
+                         opts);
+}
+
 Axes& Figure::gca() {
     if (axes_.empty()) {
         return add_subplot();
