@@ -68,10 +68,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install deps (ninja, X/GL for GLFW, xvfb)
+      - name: Install deps (ninja, X/Wayland/GL for GLFW, xvfb)
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev xvfb
+          sudo apt-get install -y ninja-build xorg-dev libgl1-mesa-dev xvfb \
+            libwayland-dev wayland-protocols libxkbcommon-dev
       - name: Configure
         run: cmake --preset ci -DGRAPHLIB_INTERACTIVE=ON
       - name: Build
