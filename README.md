@@ -37,13 +37,20 @@ matplotlib itself.
 |---|---|
 | ![scatter](docs/gallery/scatter.svg) | ![legend](docs/gallery/legend.svg) |
 
-## Status: v0.2 "Raster & Type"
+| | |
+|---|---|
+| ![bars](docs/gallery/bar_hist.svg) | ![log](docs/gallery/log_scales.svg) |
+
+## Status: v0.3 "Everyday Plots"
 
 **SVG and PNG output** (any dpi, via matplotlib's own AGG rasterizer), real DejaVu
-typography with exact metrics, `plot` with format strings (`"r--o"`) and all 25 markers,
-`scatter` with pt² sizes, `legend` with matplotlib's `'best'` placement, grids, autoscale,
-clipping, NaN gaps. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
-[docs/PARITY.md](docs/PARITY.md) for matplotlib feature coverage.
+typography, and the everyday workhorses: `plot`/`scatter`/`bar`/`hist`/`fill_between`/
+`errorbar`/`step`/`pie`, spans and reference lines, `subplots` + `GridSpec` with
+`sharex/sharey` and `twinx/twiny`, `tight_layout`, **log scales** with minor ticks,
+`legend(loc="best")`, and an rcParams + style-sheet system (`ggplot`, `dark_background`).
+Tick and autoscale algorithms are faithful ports pinned by fixtures generated from
+matplotlib itself. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
+[docs/PARITY.md](docs/PARITY.md) for coverage.
 
 Zero mandatory dependencies. Platforms: macOS (arm64), Linux (x86_64, arm64),
 Windows (x86_64, arm64).

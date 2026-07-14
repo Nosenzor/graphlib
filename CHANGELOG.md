@@ -3,7 +3,26 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased]
+## [Unreleased] — v0.3.0 "Everyday Plots" candidate
+
+### Added
+- **The everyday plot types**: `bar`/`barh` (categorical labels, sticky-zero autoscale),
+  `hist` (np.histogram-compatible), `fill_between`, `errorbar` (caps as `_`/`|` markers),
+  `step` + drawstyles, `pie` (equal-aspect, frameless), `axh/axvline`, `axh/axvspan`,
+  `hlines`/`vlines` — all through new Patch artists (Rectangle/Polygon/Wedge).
+- **Layout**: `Figure::subplots(m, n)` + `GridSpec`, mpl-style `add_subplot(r, c, i)`,
+  `sharex/sharey` (shared limits, hidden inner labels), `twinx`/`twiny` (far-side axes),
+  `suptitle`, metrics-based `tight_layout` v1.
+- **Log scales**: `set_x/yscale("log")` with oracle-exact `LogLocator` (including the
+  `log(v)/log(b)` rounding subtlety), minor decade subs, minpos clipping, log-space margins,
+  unicode-superscript decade labels (D10). Linear minor ticks via `AutoMinorLocator`.
+- **rcParams + styles**: typed `rc()` store (~55 keys, KeyError on typos), `style::use`
+  with `default`/`ggplot`/`dark_background`; artists capture rc at creation like mpl.
+- **Full ScalarFormatter**: offset + scientific notation with the axis-end offset text
+  (`1e6`, `+1e8`, `1e−9`), oracle-exact against all fixture cases.
+- `set_xticks`/`set_yticks`, `minorticks_on`, `set_axis_off`, `set_aspect_equal`.
+- Examples 07–10 (everyday plots, dashboard, log scales, style gallery); 88 new oracle
+  fixture cases; 66 tests total.
 
 ## [0.2.0] — 2026-07-13 — "Raster & Type"
 
