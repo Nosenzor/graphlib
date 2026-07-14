@@ -43,8 +43,8 @@ public:
 /// Axis-aligned rectangle anchored at (x, y) with signed width/height.
 class Rectangle final : public Patch {
 public:
-    Rectangle(double x, double y, double width, double height)
-        : x(x), y(y), width(width), height(height) {}
+    // Parameter names differ from the members: GCC -Wshadow flags ctor params.
+    Rectangle(double x0, double y0, double w, double h) : x(x0), y(y0), width(w), height(h) {}
     double x;
     double y;
     double width;
@@ -55,8 +55,8 @@ public:
 /// Closed (or open) polygon through `points`.
 class Polygon final : public Patch {
 public:
-    explicit Polygon(std::vector<Point> pts, bool closed = true)
-        : points(std::move(pts)), closed(closed) {}
+    explicit Polygon(std::vector<Point> pts, bool close = true)
+        : points(std::move(pts)), closed(close) {}
     std::vector<Point> points;
     bool closed;
     [[nodiscard]] Path get_path() const override;
@@ -65,8 +65,8 @@ public:
 /// Pie-slice wedge: center, radius, theta1..theta2 in degrees CCW.
 class Wedge final : public Patch {
 public:
-    Wedge(Point center, double r, double theta1, double theta2)
-        : center(center), r(r), theta1(theta1), theta2(theta2) {}
+    Wedge(Point c, double radius, double t1, double t2)
+        : center(c), r(radius), theta1(t1), theta2(t2) {}
     Point center;
     double r;
     double theta1;

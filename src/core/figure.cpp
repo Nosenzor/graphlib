@@ -14,9 +14,6 @@
 namespace graphlib {
 
 namespace {
-// rc figure.subplot.{left,bottom,right,top}
-constexpr Bbox kDefaultSubplotRect{0.125, 0.11, 0.9, 0.88};
-
 std::string lower_ext(const std::string& filename) {
     const size_t dot = filename.rfind('.');
     if (dot == std::string::npos || dot + 1 == filename.size()) {
