@@ -47,6 +47,28 @@ struct FillOpts {
     std::string_view label{};
 };
 
+/// kwargs of Axes::errorbar (line styling flows through LineOpts-like fields).
+struct ErrorbarOpts {
+    std::span<const double> yerr{}; // one value broadcasts, else per point
+    std::span<const double> xerr{};
+    std::string_view fmt{};             // plot fmt for the data line
+    std::string_view color{};           // data line color ("" -> cycle)
+    std::string_view ecolor{};          // error bar color ("" -> line color)
+    std::optional<double> elinewidth{}; // "" -> lines.linewidth
+    std::optional<double> capsize{};    // rc errorbar.capsize = 0 (points)
+    std::optional<double> linewidth{};
+    std::optional<double> alpha{};
+    std::string_view label{};
+};
+
+/// kwargs of Axes::pie.
+struct PieOpts {
+    std::vector<std::string> labels{};
+    std::span<const std::string_view> colors{}; // "" -> the property cycle
+    double startangle = 0.0;                    // degrees CCW from +x
+    std::optional<double> radius{};             // 1.0
+};
+
 /// kwargs of Axes::text.
 struct TextOpts {
     std::optional<double> fontsize{}; // rc font.size = 10
@@ -116,6 +138,19 @@ public:
     Line2D& vlines(std::span<const double> x, double ymin, double ymax,
                    const LineOpts& opts = {});
 
+    /// Data line + error bars (mirrors Axes.errorbar; returns the data line).
+    Line2D& errorbar(std::span<const double> x, std::span<const double> y,
+                     const ErrorbarOpts& opts = {});
+
+    /// Pie chart: wedges CCW from startangle, r=1, labels at r=1.1; the axes
+    /// goes frameless with an equal-aspect box, like matplotlib.
+    std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts = {});
+
+    /// Frameless axes: no patch, grid, spines or ticks (mirrors ax.axis('off')).
+    void set_axis_off() { axis_off_ = true; }
+    /// Square axes box, centered in the original rect (set_aspect('equal','box')-lite).
+    void set_aspect_equal() { aspect_equal_ = true; }
+
     /// Adopt a patch built by a plotting method (updates dataLim + stickies).
     Rectangle& add_patch(std::unique_ptr<Rectangle> patch);
     Polygon& add_patch(std::unique_ptr<Polygon> patch);
@@ -184,6 +219,8 @@ private:
     bool autoscale_x_ = true;
     bool autoscale_y_ = true;
     bool grid_on_ = false;   // seeded from rc axes.grid in the ctor
+    bool axis_off_ = false;
+    bool aspect_equal_ = false;
     double margin_x_ = 0.05; // rc axes.xmargin
     double margin_y_ = 0.05; // rc axes.ymargin
     std::vector<Color> cycle_; // rc axes.prop_cycle, captured at creation (mpl semantics)

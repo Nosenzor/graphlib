@@ -86,6 +86,43 @@ std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> 
 std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts) {
     return gca().hist(data, opts);
 }
+Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
+                      std::span<const double> y2, const FillOpts& opts) {
+    return gca().fill_between(x, y1, y2, opts);
+}
+Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
+                      const FillOpts& opts) {
+    return gca().fill_between(x, y1, opts);
+}
+Line2D& step(std::span<const double> x, std::span<const double> y, std::string_view fmt,
+             const LineOpts& opts) {
+    return gca().step(x, y, fmt, opts);
+}
+Line2D& axhline(double y, double xmin, double xmax, const LineOpts& opts) {
+    return gca().axhline(y, xmin, xmax, opts);
+}
+Line2D& axvline(double x, double ymin, double ymax, const LineOpts& opts) {
+    return gca().axvline(x, ymin, ymax, opts);
+}
+Rectangle& axhspan(double ymin, double ymax, const FillOpts& opts) {
+    return gca().axhspan(ymin, ymax, opts);
+}
+Rectangle& axvspan(double xmin, double xmax, const FillOpts& opts) {
+    return gca().axvspan(xmin, xmax, opts);
+}
+Line2D& hlines(std::span<const double> y, double xmin, double xmax, const LineOpts& opts) {
+    return gca().hlines(y, xmin, xmax, opts);
+}
+Line2D& vlines(std::span<const double> x, double ymin, double ymax, const LineOpts& opts) {
+    return gca().vlines(x, ymin, ymax, opts);
+}
+Line2D& errorbar(std::span<const double> x, std::span<const double> y,
+                 const ErrorbarOpts& opts) {
+    return gca().errorbar(x, y, opts);
+}
+std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts) {
+    return gca().pie(sizes, opts);
+}
 
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }

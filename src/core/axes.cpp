@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numbers>
 #include <string>
 
 #include "graphlib/errors.hpp"
@@ -504,6 +505,127 @@ Line2D& Axes::vlines(std::span<const double> x, double ymin, double ymax,
     return plot(xs, ys, "", opts);
 }
 
+Line2D& Axes::errorbar(std::span<const double> x, std::span<const double> y,
+                       const ErrorbarOpts& opts) {
+    if (x.size() != y.size()) {
+        throw ValueError("errorbar: x and y must be the same size");
+    }
+    auto err_at = [](std::span<const double> err, size_t i) {
+        return err.size() == 1 ? err[0] : err[i];
+    };
+    for (auto [err, name] : {std::pair{opts.yerr, "yerr"}, std::pair{opts.xerr, "xerr"}}) {
+        if (!err.empty() && err.size() != 1 && err.size() != x.size()) {
+            throw ValueError(std::string("errorbar: ") + name +
+                             " must be a scalar or match the data size");
+        }
+    }
+
+    // Data line first: it consumes the cycle color the bars will inherit.
+    Line2D& line = plot(x, y, opts.fmt,
+                        LineOpts{.color = opts.color,
+                                 .linewidth = opts.linewidth,
+                                 .alpha = opts.alpha,
+                                 .label = opts.label});
+    const Color ecolor = opts.ecolor.empty() ? line.color : to_color(opts.ecolor);
+    const double elw = opts.elinewidth.value_or(line.linewidth);
+    const double capsize = opts.capsize.value_or(rc().number("errorbar.capsize"));
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+
+    auto add_bars = [&](bool vertical, std::span<const double> err) {
+        if (err.empty()) {
+            return;
+        }
+        std::vector<double> sx;
+        std::vector<double> sy;
+        std::vector<double> cap_x0;
+        std::vector<double> cap_y0;
+        std::vector<double> cap_x1;
+        std::vector<double> cap_y1;
+        for (size_t i = 0; i < x.size(); ++i) {
+            const double e = err_at(err, i);
+            const double lo = (vertical ? y[i] : x[i]) - e;
+            const double hi = (vertical ? y[i] : x[i]) + e;
+            if (vertical) {
+                sx.insert(sx.end(), {x[i], x[i], nan});
+                sy.insert(sy.end(), {lo, hi, nan});
+                cap_x0.push_back(x[i]);
+                cap_y0.push_back(lo);
+                cap_x1.push_back(x[i]);
+                cap_y1.push_back(hi);
+            } else {
+                sx.insert(sx.end(), {lo, hi, nan});
+                sy.insert(sy.end(), {y[i], y[i], nan});
+                cap_x0.push_back(lo);
+                cap_y0.push_back(y[i]);
+                cap_x1.push_back(hi);
+                cap_y1.push_back(y[i]);
+            }
+        }
+        auto& bars = plot(sx, sy, "",
+                          LineOpts{.linewidth = elw, .alpha = opts.alpha});
+        bars.color = ecolor;
+        if (capsize > 0) { // mpl caps are the '_' / '|' markers, 2*capsize points wide
+            for (auto [cx, cy] : {std::pair{&cap_x0, &cap_y0}, std::pair{&cap_x1, &cap_y1}}) {
+                auto& caps = plot(*cx, *cy, vertical ? "_" : "|",
+                                  LineOpts{.markersize = 2.0 * capsize,
+                                           .markeredgewidth = elw,
+                                           .alpha = opts.alpha});
+                caps.markeredgecolor = ecolor;
+                caps.color = ecolor;
+            }
+        }
+    };
+    add_bars(true, opts.yerr);
+    add_bars(false, opts.xerr);
+    return line;
+}
+
+std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts) {
+    if (sizes.empty()) {
+        throw ValueError("pie: sizes must be non-empty");
+    }
+    double total = 0.0;
+    for (const double s : sizes) {
+        if (s < 0) {
+            throw ValueError("pie: sizes must be non-negative");
+        }
+        total += s;
+    }
+    if (total <= 0) {
+        throw ValueError("pie: sizes sum to zero");
+    }
+    if (!opts.labels.empty() && opts.labels.size() != sizes.size()) {
+        throw ValueError("pie: labels must match sizes");
+    }
+    const double r = opts.radius.value_or(1.0);
+    std::vector<Wedge*> wedges;
+    double theta = opts.startangle;
+    for (size_t i = 0; i < sizes.size(); ++i) {
+        const double sweep = 360.0 * sizes[i] / total;
+        auto w = std::make_unique<Wedge>(Point{0.0, 0.0}, r, theta, theta + sweep);
+        w->facecolor = opts.colors.empty() ? next_cycle_color()
+                                           : to_color(opts.colors[i % opts.colors.size()]);
+        w->edgecolor = Color::none();
+        Wedge& ref = add_patch(std::move(w));
+        wedges.push_back(&ref);
+        if (!opts.labels.empty()) {
+            const double mid = (theta + sweep / 2.0) * std::numbers::pi / 180.0;
+            const double lx = 1.1 * r * std::cos(mid); // mpl labeldistance = 1.1
+            const double ly = 1.1 * r * std::sin(mid);
+            Text& t = text(lx, ly, opts.labels[i]);
+            t.ha = lx > 0 ? HAlign::left : HAlign::right;
+            t.va = VAlign::center;
+        }
+        theta += sweep;
+    }
+    // mpl pie: frameless equal-aspect axes with fixed limits.
+    set_axis_off();
+    set_aspect_equal();
+    set_xlim(-1.25 * r, 1.25 * r);
+    set_ylim(-1.25 * r, 1.25 * r);
+    return wedges;
+}
+
 void Axes::set_xticks(std::vector<double> locs, std::vector<std::string> labels) {
     if (!labels.empty() && labels.size() != locs.size()) {
         throw ValueError("set_xticks: labels must match the number of locations");
@@ -592,8 +714,16 @@ void Axes::autoscale_view() {
 }
 
 Bbox Axes::bbox_pixels(Size canvas) const {
-    return Bbox::from_extents(position.x0() * canvas.width, position.y0() * canvas.height,
-                              position.x1() * canvas.width, position.y1() * canvas.height);
+    Bbox box = Bbox::from_extents(position.x0() * canvas.width, position.y0() * canvas.height,
+                                  position.x1() * canvas.width, position.y1() * canvas.height);
+    if (aspect_equal_) { // centered square (set_aspect('equal', adjustable='box')-lite)
+        const double side = std::min(box.width(), box.height());
+        const double cx = (box.x0() + box.x1()) / 2.0;
+        const double cy = (box.y0() + box.y1()) / 2.0;
+        box = Bbox::from_extents(cx - side / 2.0, cy - side / 2.0, cx + side / 2.0,
+                                 cy + side / 2.0);
+    }
+    return box;
 }
 
 Affine2D Axes::trans_data(Size canvas) const {
@@ -627,7 +757,7 @@ void Axes::draw(Renderer& renderer) {
     }();
 
     // 1. axes patch (edge drawn by the spines)
-    if (!figure_->transparent_render()) {
+    if (!figure_->transparent_render() && !axis_off_) {
         GraphicsContext patch_gc;
         patch_gc.color.a = 0; // no stroke
         renderer.draw_path(patch_gc, rect_path, Affine2D::identity(),
@@ -640,7 +770,7 @@ void Axes::draw(Renderer& renderer) {
     const Affine2D tf = trans_data(canvas);
 
     // 2. grid, below the data (rc axes.axisbelow 'line')
-    if (grid_on_) {
+    if (grid_on_ && !axis_off_) {
         GraphicsContext grid_gc;
         grid_gc.color = rc().color("grid.color");
         grid_gc.color.a *= rc().number("grid.alpha");
@@ -675,8 +805,8 @@ void Axes::draw(Renderer& renderer) {
         artist->draw(renderer);
     }
 
-    // 4. spines
-    {
+    // 4. spines + 5. ticks (suppressed by axis('off'), e.g. pie)
+    if (!axis_off_) {
         GraphicsContext spine_gc;
         spine_gc.color = rc().color("axes.edgecolor");
         spine_gc.linewidth = rc().number("axes.linewidth");
@@ -684,11 +814,9 @@ void Axes::draw(Renderer& renderer) {
         renderer.open_group("spines");
         renderer.draw_path(spine_gc, rect_path, Affine2D::identity());
         renderer.close_group();
+        xaxis_.draw_ticks(renderer, *this, xticks);
+        yaxis_.draw_ticks(renderer, *this, yticks);
     }
-
-    // 5. ticks + tick labels, then the legend on top (zorder 5)
-    xaxis_.draw_ticks(renderer, *this, xticks);
-    yaxis_.draw_ticks(renderer, *this, yticks);
     if (legend_) {
         legend_->draw(renderer);
     }
