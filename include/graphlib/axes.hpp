@@ -151,6 +151,31 @@ public:
     /// Square axes box, centered in the original rect (set_aspect('equal','box')-lite).
     void set_aspect_equal() { aspect_equal_ = true; }
 
+    /// Twin axes sharing this x-axis, with an independent y-axis on the right.
+    Axes& twinx();
+    /// Twin axes sharing this y-axis, with an independent x-axis on the top.
+    Axes& twiny();
+
+    // ---- sharing / layout wiring (used by Figure::subplots and twins) ----
+    struct ShareGroup {
+        std::vector<Axes*> members;
+    };
+    void join_share_x(const std::shared_ptr<ShareGroup>& group);
+    void join_share_y(const std::shared_ptr<ShareGroup>& group);
+    void set_tick_label_visibility(bool x_labels, bool y_labels) {
+        show_x_ticklabels_ = x_labels;
+        show_y_ticklabels_ = y_labels;
+    }
+    [[nodiscard]] bool yaxis_right() const { return yaxis_right_; }
+    [[nodiscard]] bool xaxis_top() const { return xaxis_top_; }
+    /// Twins overlay their host and must follow its position in layout passes.
+    [[nodiscard]] bool is_twin() const { return patch_off_; }
+    [[nodiscard]] Axes* share_host() const; // first non-twin share-group member
+    [[nodiscard]] bool x_tick_labels_shown() const { return show_x_ticklabels_; }
+    [[nodiscard]] bool y_tick_labels_shown() const { return show_y_ticklabels_; }
+    /// GridSpec cell this axes lives in (tight_layout works within it).
+    Bbox outer_cell = Bbox::null();
+
     /// Adopt a patch built by a plotting method (updates dataLim + stickies).
     Rectangle& add_patch(std::unique_ptr<Rectangle> patch);
     Polygon& add_patch(std::unique_ptr<Polygon> patch);
@@ -221,6 +246,15 @@ private:
     bool grid_on_ = false;   // seeded from rc axes.grid in the ctor
     bool axis_off_ = false;
     bool aspect_equal_ = false;
+    bool patch_off_ = false;      // twins draw no background over their host
+    bool yaxis_right_ = false;    // twinx: y ticks/label on the right
+    bool xaxis_top_ = false;      // twiny: x ticks/label on the top
+    bool show_x_axis_ = true;     // twins hide the shared axis entirely
+    bool show_y_axis_ = true;
+    bool show_x_ticklabels_ = true; // sharex hides labels on inner rows
+    bool show_y_ticklabels_ = true;
+    std::shared_ptr<ShareGroup> share_x_;
+    std::shared_ptr<ShareGroup> share_y_;
     double margin_x_ = 0.05; // rc axes.xmargin
     double margin_y_ = 0.05; // rc axes.ymargin
     std::vector<Color> cycle_; // rc axes.prop_cycle, captured at creation (mpl semantics)

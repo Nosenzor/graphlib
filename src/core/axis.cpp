@@ -53,7 +53,8 @@ Axis::TickData Axis::compute_ticks(const Axes& axes) const {
     return out;
 }
 
-void Axis::draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks) const {
+void Axis::draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks, bool far_side,
+                      bool with_labels) const {
     const Size canvas = renderer.canvas_size();
     const Bbox bbox = axes.bbox_pixels(canvas);
     const Affine2D tf = axes.trans_data(canvas);
@@ -74,20 +75,31 @@ void Axis::draw_ticks(Renderer& renderer, const Axes& axes, const TickData& tick
         const double loc = ticks.locs[i];
         if (kind_ == Kind::x) {
             const double px = tf.apply({loc, 0}).x;
+            // direction 'out': away from the axes box on the chosen side
+            const double edge = far_side ? bbox.y1() : bbox.y0();
+            const double sign = far_side ? 1.0 : -1.0;
             Path mark;
-            mark.move_to(px, bbox.y0());
-            mark.line_to(px, bbox.y0() - size_px); // direction 'out' (y-up: outward is down)
+            mark.move_to(px, edge);
+            mark.line_to(px, edge + sign * size_px);
             renderer.draw_path(gc, mark, Affine2D::identity());
-            renderer.draw_text(label_gc, {px, bbox.y0() - size_px - pad_px}, ticks.labels[i],
-                               font, 0.0, HAlign::center, VAlign::top);
+            if (with_labels) {
+                renderer.draw_text(label_gc, {px, edge + sign * (size_px + pad_px)},
+                                   ticks.labels[i], font, 0.0, HAlign::center,
+                                   far_side ? VAlign::bottom : VAlign::top);
+            }
         } else {
             const double py = tf.apply({0, loc}).y;
+            const double edge = far_side ? bbox.x1() : bbox.x0();
+            const double sign = far_side ? 1.0 : -1.0;
             Path mark;
-            mark.move_to(bbox.x0(), py);
-            mark.line_to(bbox.x0() - size_px, py);
+            mark.move_to(edge, py);
+            mark.line_to(edge + sign * size_px, py);
             renderer.draw_path(gc, mark, Affine2D::identity());
-            renderer.draw_text(label_gc, {bbox.x0() - size_px - pad_px, py}, ticks.labels[i],
-                               font, 0.0, HAlign::right, VAlign::center);
+            if (with_labels) {
+                renderer.draw_text(label_gc, {edge + sign * (size_px + pad_px), py},
+                                   ticks.labels[i], font, 0.0,
+                                   far_side ? HAlign::left : HAlign::right, VAlign::center);
+            }
         }
     }
     renderer.close_group();

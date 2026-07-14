@@ -22,14 +22,34 @@ struct SaveOpts {
     bool transparent = false;  // suppress figure/axes face patches
 };
 
+/// kwargs of Figure::subplots.
+struct SubplotsOpts {
+    bool sharex = false; // shared limits; inner rows lose x tick labels
+    bool sharey = false;
+};
+
 class Figure {
 public:
     Figure() : Figure(FigureOpts{}) {}
     explicit Figure(const FigureOpts& opts);
 
-    /// Single axes at the default rect (grid layouts arrive v0.3).
+    /// Single axes at the default rect (== add_subplot(1, 1, 1)).
     Axes& add_subplot();
+    /// mpl-style grid placement, 1-based index (add_subplot(2, 2, 3)).
+    Axes& add_subplot(int nrows, int ncols, int index);
     Axes& add_axes(Bbox position_fraction);
+
+    /// Grid of axes, row-major, row 0 on top (mirrors plt.subplots).
+    std::vector<std::vector<Axes*>> subplots(int nrows, int ncols,
+                                             const SubplotsOpts& opts = {});
+
+    /// Centered figure title (mirrors Figure.suptitle).
+    void suptitle(std::string text);
+
+    /// Fit decorations (tick labels, axis labels, titles) inside each axes'
+    /// grid cell — a metrics-based v1 of mpl's tight_layout.
+    void tight_layout(double pad = 1.08);
+
     /// Current (last) axes; creates one if none exist — mirrors pyplot.gca.
     Axes& gca();
 
@@ -50,6 +70,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<Axes>> axes_;
+    std::string suptitle_;
     mutable bool transparent_render_ = false; // savefig(transparent=true) scope flag
 };
 

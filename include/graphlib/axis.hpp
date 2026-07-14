@@ -31,7 +31,10 @@ public:
     [[nodiscard]] TickData compute_ticks(const Axes& axes) const;
 
     /// Tick marks + labels (grid lines are drawn earlier by Axes, below data).
-    void draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks) const;
+    /// far_side: right for y / top for x (twin axes). with_labels: sharex/sharey
+    /// hide inner labels but keep the marks.
+    void draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks,
+                    bool far_side = false, bool with_labels = true) const;
 
     /// Port of X/YAxis.get_tick_space: how many labels fit along `length_pt`
     /// (heuristic: label aspect 3:1 on x, spacing 2 on y).

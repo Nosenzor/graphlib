@@ -7,7 +7,9 @@
 #include "graphlib/backend/agg.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/errors.hpp"
+#include "graphlib/gridspec.hpp"
 #include "graphlib/rc.hpp"
+#include "text/font_manager.hpp"
 
 namespace graphlib {
 
@@ -38,12 +40,51 @@ Figure::Figure(const FigureOpts& opts) {
     facecolor = opts.facecolor.empty() ? rc().color("figure.facecolor") : to_color(opts.facecolor);
 }
 
-Axes& Figure::add_subplot() { return add_axes(kDefaultSubplotRect); }
+Axes& Figure::add_subplot() { return add_subplot(1, 1, 1); }
+
+Axes& Figure::add_subplot(int nrows, int ncols, int index) {
+    if (index < 1 || index > nrows * ncols) {
+        throw ValueError("add_subplot: index out of range (1-based, like matplotlib)");
+    }
+    const GridSpec gs(nrows, ncols);
+    const int row = (index - 1) / ncols;
+    const int col = (index - 1) % ncols;
+    Axes& ax = add_axes(gs.cell(row, col));
+    // The full-figure cell bounds tight_layout's redistribution.
+    const GridSpec outer(nrows, ncols, Bbox::unit(), 0.0, 0.0);
+    ax.outer_cell = outer.cell(row, col);
+    return ax;
+}
 
 Axes& Figure::add_axes(Bbox position_fraction) {
     axes_.push_back(std::make_unique<Axes>(*this, position_fraction));
     return *axes_.back();
 }
+
+std::vector<std::vector<Axes*>> Figure::subplots(int nrows, int ncols,
+                                                 const SubplotsOpts& opts) {
+    std::vector<std::vector<Axes*>> grid(static_cast<size_t>(nrows));
+    auto share_x = opts.sharex ? std::make_shared<Axes::ShareGroup>() : nullptr;
+    auto share_y = opts.sharey ? std::make_shared<Axes::ShareGroup>() : nullptr;
+    for (int r = 0; r < nrows; ++r) {
+        for (int c = 0; c < ncols; ++c) {
+            Axes& ax = add_subplot(nrows, ncols, r * ncols + c + 1);
+            if (share_x) {
+                ax.join_share_x(share_x);
+            }
+            if (share_y) {
+                ax.join_share_y(share_y);
+            }
+            // sharex: only the bottom row keeps x labels; sharey: first column.
+            ax.set_tick_label_visibility(!opts.sharex || r == nrows - 1,
+                                         !opts.sharey || c == 0);
+            grid[static_cast<size_t>(r)].push_back(&ax);
+        }
+    }
+    return grid;
+}
+
+void Figure::suptitle(std::string text) { suptitle_ = std::move(text); }
 
 Axes& Figure::gca() {
     if (axes_.empty()) {
@@ -69,7 +110,69 @@ void Figure::draw(Renderer& renderer) const {
     for (const auto& ax : axes_) {
         ax->draw(renderer);
     }
+    if (!suptitle_.empty()) {
+        GraphicsContext gc;
+        gc.color = rc().color("text.color");
+        const Size canvas = renderer.canvas_size();
+        // mpl suptitle: centered at y=0.98, va='top', fontsize 'large'.
+        renderer.draw_text(gc, {canvas.width / 2.0, 0.98 * canvas.height}, suptitle_,
+                           FontProperties{rc().fontsize("axes.titlesize"), false, false}, 0.0,
+                           HAlign::center, VAlign::top);
+    }
     renderer.close_group();
+}
+
+// Metrics-based tight_layout v1: measure each axes' decorations at 72 dpi and
+// inset its position within its grid cell so nothing collides. mpl's version
+// redistributes globally; this per-cell approximation covers the common cases.
+void Figure::tight_layout(double pad) {
+    const auto& fm = detail::FontManager::instance();
+    const double W = figsize[0] * 72.0;
+    const double H = figsize[1] * 72.0;
+    const double pad_px = pad * rc().number("font.size");
+    const double tick_out = rc().number("xtick.major.size") + rc().number("xtick.major.pad");
+    const double tick_em = rc().fontsize("xtick.labelsize");
+    const double labelpad = rc().number("axes.labelpad");
+
+    for (const auto& ax : axes_) {
+        if (ax->outer_cell.is_null() || ax->is_twin()) {
+            continue; // free-floating add_axes / twins: handled below or skipped
+        }
+        const auto yticks = ax->yaxis().compute_ticks(*ax);
+        double ylabels_w = 0.0;
+        for (const auto& l : yticks.labels) {
+            ylabels_w = std::max(ylabels_w, fm.text_extent(l, tick_em).width);
+        }
+        const double label_block = fm.ascent(tick_em) + fm.descent(tick_em);
+
+        double left = pad_px + tick_out + ylabels_w;
+        double bottom = pad_px + tick_out + label_block;
+        double top = pad_px;
+        double right = pad_px;
+        // xlabel/ylabel/title blocks (measured with their real font sizes)
+        const double axlabel_em = rc().fontsize("axes.labelsize");
+        left += labelpad + (fm.ascent(axlabel_em) + fm.descent(axlabel_em));
+        bottom += labelpad + (fm.ascent(axlabel_em) + fm.descent(axlabel_em));
+        const double title_em = rc().fontsize("axes.titlesize");
+        top += rc().number("axes.titlepad") + fm.ascent(title_em) + fm.descent(title_em);
+
+        const Bbox& cell = ax->outer_cell;
+        const double x0 = cell.x0() + left / W;
+        const double x1 = cell.x1() - right / W;
+        const double y0 = cell.y0() + bottom / H;
+        const double y1 = cell.y1() - top / H;
+        if (x1 - x0 > 0.05 && y1 - y0 > 0.05) { // keep a sane minimum plot area
+            ax->position = Bbox::from_extents(x0, y0, x1, y1);
+        }
+    }
+    // Twins overlay their host exactly, whatever the host's new position is.
+    for (const auto& ax : axes_) {
+        if (ax->is_twin()) {
+            if (const Axes* host = ax->share_host()) {
+                ax->position = host->position;
+            }
+        }
+    }
 }
 
 void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {

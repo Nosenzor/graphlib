@@ -652,18 +652,84 @@ void Axes::set_xlim(double left, double right) {
         // locator would. TODO(v0.3): warning infrastructure (with rc system).
         std::tie(left, right) = detail::nonsingular(left, right, 0.05);
     }
-    vx0_ = left;
-    vx1_ = right;
-    autoscale_x_ = false;
+    for (Axes* ax : share_x_ ? share_x_->members : std::vector<Axes*>{this}) {
+        ax->vx0_ = left;
+        ax->vx1_ = right;
+        ax->autoscale_x_ = false;
+    }
 }
 
 void Axes::set_ylim(double bottom, double top) {
     if (bottom == top) {
         std::tie(bottom, top) = detail::nonsingular(bottom, top, 0.05);
     }
-    vy0_ = bottom;
-    vy1_ = top;
-    autoscale_y_ = false;
+    for (Axes* ax : share_y_ ? share_y_->members : std::vector<Axes*>{this}) {
+        ax->vy0_ = bottom;
+        ax->vy1_ = top;
+        ax->autoscale_y_ = false;
+    }
+}
+
+void Axes::join_share_x(const std::shared_ptr<ShareGroup>& group) {
+    share_x_ = group;
+    if (std::find(group->members.begin(), group->members.end(), this) ==
+        group->members.end()) {
+        group->members.push_back(this);
+    }
+}
+
+void Axes::join_share_y(const std::shared_ptr<ShareGroup>& group) {
+    share_y_ = group;
+    if (std::find(group->members.begin(), group->members.end(), this) ==
+        group->members.end()) {
+        group->members.push_back(this);
+    }
+}
+
+Axes* Axes::share_host() const {
+    for (const auto* group : {share_x_.get(), share_y_.get()}) {
+        if (group == nullptr) {
+            continue;
+        }
+        for (Axes* ax : group->members) {
+            if (ax != this && !ax->is_twin()) {
+                return ax;
+            }
+        }
+    }
+    return nullptr;
+}
+
+Axes& Axes::twinx() {
+    Axes& twin = figure_->add_axes(position);
+    twin.outer_cell = outer_cell;
+    twin.patch_off_ = true;   // the host's background stays visible
+    twin.show_x_axis_ = false; // the host draws the shared x axis
+    twin.yaxis_right_ = true;
+    twin.grid_on_ = false;
+    auto group = share_x_ ? share_x_ : std::make_shared<ShareGroup>();
+    join_share_x(group);
+    twin.join_share_x(group);
+    twin.vx0_ = vx0_;
+    twin.vx1_ = vx1_;
+    twin.autoscale_x_ = autoscale_x_;
+    return twin;
+}
+
+Axes& Axes::twiny() {
+    Axes& twin = figure_->add_axes(position);
+    twin.outer_cell = outer_cell;
+    twin.patch_off_ = true;
+    twin.show_y_axis_ = false;
+    twin.xaxis_top_ = true;
+    twin.grid_on_ = false;
+    auto group = share_y_ ? share_y_ : std::make_shared<ShareGroup>();
+    join_share_y(group);
+    twin.join_share_y(group);
+    twin.vy0_ = vy0_;
+    twin.vy1_ = vy1_;
+    twin.autoscale_y_ = autoscale_y_;
+    return twin;
 }
 
 Color Axes::next_cycle_color() { return cycle_[cycle_index_++ % cycle_.size()]; }
@@ -674,8 +740,23 @@ void Axes::add_line_datalim(const Line2D& line) { data_lim_.update(line.data_ext
 // locator.nonsingular, then symmetric margins clamped at sticky edges
 // (handle_single_axis in mpl — margins must not cross a sticky value).
 void Axes::autoscale_view() {
-    if (data_lim_.is_null()) {
-        return; // no data: keep the (0, 1) defaults, like mpl
+    // Shared axes autoscale on the union of the group's data limits — per
+    // dimension only (a twinx shares x but must keep its own y span).
+    double dx0 = data_lim_.x0();
+    double dx1 = data_lim_.x1();
+    double dy0 = data_lim_.y0();
+    double dy1 = data_lim_.y1();
+    if (share_x_) {
+        for (const Axes* ax : share_x_->members) { // null bboxes are ±inf: min/max no-ops
+            dx0 = std::min(dx0, ax->data_lim_.x0());
+            dx1 = std::max(dx1, ax->data_lim_.x1());
+        }
+    }
+    if (share_y_) {
+        for (const Axes* ax : share_y_->members) {
+            dy0 = std::min(dy0, ax->data_lim_.y0());
+            dy1 = std::max(dy1, ax->data_lim_.y1());
+        }
     }
     const auto apply = [](double lo, double hi, double margin, std::vector<double> stickies,
                           const Locator& locator) {
@@ -703,13 +784,23 @@ void Axes::autoscale_view() {
         }
         return std::pair{out_lo, out_hi};
     };
-    if (autoscale_x_) {
-        std::tie(vx0_, vx1_) =
-            apply(data_lim_.x0(), data_lim_.x1(), margin_x_, sticky_x_, xaxis_.major_locator());
+    if (autoscale_x_ && dx0 <= dx1) {
+        std::tie(vx0_, vx1_) = apply(dx0, dx1, margin_x_, sticky_x_, xaxis_.major_locator());
+        if (share_x_) { // members stay in lockstep without recomputing
+            for (Axes* ax : share_x_->members) {
+                ax->vx0_ = vx0_;
+                ax->vx1_ = vx1_;
+            }
+        }
     }
-    if (autoscale_y_) {
-        std::tie(vy0_, vy1_) =
-            apply(data_lim_.y0(), data_lim_.y1(), margin_y_, sticky_y_, yaxis_.major_locator());
+    if (autoscale_y_ && dy0 <= dy1) {
+        std::tie(vy0_, vy1_) = apply(dy0, dy1, margin_y_, sticky_y_, yaxis_.major_locator());
+        if (share_y_) {
+            for (Axes* ax : share_y_->members) {
+                ax->vy0_ = vy0_;
+                ax->vy1_ = vy1_;
+            }
+        }
     }
 }
 
@@ -756,8 +847,8 @@ void Axes::draw(Renderer& renderer) {
         return p;
     }();
 
-    // 1. axes patch (edge drawn by the spines)
-    if (!figure_->transparent_render() && !axis_off_) {
+    // 1. axes patch (edge drawn by the spines; twins keep the host's visible)
+    if (!figure_->transparent_render() && !axis_off_ && !patch_off_) {
         GraphicsContext patch_gc;
         patch_gc.color.a = 0; // no stroke
         renderer.draw_path(patch_gc, rect_path, Affine2D::identity(),
@@ -812,10 +903,16 @@ void Axes::draw(Renderer& renderer) {
         spine_gc.linewidth = rc().number("axes.linewidth");
         spine_gc.capstyle = CapStyle::projecting;
         renderer.open_group("spines");
-        renderer.draw_path(spine_gc, rect_path, Affine2D::identity());
+        if (!patch_off_) { // twins: the host already drew the box
+            renderer.draw_path(spine_gc, rect_path, Affine2D::identity());
+        }
         renderer.close_group();
-        xaxis_.draw_ticks(renderer, *this, xticks);
-        yaxis_.draw_ticks(renderer, *this, yticks);
+        if (show_x_axis_) {
+            xaxis_.draw_ticks(renderer, *this, xticks, xaxis_top_, show_x_ticklabels_);
+        }
+        if (show_y_axis_) {
+            yaxis_.draw_ticks(renderer, *this, yticks, yaxis_right_, show_y_ticklabels_);
+        }
     }
     if (legend_) {
         legend_->draw(renderer);
@@ -829,19 +926,23 @@ void Axes::draw(Renderer& renderer) {
         (rc().number("xtick.major.size") + rc().number("xtick.major.pad")) * ppt;
     const double tick_label_em = rc().fontsize("xtick.labelsize") * ppt;
     const double labelpad = rc().number("axes.labelpad") * ppt;
-    if (!xlabel_.text.empty()) {
-        // below the x tick label block (ascent+descent), va=top
+    if (!xlabel_.text.empty() && show_x_axis_) {
+        // beyond the x tick label block (ascent+descent)
         const double tick_label_h =
             fm.ascent(tick_label_em) + fm.descent(tick_label_em);
-        xlabel_.position = {cx, bpx.y0() - tick_out - tick_label_h - labelpad};
+        const double off = tick_out + tick_label_h + labelpad;
+        xlabel_.position = {cx, xaxis_top_ ? bpx.y1() + off : bpx.y0() - off};
+        xlabel_.va = xaxis_top_ ? VAlign::bottom : VAlign::top;
         xlabel_.draw(renderer);
     }
-    if (!ylabel_.text.empty()) {
+    if (!ylabel_.text.empty() && show_y_axis_) {
         double labels_width = 0.0;
         for (const auto& l : yticks.labels) {
             labels_width = std::max(labels_width, fm.text_extent(l, tick_label_em).width);
         }
-        ylabel_.position = {bpx.x0() - tick_out - labels_width - labelpad, cy};
+        const double off = tick_out + labels_width + labelpad;
+        ylabel_.position = {yaxis_right_ ? bpx.x1() + off : bpx.x0() - off, cy};
+        ylabel_.va = yaxis_right_ ? VAlign::top : VAlign::bottom;
         ylabel_.draw(renderer);
     }
     if (!title_.text.empty()) {
