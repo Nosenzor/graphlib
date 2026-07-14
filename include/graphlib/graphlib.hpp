@@ -12,6 +12,7 @@
 #include "graphlib/colormaps.hpp"
 #include "graphlib/contour.hpp"
 #include "graphlib/errors.hpp"
+#include "graphlib/events.hpp"
 #include "graphlib/figure.hpp"
 #include "graphlib/legend.hpp"
 #include "graphlib/graphics_context.hpp"

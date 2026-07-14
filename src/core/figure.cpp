@@ -83,6 +83,24 @@ std::vector<std::vector<Axes*>> Figure::subplots(int nrows, int ncols,
 
 void Figure::suptitle(std::string text) { suptitle_ = std::move(text); }
 
+void Figure::process_event(Event event, Size canvas) {
+    event.figure = this;
+    // Hit-test axes from topmost (last added) down, mpl-style.
+    for (auto it = axes_.rbegin(); it != axes_.rend(); ++it) {
+        Axes& ax = **it;
+        if (ax.bbox_pixels(canvas).contains({event.x, event.y})) {
+            event.inaxes = &ax;
+            const Point data =
+                ax.trans_data(canvas).inverted().apply({event.x, event.y});
+            const Point p = ax.inverse_scale_point(data); // undo log mapping
+            event.xdata = p.x;
+            event.ydata = p.y;
+            break;
+        }
+    }
+    events_.emit(event);
+}
+
 namespace {
 Axes& make_colorbar(Figure& fig, Axes& host, const Colormap& cmap, double vmin, double vmax,
                     const ColorbarOpts& opts) {

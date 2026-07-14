@@ -661,6 +661,62 @@ Axes::Scale parse_scale(std::string_view scale) {
 }
 } // namespace
 
+void Axes::pan(double dx_px, double dy_px, Size canvas) {
+    const Bbox box = bbox_pixels(canvas);
+    if (box.width() <= 0 || box.height() <= 0) {
+        return;
+    }
+    // Convert the pixel delta into scale-space spans, shift, and map back —
+    // log axes therefore pan multiplicatively, like mpl.
+    const Point lo_t = scale_point({vx0_, vy0_});
+    const Point hi_t = scale_point({vx1_, vy1_});
+    const double dx_t = -dx_px * (hi_t.x - lo_t.x) / box.width(); // drag right moves data right
+    const double dy_t = -dy_px * (hi_t.y - lo_t.y) / box.height();
+    const Point new_lo = inverse_scale_point({lo_t.x + dx_t, lo_t.y + dy_t});
+    const Point new_hi = inverse_scale_point({hi_t.x + dx_t, hi_t.y + dy_t});
+    set_xlim(new_lo.x, new_hi.x); // share groups follow
+    set_ylim(new_lo.y, new_hi.y);
+}
+
+void Axes::zoom_at(double factor, Point center_px, Size canvas) {
+    if (factor <= 0) {
+        return;
+    }
+    const Affine2D inv = trans_data(canvas).inverted();
+    const Point center_t = inv.apply(center_px); // scale-space anchor
+    const Point lo_t = scale_point({vx0_, vy0_});
+    const Point hi_t = scale_point({vx1_, vy1_});
+    const double s = 1.0 / factor; // factor > 1 shrinks the span (zoom in)
+    const Point new_lo = inverse_scale_point(
+        {center_t.x + (lo_t.x - center_t.x) * s, center_t.y + (lo_t.y - center_t.y) * s});
+    const Point new_hi = inverse_scale_point(
+        {center_t.x + (hi_t.x - center_t.x) * s, center_t.y + (hi_t.y - center_t.y) * s});
+    set_xlim(new_lo.x, new_hi.x);
+    set_ylim(new_lo.y, new_hi.y);
+}
+
+void Axes::save_home() {
+    home_view_ = {vx0_, vx1_, vy0_, vy1_};
+    home_autoscale_x_ = autoscale_x_;
+    home_autoscale_y_ = autoscale_y_;
+}
+
+void Axes::restore_home() {
+    if (!home_view_) {
+        return;
+    }
+    for (Axes* ax : share_x_ ? share_x_->members : std::vector<Axes*>{this}) {
+        ax->vx0_ = (*home_view_)[0];
+        ax->vx1_ = (*home_view_)[1];
+    }
+    for (Axes* ax : share_y_ ? share_y_->members : std::vector<Axes*>{this}) {
+        ax->vy0_ = (*home_view_)[2];
+        ax->vy1_ = (*home_view_)[3];
+    }
+    autoscale_x_ = home_autoscale_x_;
+    autoscale_y_ = home_autoscale_y_;
+}
+
 void Axes::set_xscale(std::string_view scale) {
     xscale_ = parse_scale(scale);
     if (xscale_ == Scale::log) {

@@ -8,6 +8,7 @@
 
 #include "graphlib/axes.hpp"
 #include "graphlib/color.hpp"
+#include "graphlib/events.hpp"
 
 namespace graphlib {
 
@@ -63,6 +64,16 @@ public:
     /// Current (last) axes; creates one if none exist — mirrors pyplot.gca.
     Axes& gca();
 
+    // ---- events (mirrors canvas.mpl_connect; docs/DESIGN.md §backend) ----
+    /// Register a callback for a canonical event name; returns the connection id.
+    int mpl_connect(std::string_view event_name, EventCallback callback) {
+        return events_.connect(event_name, std::move(callback));
+    }
+    void mpl_disconnect(int cid) { events_.disconnect(cid); }
+    /// Fill inaxes/xdata/ydata from display coordinates, then dispatch to the
+    /// registered callbacks. Backends call this; tests synthesize events with it.
+    void process_event(Event event, Size canvas);
+
     /// Render to file; the format comes from the extension (.svg in v0.1).
     /// Unknown extensions throw ValueError naming the milestone that adds them.
     void savefig(const std::string& filename, const SaveOpts& opts = {}) const;
@@ -81,6 +92,7 @@ public:
 private:
     std::vector<std::unique_ptr<Axes>> axes_;
     std::string suptitle_;
+    EventRegistry events_;
     mutable bool transparent_render_ = false; // savefig(transparent=true) scope flag
 };
 

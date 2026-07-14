@@ -227,6 +227,10 @@ public:
         return {xscale_ == Scale::log ? std::log10(p.x) : p.x,
                 yscale_ == Scale::log ? std::log10(p.y) : p.y};
     }
+    [[nodiscard]] Point inverse_scale_point(Point p) const {
+        return {xscale_ == Scale::log ? std::pow(10.0, p.x) : p.x,
+                yscale_ == Scale::log ? std::pow(10.0, p.y) : p.y};
+    }
     /// Smallest positive data values (log autoscale clips to these, like mpl).
     [[nodiscard]] double minpos_x() const { return minpos_x_; }
     [[nodiscard]] double minpos_y() const { return minpos_y_; }
@@ -236,6 +240,16 @@ public:
 
     /// Move y ticks/labels to the right side (mirrors ax.yaxis.tick_right()).
     void yaxis_tick_right() { yaxis_right_ = true; }
+
+    // ---- interactive navigation (drag-pan / scroll-zoom; log-correct) ----
+    /// Shift the view by a pixel delta (drag). Works in scale space, so log
+    /// axes pan multiplicatively; propagates through share groups.
+    void pan(double dx_px, double dy_px, Size canvas);
+    /// Zoom by `factor` (>1 zooms in) keeping the data under `center_px` fixed.
+    void zoom_at(double factor, Point center_px, Size canvas);
+    /// Snapshot / restore the view for the 'h' (home) key.
+    void save_home();
+    void restore_home();
 
     /// Transformed data polylines for legend 'best' placement (internal).
     void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
@@ -311,6 +325,9 @@ private:
     bool show_y_ticklabels_ = true;
     std::shared_ptr<ShareGroup> share_x_;
     std::shared_ptr<ShareGroup> share_y_;
+    std::optional<std::array<double, 4>> home_view_; // vx0, vx1, vy0, vy1
+    bool home_autoscale_x_ = true;
+    bool home_autoscale_y_ = true;
     double margin_x_ = 0.05; // rc axes.xmargin
     double margin_y_ = 0.05; // rc axes.ymargin
     std::vector<Color> cycle_; // rc axes.prop_cycle, captured at creation (mpl semantics)
