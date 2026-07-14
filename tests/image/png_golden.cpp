@@ -140,6 +140,30 @@ TEST_CASE("png golden: scatter sizes + legend 'best'", "[golden][png]") {
     check_png("scatter_legend_best", fig);
 }
 
+TEST_CASE("png golden: everyday plots scene (v0.3)", "[golden][png]") {
+    Figure fig;
+    // Panel via subplots to also pin GridSpec geometry.
+    auto grid = fig.subplots(1, 2);
+    Axes& left = *grid[0][0];
+    const std::vector<double> h{2.0, 5.0, 3.5};
+    left.bar(std::vector<std::string>{"a", "b", "c"}, h, {.label = "bars"});
+    left.axhline(4.0, 0, 1, {.color = "0.3", .linestyle = "--", .linewidth = 0.8});
+    left.set_title("bars + axhline");
+
+    Axes& right = *grid[0][1];
+    const auto x = linspace(1.0, 100.0, 60);
+    std::vector<double> y(x.size());
+    for (size_t i = 0; i < x.size(); ++i) {
+        y[i] = x[i] * x[i] * 0.5;
+    }
+    right.plot(x, y);
+    right.set_xscale("log");
+    right.set_yscale("log");
+    right.grid(true);
+    right.set_title("log-log");
+    check_png("everyday_scene", fig);
+}
+
 TEST_CASE("png: transparent render has transparent corners", "[png]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

@@ -21,22 +21,22 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | text on axes | `text` | same | done (real DejaVu metrics; rotation anchor-style — see D8) |
 | legend | `legend` (loc, 'best', frame) | ported _find_best_position | done (rect frame — D9; ncols/bbox_to_anchor later) |
 | scatter | `scatter` (s=, colors) | uniform color; `c=`+cmap v0.4 | done (sizes pt², edgecolors='face') |
-| bar / barh | `bar`, `barh` (+string x) | same | planned-v0.3 |
-| hist | `hist` (bins=10 default) | same | planned-v0.3 |
-| fill_between | `fill_between` | same | planned-v0.3 |
-| errorbar | `errorbar` | same | planned-v0.3 |
-| step | `step` / drawstyle | same | planned-v0.3 |
-| pie | `pie` | basic (sizes, labels, colors, startangle) | planned-v0.3 |
-| h/v lines & spans | `axhline`/`axvline`/`axhspan`/`axvspan`, `hlines`/`vlines` | same | planned-v0.3 |
-| subplots grid | `subplots(m,n)`, GridSpec, sharex/sharey | same | planned-v0.3 |
-| twin axes | `twinx`/`twiny` | same | planned-v0.3 |
-| log scales | `xscale('log')`… | same (symlog: icebox) | planned-v0.3 |
-| manual ticks | `xticks`/`yticks` | same | planned-v0.3 |
-| minor ticks | `AutoMinorLocator` | same | planned-v0.3 |
-| tight_layout | `tight_layout` | v1 (metrics-based padding) | planned-v0.3 |
-| suptitle | `suptitle` | same | planned-v0.3 |
-| styles / rcParams | `rcParams`, `style.use` | `rc()`, `style::use` — default/ggplot/dark | planned-v0.3 |
-| ScalarFormatter offset | offset/sci text at axis end | same algorithm | planned-v0.3 |
+| bar / barh | `bar`, `barh` (+string x) | same | done (transparent edges, sticky 0, categorical labels) |
+| hist | `hist` (bins=10 default) | same | done (np.histogram-compatible; 'auto' bins later) |
+| fill_between | `fill_between` | same | done (where-mask later) |
+| errorbar | `errorbar` | same | done (caps as _/| markers) |
+| step | `step` / drawstyle | same | done (pre/mid/post) |
+| pie | `pie` | basic (sizes, labels, colors, startangle) | done (equal-aspect box, axis off) |
+| h/v lines & spans | `axhline`/`axvline`/`axhspan`/`axvspan`, `hlines`/`vlines` | same | done (blended fraction transforms) |
+| subplots grid | `subplots(m,n)`, GridSpec, sharex/sharey | same | done (+add_subplot(r,c,i)) |
+| twin axes | `twinx`/`twiny` | same | done |
+| log scales | `xscale('log')`… | same (symlog: icebox) | done (oracle-exact LogLocator; labels: D10) |
+| manual ticks | `xticks`/`yticks` | same | done |
+| minor ticks | `AutoMinorLocator` | same | done (oracle-exact) |
+| tight_layout | `tight_layout` | v1 (metrics-based, per-cell) | done (D11: per-cell, not global) |
+| suptitle | `suptitle` | same | done |
+| styles / rcParams | `rcParams`, `style.use` | `rc()`, `style::use` — default/ggplot/dark | done (~55 keys; grows on demand) |
+| ScalarFormatter offset | offset/sci text at axis end | same algorithm | done (oracle-exact) |
 | colormaps + norm | `cm`, `Normalize`, `LogNorm` | viridis family + core set | planned-v0.4 |
 | imshow | `imshow` (origin/extent/aspect/interp) | nearest+bilinear | planned-v0.4 |
 | pcolormesh | `pcolormesh` | flat shading | planned-v0.4 |
@@ -82,4 +82,6 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D6 | NaN in data = gap (mpl behavior) but no masked-array type | NaN is the C++ idiom |
 | D7 | Figure numbers are `int` only (no string labels) | keep registry simple |
 | D8 | Text rotation uses anchor-style alignment (mpl rotation_mode='anchor'), not mpl's default rotated-bbox mode | simpler; visually close for axis labels — revisit if annotations need it |
-| D9 | Legend frame is a plain rectangle (mpl: slightly rounded FancyBbox) | rounded boxstyle arrives with Patch work (v0.3+) |
+| D9 | Legend frame is a plain rectangle (mpl: slightly rounded FancyBbox) | rounded boxstyle arrives with Patch work (v0.4+) |
+| D10 | Log decade labels use unicode superscripts (10⁻³), not mathtext | mathtext arrives v0.6; visually equivalent |
+| D11 | tight_layout fits decorations per grid cell, not via mpl's global redistribution | covers the common cases; revisit with constrained layout |

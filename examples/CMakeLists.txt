@@ -6,6 +6,10 @@ set(GRAPHLIB_EXAMPLES
     04_limits_grid
     05_scatter
     06_legend
+    07_bar_hist
+    08_subplots_dashboard
+    09_log_scales
+    10_styles_gallery
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)
