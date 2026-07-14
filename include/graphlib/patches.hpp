@@ -33,6 +33,10 @@ public:
     std::vector<double> sticky_x;
     std::vector<double> sticky_y;
 
+    /// axhspan/axvspan: interpret that coordinate as axes fraction (0..1).
+    bool x_axes_fraction = false;
+    bool y_axes_fraction = false;
+
     void draw(Renderer& renderer) override;
 };
 

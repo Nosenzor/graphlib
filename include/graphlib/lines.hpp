@@ -31,12 +31,19 @@ struct LineOpts {
     std::string_view label{};
 };
 
+/// Line2D.drawstyle (mirrors mpl): steps hold the previous/mid/next value.
+enum class DrawStyle { normal, steps_pre, steps_mid, steps_post };
+
 class Line2D final : public Artist {
 public:
     Line2D() { zorder = 2.0; }
 
     std::vector<double> xdata;
     std::vector<double> ydata;
+    DrawStyle drawstyle = DrawStyle::normal;
+    /// axhline/axvline: interpret that coordinate as axes fraction (0..1).
+    bool x_axes_fraction = false;
+    bool y_axes_fraction = false;
     Color color = colors::tab10[0];
     double linewidth = 1.5;
     LineStyle linestyle{};

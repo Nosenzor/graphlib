@@ -89,7 +89,9 @@ void Line2D::draw(Renderer& renderer) {
         return;
     }
     const Size canvas = renderer.canvas_size();
-    const Affine2D tf = axes->trans_data(canvas);
+    const Affine2D tf = (x_axes_fraction || y_axes_fraction)
+                            ? axes->blended_transform(x_axes_fraction, y_axes_fraction, canvas)
+                            : axes->trans_data(canvas);
 
     GraphicsContext gc;
     gc.color = color;
@@ -102,7 +104,37 @@ void Line2D::draw(Renderer& renderer) {
     gc.joinstyle = JoinStyle::round; // rc lines.solid_joinstyle / dash_joinstyle
     gc.clip_rect = axes->bbox_pixels(canvas);
 
-    const Path path = Path::line(xdata, ydata);
+    // drawstyle: expand to the step staircase before building the path.
+    Path path;
+    if (drawstyle == DrawStyle::normal || xdata.size() < 2) {
+        path = Path::line(xdata, ydata);
+    } else {
+        std::vector<double> sx;
+        std::vector<double> sy;
+        sx.push_back(xdata[0]);
+        sy.push_back(ydata[0]);
+        for (size_t i = 1; i < xdata.size(); ++i) {
+            switch (drawstyle) {
+            case DrawStyle::steps_pre: // rise first, at the previous x
+                sx.insert(sx.end(), {xdata[i - 1], xdata[i]});
+                sy.insert(sy.end(), {ydata[i], ydata[i]});
+                break;
+            case DrawStyle::steps_post: // run first, rise at the new x
+                sx.insert(sx.end(), {xdata[i], xdata[i]});
+                sy.insert(sy.end(), {ydata[i - 1], ydata[i]});
+                break;
+            case DrawStyle::steps_mid: { // rise halfway between samples
+                const double mid = (xdata[i - 1] + xdata[i]) / 2.0;
+                sx.insert(sx.end(), {mid, mid, xdata[i]});
+                sy.insert(sy.end(), {ydata[i - 1], ydata[i], ydata[i]});
+                break;
+            }
+            case DrawStyle::normal:
+                break;
+            }
+        }
+        path = Path::line(sx, sy);
+    }
 
     renderer.open_group("line2d");
     if (linestyle.drawn()) {

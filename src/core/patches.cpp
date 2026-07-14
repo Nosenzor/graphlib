@@ -32,8 +32,11 @@ void Patch::draw(Renderer& renderer) {
         gc.color.a = edgecolor.a * *alpha;
         face->a = facecolor.a * *alpha;
     }
+    const Affine2D tf = (x_axes_fraction || y_axes_fraction)
+                            ? axes->blended_transform(x_axes_fraction, y_axes_fraction, canvas)
+                            : axes->trans_data(canvas);
     renderer.open_group("patch");
-    renderer.draw_path(gc, get_path(), axes->trans_data(canvas), face);
+    renderer.draw_path(gc, get_path(), tf, face);
     renderer.close_group();
 }
 

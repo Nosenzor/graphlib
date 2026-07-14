@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <string>
 
 #include "graphlib/errors.hpp"
@@ -371,6 +372,138 @@ std::vector<Rectangle*> Axes::hist(std::span<const double> data, const HistOpts&
     return bars;
 }
 
+Polygon& Axes::fill_between(std::span<const double> x, std::span<const double> y1,
+                            std::span<const double> y2, const FillOpts& opts) {
+    if (x.size() != y1.size() || (!y2.empty() && y2.size() != x.size())) {
+        throw ValueError("fill_between: x, y1 and y2 must be the same size");
+    }
+    std::vector<Point> pts;
+    pts.reserve(2 * x.size());
+    for (size_t i = 0; i < x.size(); ++i) { // forward along y1
+        pts.push_back({x[i], y1[i]});
+    }
+    for (size_t i = x.size(); i-- > 0;) { // back along y2 (or the baseline)
+        pts.push_back({x[i], y2.empty() ? 0.0 : y2[i]});
+    }
+    auto poly = std::make_unique<Polygon>(std::move(pts));
+    poly->facecolor = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    poly->edgecolor = Color::none(); // mpl fill_between draws no edge by default
+    poly->alpha = opts.alpha;
+    poly->label = std::string(opts.label);
+    return add_patch(std::move(poly));
+}
+
+Polygon& Axes::fill_between(std::span<const double> x, std::span<const double> y1,
+                            const FillOpts& opts) {
+    return fill_between(x, y1, {}, opts);
+}
+
+Line2D& Axes::step(std::span<const double> x, std::span<const double> y, std::string_view fmt,
+                   const LineOpts& opts) {
+    Line2D& line = plot(x, y, fmt, opts);
+    line.drawstyle = DrawStyle::steps_pre; // mpl step(where='pre')
+    return line;
+}
+
+// Fraction-coordinate artists must not contribute their fraction axis to the
+// data limits — rebuild dataLim from the pure-data artists.
+void Axes::recompute_data_lim() {
+    data_lim_ = Bbox::null();
+    for (const auto& child : children_) {
+        if (const auto* l = dynamic_cast<const Line2D*>(child.get())) {
+            if (!l->x_axes_fraction && !l->y_axes_fraction) {
+                data_lim_.update(l->data_extents());
+            }
+        } else if (const auto* p = dynamic_cast<const Patch*>(child.get())) {
+            if (!p->x_axes_fraction && !p->y_axes_fraction) {
+                data_lim_.update(p->data_extents());
+            }
+        } else if (const auto* pc = dynamic_cast<const PathCollection*>(child.get())) {
+            data_lim_.update(pc->data_extents());
+        }
+    }
+}
+
+Line2D& Axes::axhline(double y, double xmin, double xmax, const LineOpts& opts) {
+    Line2D& line = plot(std::vector<double>{xmin, xmax}, std::vector<double>{y, y}, "", opts);
+    line.x_axes_fraction = true;
+    recompute_data_lim();
+    data_lim_.update({data_lim_.is_null() ? 0.0 : data_lim_.x0(), y}); // y joins the limits
+    autoscale_view();
+    return line;
+}
+
+Line2D& Axes::axvline(double x, double ymin, double ymax, const LineOpts& opts) {
+    Line2D& line = plot(std::vector<double>{x, x}, std::vector<double>{ymin, ymax}, "", opts);
+    line.y_axes_fraction = true;
+    recompute_data_lim();
+    data_lim_.update({x, data_lim_.is_null() ? 0.0 : data_lim_.y0()});
+    autoscale_view();
+    return line;
+}
+
+Rectangle& Axes::axhspan(double ymin, double ymax, const FillOpts& opts) {
+    auto r = std::make_unique<Rectangle>(0.0, ymin, 1.0, ymax - ymin);
+    r->x_axes_fraction = true;
+    r->facecolor = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    r->edgecolor = Color::none();
+    r->alpha = opts.alpha;
+    r->label = std::string(opts.label);
+    r->axes = this;
+    // Only the y extent joins the data limits.
+    Rectangle& ref = *r;
+    children_.push_back(std::move(r));
+    if (!data_lim_.is_null()) {
+        data_lim_.update({data_lim_.x0(), ymin});
+        data_lim_.update({data_lim_.x0(), ymax});
+        autoscale_view();
+    }
+    return ref;
+}
+
+Rectangle& Axes::axvspan(double xmin, double xmax, const FillOpts& opts) {
+    auto r = std::make_unique<Rectangle>(xmin, 0.0, xmax - xmin, 1.0);
+    r->y_axes_fraction = true;
+    r->facecolor = opts.color.empty() ? next_cycle_color() : to_color(opts.color);
+    r->edgecolor = Color::none();
+    r->alpha = opts.alpha;
+    r->label = std::string(opts.label);
+    r->axes = this;
+    Rectangle& ref = *r;
+    children_.push_back(std::move(r));
+    if (!data_lim_.is_null()) {
+        data_lim_.update({xmin, data_lim_.y0()});
+        data_lim_.update({xmax, data_lim_.y0()});
+        autoscale_view();
+    }
+    return ref;
+}
+
+Line2D& Axes::hlines(std::span<const double> y, double xmin, double xmax,
+                     const LineOpts& opts) {
+    // One artist: NaN-gapped segments (mpl uses a LineCollection).
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> xs;
+    std::vector<double> ys;
+    for (const double v : y) {
+        xs.insert(xs.end(), {xmin, xmax, nan});
+        ys.insert(ys.end(), {v, v, nan});
+    }
+    return plot(xs, ys, "", opts);
+}
+
+Line2D& Axes::vlines(std::span<const double> x, double ymin, double ymax,
+                     const LineOpts& opts) {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> xs;
+    std::vector<double> ys;
+    for (const double v : x) {
+        xs.insert(xs.end(), {v, v, nan});
+        ys.insert(ys.end(), {ymin, ymax, nan});
+    }
+    return plot(xs, ys, "", opts);
+}
+
 void Axes::set_xticks(std::vector<double> locs, std::vector<std::string> labels) {
     if (!labels.empty() && labels.size() != locs.size()) {
         throw ValueError("set_xticks: labels must match the number of locations");
@@ -466,6 +599,15 @@ Bbox Axes::bbox_pixels(Size canvas) const {
 Affine2D Axes::trans_data(Size canvas) const {
     const Bbox view = Bbox::from_extents(vx0_, vy0_, vx1_, vy1_);
     return bbox_transform_from(view).then(bbox_transform_to(bbox_pixels(canvas)));
+}
+
+Affine2D Axes::blended_transform(bool x_fraction, bool y_fraction, Size canvas) const {
+    const Affine2D data = trans_data(canvas);
+    const Affine2D axes = bbox_transform_to(bbox_pixels(canvas)); // unit -> px
+    // Both transforms are axis-aligned (no shear): blend the diagonals.
+    const Affine2D& fx = x_fraction ? axes : data;
+    const Affine2D& fy = y_fraction ? axes : data;
+    return {fx.a(), 0.0, 0.0, fy.d(), fx.e(), fy.f()};
 }
 
 void Axes::draw(Renderer& renderer) {

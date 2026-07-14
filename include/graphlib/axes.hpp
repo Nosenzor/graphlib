@@ -40,6 +40,13 @@ struct HistOpts {
     std::string_view label{};
 };
 
+/// kwargs of Axes::fill_between / span patches.
+struct FillOpts {
+    std::string_view color{}; // "" -> next cycle color
+    std::optional<double> alpha{};
+    std::string_view label{};
+};
+
 /// kwargs of Axes::text.
 struct TextOpts {
     std::optional<double> fontsize{}; // rc font.size = 10
@@ -87,6 +94,28 @@ public:
     /// Histogram of `data` (np.histogram-compatible binning); returns the bars.
     std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts = {});
 
+    /// Fill the region between y1 and y2 (default 0) along x.
+    Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
+                          std::span<const double> y2, const FillOpts& opts = {});
+    Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
+                          const FillOpts& opts = {});
+
+    /// Step plot (plot with drawstyle steps-pre, mpl's step default).
+    Line2D& step(std::span<const double> x, std::span<const double> y,
+                 std::string_view fmt = "", const LineOpts& opts = {});
+
+    /// Horizontal/vertical reference lines spanning the axes (fraction range).
+    Line2D& axhline(double y, double xmin = 0.0, double xmax = 1.0, const LineOpts& opts = {});
+    Line2D& axvline(double x, double ymin = 0.0, double ymax = 1.0, const LineOpts& opts = {});
+    /// Shaded horizontal/vertical band across the axes.
+    Rectangle& axhspan(double ymin, double ymax, const FillOpts& opts = {});
+    Rectangle& axvspan(double xmin, double xmax, const FillOpts& opts = {});
+    /// Segments at each y (or x) between two data coordinates, one artist.
+    Line2D& hlines(std::span<const double> y, double xmin, double xmax,
+                   const LineOpts& opts = {});
+    Line2D& vlines(std::span<const double> x, double ymin, double ymax,
+                   const LineOpts& opts = {});
+
     /// Adopt a patch built by a plotting method (updates dataLim + stickies).
     Rectangle& add_patch(std::unique_ptr<Rectangle> patch);
     Polygon& add_patch(std::unique_ptr<Polygon> patch);
@@ -121,6 +150,10 @@ public:
     /// transData = transScale + (transLimits + transAxes); transScale is
     /// identity until log scales (v0.3), so the result is a single affine.
     [[nodiscard]] Affine2D trans_data(Size canvas) const;
+    /// Blended transform: per-axis choice of data coords or axes fraction
+    /// (axhline/axhspan — mpl's blended_transform_factory for the affine case).
+    [[nodiscard]] Affine2D blended_transform(bool x_fraction, bool y_fraction,
+                                             Size canvas) const;
 
     void draw(Renderer& renderer);
 
@@ -136,6 +169,7 @@ public:
 private:
     void add_line_datalim(const Line2D& line);
     void autoscale_view();
+    void recompute_data_lim();
     Patch& adopt_patch(std::unique_ptr<Patch> patch);
 
     Figure* figure_;

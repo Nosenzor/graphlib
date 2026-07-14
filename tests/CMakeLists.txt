@@ -12,6 +12,7 @@ add_executable(graphlib_tests
     image/svg_golden.cpp
     unit/test_axes.cpp
     unit/test_color.cpp
+    unit/test_fills_spans.cpp
     unit/test_patches_bar.cpp
     unit/test_path.cpp
     unit/test_rc.cpp
