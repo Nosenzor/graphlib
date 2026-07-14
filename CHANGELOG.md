@@ -3,7 +3,11 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased] — v0.4.0 "Images & Fields" candidate
+## [Unreleased]
+
+## [0.4.0] — 2026-07-14 — "Images & Fields"
+
+CI-verified on all five tier-1 targets (76 tests incl. ASan).
 
 ### Added
 - **Colormap engine**: 11 maps with oracle-exact LUTs generated from matplotlib

@@ -129,7 +129,7 @@ std::vector<double> MaxNLocator::tick_values(double vmin, double vmax) const {
 }
 
 // Port of MaxNLocator._raw_ticks (autolimit_mode='data' branch; the
-// 'round_numbers' large_steps refinement is TODO(v0.4), rc-gated like mpl).
+// 'round_numbers' large_steps refinement lands with rc autolimit_mode support
 std::vector<double> MaxNLocator::raw_ticks(double vmin, double vmax) const {
     int nbins = 0;
     if (params_.nbins == -1) { // 'auto'

@@ -131,7 +131,7 @@ oracle fixtures; styles switch without re-plotting.
 
 ---
 
-## v0.4.0 — "Images & Fields" (2D data)
+## v0.4.0 — "Images & Fields" (2D data) — ✅ tagged 2026-07-14
 
 **Goal:** heatmaps and scalar fields — science/engineering credibility.
 
