@@ -99,12 +99,15 @@ Axis::TickData Axis::compute_ticks(const Axes& axes) const {
     const std::vector<double> locs = locator_->tick_values(v0, v1);
     const std::vector<std::string> labels = formatter_->format_ticks(locs, v0, v1);
 
-    // Trim to the view interval with a small relative slop (mpl trims at draw).
+    // Trim to the view interval with a small relative slop (mpl trims at draw);
+    // min/max so inverted axes (imshow origin 'upper') keep their ticks.
     TickData out;
     out.offset_text = formatter_->offset_text(locs, v0, v1);
-    const double eps = 1e-10 * std::abs(v1 - v0);
+    const double lo = std::min(v0, v1);
+    const double hi = std::max(v0, v1);
+    const double eps = 1e-10 * (hi - lo);
     for (size_t i = 0; i < locs.size(); ++i) {
-        if (locs[i] >= v0 - eps && locs[i] <= v1 + eps) {
+        if (locs[i] >= lo - eps && locs[i] <= hi + eps) {
             out.locs.push_back(locs[i]);
             out.labels.push_back(labels[i]);
         }

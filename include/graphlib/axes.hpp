@@ -12,6 +12,7 @@
 #include "graphlib/axis.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/collections.hpp"
+#include "graphlib/image.hpp"
 #include "graphlib/legend.hpp"
 #include "graphlib/lines.hpp"
 #include "graphlib/patches.hpp"
@@ -148,10 +149,19 @@ public:
     /// goes frameless with an equal-aspect box, like matplotlib.
     std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts = {});
 
+    /// Display a 2D array as an image (mirrors Axes.imshow; data is row-major
+    /// rows x cols). Sets equal aspect by default, like matplotlib.
+    AxesImage& imshow(std::span<const double> data, int rows, int cols,
+                      const ImshowOpts& opts = {});
+
     /// Frameless axes: no patch, grid, spines or ticks (mirrors ax.axis('off')).
     void set_axis_off() { axis_off_ = true; }
-    /// Square axes box, centered in the original rect (set_aspect('equal','box')-lite).
-    void set_aspect_equal() { aspect_equal_ = true; }
+    /// Aspect control (mirrors set_aspect with adjustable='box'): the axes box
+    /// shrinks so one y data-unit renders `ratio` times as tall as one x
+    /// data-unit is wide. "auto" removes the constraint.
+    void set_aspect(double ratio);
+    void set_aspect(std::string_view mode); // "auto" | "equal"
+    void set_aspect_equal() { set_aspect(1.0); }
 
     /// Twin axes sharing this x-axis, with an independent y-axis on the right.
     Axes& twinx();
@@ -274,7 +284,7 @@ private:
     bool autoscale_y_ = true;
     bool grid_on_ = false;   // seeded from rc axes.grid in the ctor
     bool axis_off_ = false;
-    bool aspect_equal_ = false;
+    std::optional<double> aspect_; // nullopt == 'auto'
     bool patch_off_ = false;      // twins draw no background over their host
     bool yaxis_right_ = false;    // twinx: y ticks/label on the right
     bool xaxis_top_ = false;      // twiny: x ticks/label on the top

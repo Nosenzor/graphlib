@@ -164,6 +164,22 @@ TEST_CASE("png golden: everyday plots scene (v0.3)", "[golden][png]") {
     check_png("everyday_scene", fig);
 }
 
+TEST_CASE("png golden: imshow nearest + bilinear (draw_image contract)", "[golden][png]") {
+    Figure fig;
+    auto grid = fig.subplots(1, 2);
+    std::vector<double> z;
+    for (int r = 0; r < 6; ++r) {
+        for (int c = 0; c < 8; ++c) {
+            z.push_back(((r + c) % 2) * 2.0 + r * 0.3);
+        }
+    }
+    grid[0][0]->imshow(z, 6, 8, {.cmap = "coolwarm"});
+    grid[0][0]->set_title("nearest");
+    grid[0][1]->imshow(z, 6, 8, {.cmap = "coolwarm", .interpolation = "bilinear"});
+    grid[0][1]->set_title("bilinear");
+    check_png("imshow_interp", fig);
+}
+
 TEST_CASE("png: transparent render has transparent corners", "[png]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

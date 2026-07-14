@@ -49,6 +49,8 @@ Line2D& vlines(std::span<const double> x, double ymin, double ymax, const LineOp
 Line2D& errorbar(std::span<const double> x, std::span<const double> y,
                  const ErrorbarOpts& opts = {});
 std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts = {});
+AxesImage& imshow(std::span<const double> data, int rows, int cols,
+                  const ImshowOpts& opts = {});
 
 void title(std::string t);
 void xlabel(std::string t);

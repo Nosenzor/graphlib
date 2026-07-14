@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "graphlib/color.hpp"
 #include "graphlib/graphics_context.hpp"
@@ -20,6 +21,15 @@ struct Size {
     double width = 0;
     double height = 0;
 };
+
+/// RGBA8 pixels, row-major, row 0 at the TOP (image convention).
+struct ImageBuffer {
+    int width = 0;
+    int height = 0;
+    std::vector<unsigned char> rgba; // width * height * 4, straight alpha
+};
+
+enum class Interp { nearest, bilinear };
 
 struct FontProperties {
     double size_pt = 10.0; // rc font.size
@@ -56,6 +66,11 @@ public:
     /// (PDF, GLFW glyph atlas) may override.
     virtual void draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
                            const FontProperties& font, double angle_deg, HAlign ha, VAlign va);
+
+    /// Stretch `image` into `dest` (device px, y-up; image row 0 lands at the
+    /// TOP of the rect). Honors gc.clip_rect and the image's alpha.
+    virtual void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
+                            Interp interpolation) = 0;
 
     [[nodiscard]] virtual Size canvas_size() const = 0;
 

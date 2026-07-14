@@ -1,6 +1,9 @@
 #include "graphlib/backend/svg.hpp"
 
 #include <cmath>
+#include <cstdlib>
+
+#include <stb_image_write.h>
 
 #include "../../core/fmt.hpp"
 
@@ -174,6 +177,51 @@ void SvgRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
                  fmt_trim(p.y, 2) + "\"/>\n";
     }
     body_ += "</g>\n";
+}
+
+namespace {
+std::string base64(const unsigned char* data, size_t len) {
+    static constexpr char tbl[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    out.reserve(((len + 2) / 3) * 4);
+    for (size_t i = 0; i < len; i += 3) {
+        const unsigned b0 = data[i];
+        const unsigned b1 = i + 1 < len ? data[i + 1] : 0;
+        const unsigned b2 = i + 2 < len ? data[i + 2] : 0;
+        out += tbl[b0 >> 2];
+        out += tbl[((b0 & 0x3) << 4) | (b1 >> 4)];
+        out += i + 1 < len ? tbl[((b1 & 0xF) << 2) | (b2 >> 6)] : '=';
+        out += i + 2 < len ? tbl[b2 & 0x3F] : '=';
+    }
+    return out;
+}
+} // namespace
+
+// Embed as a base64 PNG data URI, exactly like matplotlib's SVG backend.
+void SvgRenderer::draw_image(const GraphicsContext& gc, const Bbox& dest,
+                             const ImageBuffer& image, Interp interpolation) {
+    if (image.width <= 0 || image.height <= 0) {
+        return;
+    }
+    std::string png_bytes;
+    const int ok = stbi_write_png_to_func(
+        [](void* ctx, void* data, int size) {
+            static_cast<std::string*>(ctx)->append(static_cast<const char*>(data),
+                                                   static_cast<size_t>(size));
+        },
+        &png_bytes, image.width, image.height, 4, image.rgba.data(), image.width * 4);
+    if (ok == 0) {
+        return;
+    }
+    const std::string encoded =
+        base64(reinterpret_cast<const unsigned char*>(png_bytes.data()), png_bytes.size());
+    // Rect in y-down doc coords; image row 0 lands at the top of the rect.
+    body_ += "<image" + clip_attr(gc) + " x=\"" + fmt_trim(dest.x0(), 2) + "\" y=\"" +
+             fmt_trim(height_ - dest.y1(), 2) + "\" width=\"" + fmt_trim(dest.width(), 2) +
+             "\" height=\"" + fmt_trim(dest.height(), 2) +
+             "\" preserveAspectRatio=\"none\"" +
+             (interpolation == Interp::nearest ? " image-rendering=\"pixelated\"" : "") +
+             " href=\"data:image/png;base64," + encoded + "\"/>\n";
 }
 
 std::string SvgRenderer::finalize() const {

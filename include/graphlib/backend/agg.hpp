@@ -17,6 +17,8 @@ public:
 
     void draw_path(const GraphicsContext& gc, const Path& path, const Affine2D& transform,
                    const std::optional<Color>& face = std::nullopt) override;
+    void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
+                    Interp interpolation) override;
     // draw_markers/draw_text: inherited implementations (stamped fast path: v0.7)
 
     [[nodiscard]] Size canvas_size() const override;

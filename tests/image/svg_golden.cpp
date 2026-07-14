@@ -124,6 +124,18 @@ TEST_CASE("golden: backend conformance scene (SVG)", "[golden]") {
     check_golden("conformance_svg", fig);
 }
 
+TEST_CASE("golden: imshow embeds a base64 PNG (SVG draw_image)", "[golden]") {
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    std::vector<double> z;
+    for (int i = 0; i < 12; ++i) {
+        z.push_back(static_cast<double>(i));
+    }
+    ax.imshow(z, 3, 4, {.cmap = "viridis"});
+    ax.set_title("imshow svg");
+    check_golden("imshow_svg", fig);
+}
+
 TEST_CASE("golden: transparent savefig drops patches", "[golden]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

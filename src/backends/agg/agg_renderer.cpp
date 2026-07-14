@@ -188,6 +188,77 @@ void AggRenderer::draw_path(const GraphicsContext& gc, const Path& path,
     }
 }
 
+void AggRenderer::draw_image(const GraphicsContext& gc, const Bbox& dest,
+                             const ImageBuffer& image, Interp interpolation) {
+    if (image.width <= 0 || image.height <= 0 || dest.width() <= 0 || dest.height() <= 0) {
+        return;
+    }
+    Impl& I = *impl_;
+    // Device iteration bounds: dest ∩ clip ∩ canvas, in y-up pixel indices.
+    double cx0 = 0;
+    double cy0 = 0;
+    double cx1 = I.width;
+    double cy1 = I.height;
+    if (gc.clip_rect) {
+        cx0 = std::max(cx0, gc.clip_rect->x0());
+        cy0 = std::max(cy0, gc.clip_rect->y0());
+        cx1 = std::min(cx1, gc.clip_rect->x1());
+        cy1 = std::min(cy1, gc.clip_rect->y1());
+    }
+    const int px0 = static_cast<int>(std::floor(std::max(dest.x0(), cx0)));
+    const int py0 = static_cast<int>(std::floor(std::max(dest.y0(), cy0)));
+    const int px1 = static_cast<int>(std::ceil(std::min(dest.x1(), cx1)));
+    const int py1 = static_cast<int>(std::ceil(std::min(dest.y1(), cy1)));
+
+    auto texel = [&](int ix, int iy) { // iy in image rows (0 = top)
+        ix = std::clamp(ix, 0, image.width - 1);
+        iy = std::clamp(iy, 0, image.height - 1);
+        return &image.rgba[(static_cast<size_t>(iy) * static_cast<size_t>(image.width) +
+                            static_cast<size_t>(ix)) *
+                           4];
+    };
+
+    for (int py = py0; py < py1; ++py) {
+        // Pixel center in dest-normalized coords; image row 0 at the rect TOP.
+        const double v = (dest.y1() - (py + 0.5)) / dest.height() * image.height;
+        for (int px = px0; px < px1; ++px) {
+            const double u = ((px + 0.5) - dest.x0()) / dest.width() * image.width;
+            double rgba[4];
+            if (interpolation == Interp::nearest) {
+                const unsigned char* t =
+                    texel(static_cast<int>(std::floor(u)), static_cast<int>(std::floor(v)));
+                for (int c = 0; c < 4; ++c) {
+                    rgba[c] = t[c];
+                }
+            } else { // bilinear on straight alpha (edge behavior noted in PARITY)
+                const double fu = u - 0.5;
+                const double fv = v - 0.5;
+                const int iu = static_cast<int>(std::floor(fu));
+                const int iv = static_cast<int>(std::floor(fv));
+                const double du = fu - iu;
+                const double dv = fv - iv;
+                const unsigned char* t00 = texel(iu, iv);
+                const unsigned char* t10 = texel(iu + 1, iv);
+                const unsigned char* t01 = texel(iu, iv + 1);
+                const unsigned char* t11 = texel(iu + 1, iv + 1);
+                for (int c = 0; c < 4; ++c) {
+                    rgba[c] = (1 - du) * (1 - dv) * t00[c] + du * (1 - dv) * t10[c] +
+                              (1 - du) * dv * t01[c] + du * dv * t11[c];
+                }
+            }
+            const double a = rgba[3]; // artist alpha is baked into the buffer
+            if (a <= 0) {
+                continue;
+            }
+            const agg::rgba8 c(static_cast<agg::int8u>(std::lround(rgba[0])),
+                               static_cast<agg::int8u>(std::lround(rgba[1])),
+                               static_cast<agg::int8u>(std::lround(rgba[2])),
+                               static_cast<agg::int8u>(std::lround(a)));
+            I.rb.blend_pixel(px, py, c, 255);
+        }
+    }
+}
+
 void AggRenderer::write_png(const std::string& filename) const {
     const Impl& I = *impl_;
     if (stbi_write_png(filename.c_str(), I.width, I.height, 4, I.buf.data(), I.width * 4) == 0) {

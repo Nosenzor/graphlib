@@ -14,6 +14,7 @@ add_executable(graphlib_tests
     unit/test_color.cpp
     unit/test_colormaps.cpp
     unit/test_fills_spans.cpp
+    unit/test_imshow.cpp
     unit/test_log_minor.cpp
     unit/test_offset_formatter.cpp
     unit/test_patches_bar.cpp

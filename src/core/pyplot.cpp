@@ -123,6 +123,9 @@ Line2D& errorbar(std::span<const double> x, std::span<const double> y,
 std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts) {
     return gca().pie(sizes, opts);
 }
+AxesImage& imshow(std::span<const double> data, int rows, int cols, const ImshowOpts& opts) {
+    return gca().imshow(data, rows, cols, opts);
+}
 
 void title(std::string t) { gca().set_title(std::move(t)); }
 void xlabel(std::string t) { gca().set_xlabel(std::move(t)); }

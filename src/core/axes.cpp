@@ -426,6 +426,8 @@ void Axes::recompute_data_lim() {
             }
         } else if (const auto* pc = dynamic_cast<const PathCollection*>(child.get())) {
             data_lim_.update(pc->data_extents());
+        } else if (const auto* im = dynamic_cast<const AxesImage*>(child.get())) {
+            data_lim_.update(im->data_extents());
         }
     }
 }
@@ -896,15 +898,108 @@ void Axes::autoscale_view() {
 Bbox Axes::bbox_pixels(Size canvas) const {
     Bbox box = Bbox::from_extents(position.x0() * canvas.width, position.y0() * canvas.height,
                                   position.x1() * canvas.width, position.y1() * canvas.height);
-    if (aspect_equal_) { // centered square (set_aspect('equal', adjustable='box')-lite)
-        const double side = std::min(box.width(), box.height());
-        const double cx = (box.x0() + box.x1()) / 2.0;
-        const double cy = (box.y0() + box.y1()) / 2.0;
-        box = Bbox::from_extents(cx - side / 2.0, cy - side / 2.0, cx + side / 2.0,
-                                 cy + side / 2.0);
+    if (aspect_) { // adjustable='box': shrink one dimension, centered (mpl)
+        const double x_span = std::abs(vx1_ - vx0_);
+        const double y_span = std::abs(vy1_ - vy0_);
+        if (x_span > 0 && y_span > 0) {
+            const double needed_hw = *aspect_ * y_span / x_span; // required h/w in px
+            const double cx = (box.x0() + box.x1()) / 2.0;
+            const double cy = (box.y0() + box.y1()) / 2.0;
+            double w = box.width();
+            double h = box.height();
+            if (h / w > needed_hw) {
+                h = w * needed_hw;
+            } else {
+                w = h / needed_hw;
+            }
+            box = Bbox::from_extents(cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0);
+        }
     }
     return box;
 }
+
+void Axes::set_aspect(double ratio) {
+    if (ratio <= 0 || !std::isfinite(ratio)) {
+        throw ValueError("set_aspect: ratio must be positive and finite");
+    }
+    aspect_ = ratio;
+}
+
+void Axes::set_aspect(std::string_view mode) {
+    if (mode == "auto") {
+        aspect_.reset();
+    } else if (mode == "equal") {
+        aspect_ = 1.0;
+    } else {
+        throw ValueError("set_aspect: expected 'auto', 'equal' or a positive number");
+    }
+}
+
+AxesImage& Axes::imshow(std::span<const double> data, int rows, int cols,
+                        const ImshowOpts& opts) {
+    if (rows <= 0 || cols <= 0 ||
+        data.size() != static_cast<size_t>(rows) * static_cast<size_t>(cols)) {
+        throw ValueError("imshow: data must be rows*cols values");
+    }
+    auto im = std::make_unique<AxesImage>();
+    im->axes = this;
+    im->data.assign(data.begin(), data.end());
+    im->rows = rows;
+    im->cols = cols;
+    im->cmap = &get_cmap(opts.cmap.empty() ? "viridis" : opts.cmap); // rc image.cmap
+    double lo = std::numeric_limits<double>::infinity();
+    double hi = -std::numeric_limits<double>::infinity();
+    for (const double v : data) {
+        if (std::isfinite(v)) {
+            lo = std::min(lo, v);
+            hi = std::max(hi, v);
+        }
+    }
+    im->vmin = opts.vmin.value_or(std::isfinite(lo) ? lo : 0.0);
+    im->vmax = opts.vmax.value_or(std::isfinite(hi) ? hi : 1.0);
+    if (im->vmax == im->vmin) {
+        im->vmax = im->vmin + 1.0; // degenerate range, like mpl's autoscaled images
+    }
+    const std::string_view origin = opts.origin.empty() ? "upper" : opts.origin; // rc image.origin
+    if (origin != "upper" && origin != "lower") {
+        throw ValueError("imshow: origin must be 'upper' or 'lower'");
+    }
+    im->origin_upper = origin == "upper";
+    if (opts.extent) {
+        im->extent = *opts.extent;
+    } else if (im->origin_upper) { // mpl default extents (cell-centered indices)
+        im->extent = {-0.5, cols - 0.5, rows - 0.5, -0.5};
+    } else {
+        im->extent = {-0.5, cols - 0.5, -0.5, rows - 0.5};
+    }
+    const std::string_view interp = opts.interpolation.empty() ? "nearest" : opts.interpolation;
+    if (interp == "nearest" || interp == "auto") { // 'auto' -> nearest (D12)
+        im->interpolation = Interp::nearest;
+    } else if (interp == "bilinear") {
+        im->interpolation = Interp::bilinear;
+    } else {
+        throw ValueError("imshow: interpolation must be 'nearest', 'bilinear' or 'auto'");
+    }
+    im->alpha = opts.alpha;
+
+    // rc image.aspect = 'equal': imshow forces square pixels unless told not to.
+    const std::string_view aspect = opts.aspect.empty() ? "equal" : opts.aspect;
+    if (aspect != "equal" && aspect != "auto") {
+        throw ValueError("imshow: aspect must be 'equal' or 'auto'");
+    }
+    set_aspect(aspect);
+
+    // mpl sets the view straight from the extent — origin 'upper' therefore
+    // INVERTS the y axis (0 at the top); no margins around images.
+    data_lim_.update(im->data_extents());
+    set_xlim(im->extent[0], im->extent[1]);
+    set_ylim(im->extent[2], im->extent[3]);
+    AxesImage& ref = *im;
+    children_.push_back(std::move(im));
+    return ref;
+}
+
+
 
 Affine2D Axes::trans_data(Size canvas) const {
     // Nonlinear scales: the affine maps scale-space -> px; artists pre-map

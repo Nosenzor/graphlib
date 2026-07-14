@@ -22,6 +22,8 @@ public:
                       const std::optional<Color>& face = std::nullopt) override;
     // draw_text: inherited glyph-outline implementation (mpl svg.fonttype='path'
     // default; an svg.fonttype='none' native-text mode can come with rc, v0.3).
+    void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
+                    Interp interpolation) override;
     [[nodiscard]] Size canvas_size() const override { return {width_, height_}; }
     void open_group(std::string_view tag) override;
     void close_group() override;

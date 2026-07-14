@@ -15,6 +15,7 @@
 #include "graphlib/legend.hpp"
 #include "graphlib/graphics_context.hpp"
 #include "graphlib/gridspec.hpp"
+#include "graphlib/image.hpp"
 #include "graphlib/lines.hpp"
 #include "graphlib/markers.hpp"
 #include "graphlib/patches.hpp"
