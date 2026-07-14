@@ -12,6 +12,7 @@ add_executable(graphlib_tests
     image/svg_golden.cpp
     unit/test_axes.cpp
     unit/test_color.cpp
+    unit/test_colormaps.cpp
     unit/test_fills_spans.cpp
     unit/test_log_minor.cpp
     unit/test_offset_formatter.cpp

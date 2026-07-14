@@ -80,8 +80,41 @@ def gen_markers() -> None:
     print(f"marker_paths.inc: {len(MARKERS)} markers")
 
 
+
+
+# Continuous maps sampled at 256; qualitative maps keep their exact entries.
+CONTINUOUS_CMAPS = ["viridis", "plasma", "inferno", "magma", "cividis",
+                    "coolwarm", "RdBu", "gray", "jet"]
+QUALITATIVE_CMAPS = ["tab10", "tab20"]
+
+
+def gen_colormaps() -> None:
+    import numpy as np
+
+    lines = [HEADER, "// clang-format off"]
+    lines.append("// RGB triples packed as 0xRRGGBB; qualitative maps use exact entries,")
+    lines.append("// continuous maps are sampled at 256 (matching mpl's default N).")
+    lines.append("static const CmapDef kColormaps[] = {")
+    for name in CONTINUOUS_CMAPS + QUALITATIVE_CMAPS:
+        cmap = matplotlib.colormaps[name]
+        qualitative = name in QUALITATIVE_CMAPS
+        n = cmap.N if qualitative else 256
+        xs = np.arange(n) / max(1, n - 1) if not qualitative else (np.arange(n) + 0.5) / n
+        vals = cmap(xs)
+        packed = []
+        for r, g, b, _a in vals:
+            packed.append(f"0x{round(r*255):02X}{round(g*255):02X}{round(b*255):02X}")
+        lines.append(f'    {{"{name}", {{{", ".join(packed)}}}, '
+                     f'{"true" if qualitative else "false"}}},')
+    lines.append("};")
+    lines.append("// clang-format on")
+    (OUT / "colormap_luts.inc").write_text("\n".join(lines) + "\n")
+    print(f"colormap_luts.inc: {len(CONTINUOUS_CMAPS) + len(QUALITATIVE_CMAPS)} maps")
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     gen_css4()
     gen_tab_and_base()
     gen_markers()
+    gen_colormaps()
