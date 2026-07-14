@@ -189,5 +189,9 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   fill_between/errorbar/step/pie/spans, subplots+GridSpec+sharing+twins+tight_layout v1,
   log scales + minor ticks (oracle-exact), rcParams + 3 style sheets, full ScalarFormatter
   offset machinery. 66 tests incl. ASan; ~180 oracle fixture cases.
-- **Current milestone: v0.4.0 "Images & Fields"** ([ROADMAP.md](ROADMAP.md)) — colormaps +
-  Normalize, imshow, pcolormesh, contour/contourf, colorbar, full aspect control.
+- **v0.4.0 "Images & Fields" — feature-complete locally** (2026-07-14): colormap engine
+  (11 oracle-exact LUTs) + Normalize/LogNorm, draw_image on both backends, imshow (inverted-y
+  origin, aspect control), pcolormesh, contour/contourf (marching squares), colorbar,
+  scatter c-arrays. 76 tests incl. ASan. **Gate: CI green → tag v0.4.0 (user's word).**
+- Next after tag: **v0.5.0 "It Moves"** ([ROADMAP.md](ROADMAP.md)) — GLFW window, events,
+  pan/zoom, animation.

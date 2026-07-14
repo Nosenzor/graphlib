@@ -3,7 +3,21 @@
 All notable changes to graphlib. Format: [Keep a Changelog](https://keepachangelog.com/),
 versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always noted here.
 
-## [Unreleased]
+## [Unreleased] — v0.4.0 "Images & Fields" candidate
+
+### Added
+- **Colormap engine**: 11 maps with oracle-exact LUTs generated from matplotlib
+  (viridis family, coolwarm, RdBu, gray, jet, tab10/20), `Normalize`/`LogNorm`,
+  under/over/bad semantics, `get_cmap` registry.
+- **`imshow`**: origin 'upper' (inverted y) / 'lower', extents, nearest + bilinear,
+  through the new `Renderer::draw_image` (AGG resampling blit; SVG embeds base64 PNG,
+  like matplotlib). Full aspect control: `set_aspect('auto'|'equal'|ratio)`.
+- **`pcolormesh`** (flat-shaded quads, non-uniform edges, log-axis aware, sticky edges).
+- **`contour`/`contourf`** via marching squares (saddle-resolved) with MaxNLocator level
+  selection; filled bands as ascending stacked fills (D13).
+- **`colorbar`**: space-stealing axes with a gradient strip, right-side ticks + label.
+- **scatter `c_array`**: value arrays through cmap/norm for per-point colors.
+- Examples 11–14; fields golden scene; 77 oracle colormap/norm cases.
 
 ## [0.3.0] — 2026-07-14 — "Everyday Plots"
 

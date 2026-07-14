@@ -40,14 +40,17 @@ matplotlib itself.
 | | |
 |---|---|
 | ![bars](docs/gallery/bar_hist.svg) | ![log](docs/gallery/log_scales.svg) |
+| ![heatmap](docs/gallery/heatmap_colorbar.svg) | ![contour](docs/gallery/contour_gaussian.svg) |
 
-## Status: v0.3 "Everyday Plots"
+## Status: v0.4 "Images & Fields"
 
 **SVG and PNG output** (any dpi, via matplotlib's own AGG rasterizer), real DejaVu
 typography, and the everyday workhorses: `plot`/`scatter`/`bar`/`hist`/`fill_between`/
 `errorbar`/`step`/`pie`, spans and reference lines, `subplots` + `GridSpec` with
 `sharex/sharey` and `twinx/twiny`, `tight_layout`, **log scales** with minor ticks,
-`legend(loc="best")`, and an rcParams + style-sheet system (`ggplot`, `dark_background`).
+`legend(loc="best")`, an rcParams + style-sheet system (`ggplot`, `dark_background`),
+and the 2D field tools: **`imshow`, `pcolormesh`, `contour`/`contourf`, `colorbar`** with
+oracle-exact colormaps (`viridis` & friends) and `Normalize`/`LogNorm`.
 Tick and autoscale algorithms are faithful ports pinned by fixtures generated from
 matplotlib itself. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
 [docs/PARITY.md](docs/PARITY.md) for coverage.
