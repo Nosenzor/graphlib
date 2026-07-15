@@ -105,7 +105,11 @@ void Path::curve4_to(Point c1, Point c2, Point p) {
 }
 
 void Path::close_subpath() {
-    if (vertices_.empty()) {
+    // No open subpath: nothing to close. subpath_start_ == size() right
+    // after append() (which starts no subpath of its own) — closing then
+    // would read past the end (caught by ASan via a space glyph following
+    // an appended math run).
+    if (vertices_.empty() || subpath_start_ >= vertices_.size()) {
         return;
     }
     materialize_codes();
