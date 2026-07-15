@@ -18,6 +18,7 @@ set(GRAPHLIB_EXAMPLES
     16_live_sine
     17_annotations
     18_dates
+    19_mathtext
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)

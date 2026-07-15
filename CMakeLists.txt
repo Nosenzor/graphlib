@@ -41,14 +41,19 @@ set_source_files_properties(src/backends/agg/agg_renderer.cpp PROPERTIES
 include(cmake/EmbedResource.cmake)
 graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans.ttf"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans.cpp" graphlib_font_dejavu_sans)
+graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans-Oblique.ttf"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_oblique.cpp"
+    graphlib_font_dejavu_sans_oblique)
 graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans-Bold.ttf"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_oblique.cpp"
     graphlib_font_dejavu_sans_bold)
 
 add_library(graphlib STATIC
     ${GRAPHLIB_AGG_SOURCES}
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans.cpp"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_oblique.cpp"
     src/backends/agg/agg_renderer.cpp
     src/backends/svg/svg_renderer.cpp
     src/core/axes.cpp
@@ -76,6 +81,7 @@ add_library(graphlib STATIC
     src/core/ticker.cpp
     src/core/transforms.cpp
     src/text/font_manager.cpp
+    src/text/mathtext.cpp
     src/text/stb_impl.cpp
 )
 set_source_files_properties(src/text/stb_impl.cpp PROPERTIES

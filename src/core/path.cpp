@@ -47,6 +47,22 @@ Path Path::line(std::span<const double> x, std::span<const double> y) {
     return p;
 }
 
+void Path::append(const Path& other, double dx, double dy) {
+    if (other.vertices_.empty()) {
+        return;
+    }
+    if (codes_.empty()) {
+        materialize_codes();
+    }
+    vertices_.reserve(vertices_.size() + other.vertices_.size());
+    codes_.reserve(codes_.size() + other.vertices_.size());
+    for (size_t i = 0; i < other.vertices_.size(); ++i) {
+        vertices_.push_back({other.vertices_[i].x + dx, other.vertices_[i].y + dy});
+        codes_.push_back(other.code_at(i));
+    }
+    subpath_start_ = vertices_.size(); // callers restart subpaths via move_to
+}
+
 void Path::materialize_codes() {
     if (codes_.empty() && !vertices_.empty()) {
         codes_.assign(vertices_.size(), PathCode::lineto);

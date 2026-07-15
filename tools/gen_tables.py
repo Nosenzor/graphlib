@@ -112,9 +112,49 @@ def gen_colormaps() -> None:
     print(f"colormap_luts.inc: {len(CONTINUOUS_CMAPS) + len(QUALITATIVE_CMAPS)} maps")
 
 
+
+
+def gen_mathtext() -> None:
+    """Symbol tables for the mathtext subset: TeX name -> Unicode codepoint,
+    plus the spacing classification (binary/relation/arrow get 0.2em pads)."""
+    from matplotlib import _mathtext_data as md
+    from matplotlib import _mathtext as mt
+
+    out = ROOT / "src" / "text"
+    rows = [f'    {{"{name}", 0x{cp:04X}}},'
+            for name, cp in sorted(md.tex2uni.items())]
+
+    def to_cp(sym: str) -> int:
+        return md.tex2uni[sym[1:]] if sym.startswith("\\") else ord(sym)
+
+    def cp_set(symbols) -> str:
+        cps = sorted({to_cp(s) for s in symbols})
+        return ", ".join(f"0x{c:04X}" for c in cps)
+
+    parser = mt.Parser
+    body = HEADER + (
+        "// clang-format off\n"
+        "struct TexSymbol { std::string_view name; char32_t codepoint; };\n"
+        "static constexpr TexSymbol kTex2Uni[] = {  // sorted by name (binary search)\n"
+        + "\n".join(rows) + "\n};\n"
+        "// Symbols set with 0.2em space on both sides (Parser._spaced_symbols),\n"
+        "// as resolved codepoints, sorted:\n"
+        "static constexpr char32_t kSpacedCodepoints[] = {"
+        + cp_set(parser._binary_operators | parser._relation_symbols
+                 | parser._arrow_symbols) + "};\n"
+        "static constexpr char32_t kBinaryCodepoints[] = {"
+        + cp_set(parser._binary_operators) + "};\n"
+        "static constexpr char32_t kRelationCodepoints[] = {"
+        + cp_set(parser._relation_symbols) + "};\n"
+        "// clang-format on\n"
+    )
+    (out / "mathtext_tables.inc").write_text(body)
+    print(f"mathtext_tables.inc: {len(rows)} symbols")
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     gen_css4()
     gen_tab_and_base()
     gen_markers()
     gen_colormaps()
+    gen_mathtext()

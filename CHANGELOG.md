@@ -13,6 +13,12 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
   offset-points coordinates with FancyArrowPatch-style arrows (arrowstyle
   '-', '->', '-|>'; text-bbox clipping, shrink, relpos — D18). Examples
   `17_annotations`, `18_dates`; golden SVGs `annotate_svg`, `dates_svg`.
+- Mathtext: `$...$` in any text element (titles, labels, legend, annotate).
+  TeX-lite engine over embedded DejaVu (now incl. Oblique): scripts + primes,
+  `\frac`, `\sqrt[n]`, `\sum`-style limits, 632-symbol tex2uni table,
+  `\mathrm/\mathbf/\mathit`, `\sin`-style function names, binary/relation
+  spacing; unsupported commands raise `ValueError` naming the command (D19).
+  Example `19_mathtext`; golden `mathtext_svg`.
 
 ## [0.5.0] — 2026-07-15 — "It Moves"
 

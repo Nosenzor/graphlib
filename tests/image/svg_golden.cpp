@@ -159,6 +159,19 @@ TEST_CASE("golden: date axis with concise labels", "[golden]") {
     check_golden("dates_svg", fig);
 }
 
+TEST_CASE("golden: mathtext layout", "[golden]") {
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    ax.set_xlim(0.0, 1.0);
+    ax.set_ylim(0.0, 1.0);
+    ax.set_title("$E = mc^2$");
+    ax.set_xlabel("$\\alpha_i \\geq \\beta^2$");
+    ax.text(0.1, 0.7, "$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$", {.fontsize = 16.0});
+    ax.text(0.1, 0.4, "$\\sum_{i=0}^{n} x_i^2$ and $\\int_0^1 f$", {.fontsize = 14.0});
+    ax.text(0.1, 0.15, "mixed $\\mathrm{d}y/\\mathrm{d}x$ text $f'(x)$", {.fontsize = 12.0});
+    check_golden("mathtext_svg", fig);
+}
+
 TEST_CASE("golden: backend conformance scene (SVG)", "[golden]") {
     // The same scene every backend must draw correctly (new-backend skill).
     Figure fig;

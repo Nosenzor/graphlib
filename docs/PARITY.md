@@ -47,7 +47,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | events | `mpl_connect` (button/motion/scroll/key/resize/draw/close) | same names + payload fields | done (xdata/ydata/inaxes hit-testing incl. log) |
 | animation | `FuncAnimation` + blitting | live only | done (full redraw, D15; explicit run(), D16) |
 | save PDF | `savefig("*.pdf")` | vector + font subset | planned-v0.6 |
-| mathtext | `$...$` subset | sub/sup, greek, frac, sqrt | planned-v0.6 |
+| mathtext | `$...$` subset | sub/sup/primes, \frac, \sqrt[n], greek + 632-symbol tex2uni, \sum limits, \mathrm/bf/it, \sin-style functions, spacing | done (TeX-lite layout, D19) |
 | date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based, `xaxis_date()` | done (UTC-naive datenums, 1970 epoch; year->second levels, D17) |
 | annotate | `annotate` + arrowprops subset | arrowstyle '-', '->', '-|>' | done (straight arc3 connector; analytic clip, D18) |
 | path simplification / chunking | `path.simplify` etc. | same algorithm | planned-v0.7 |
@@ -92,3 +92,4 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D16 | FuncAnimation starts via explicit run(), not implicitly on show() | no hidden timers in a C++ API |
 | D17 | Date machinery is UTC-naive (no tz kwarg) and stops at the seconds level (no microsecond locator); unsupported: rrule/tz-aware locators | chrono `sys_days` datenums, mpl's default 1970 epoch; fixture ranges all covered |
 | D18 | Annotation arrows clip analytically (mpl bisects Béziers to 0.01 px) and support only the straight `arc3,rad=0` connector + arrowstyles '-', '->', '-|>'; legacy width/headwidth arrowprops and text-rotation-aware bboxes unsupported | endpoint differences < 0.01 px vs oracle; curved connectors on demand |
+| D19 | Mathtext is a TeX-lite port (mpl constants: SHRINK 0.7, sup1/sub1/sub2, script_space; advance-based char packing) — near-mpl, not glyph-exact; no \left/\right auto-delimiters, \text, \operatorname; large operators use the DejaVu glyph (mpl pulls bigger STIX size variants); radical stretched by y-scaling U+221A | unsupported commands raise ValueError naming the command; visual twin at reading distance |

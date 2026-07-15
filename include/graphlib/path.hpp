@@ -35,6 +35,8 @@ public:
     void curve4_to(Point c1, Point c2, Point p);
     /// Close the current subpath (back to its MOVETO, not the first vertex).
     void close_subpath();
+    /// Append another path's subpaths, translated (mpl make_compound_path).
+    void append(const Path& other, double dx = 0.0, double dy = 0.0);
 
     [[nodiscard]] bool empty() const { return vertices_.empty(); }
     [[nodiscard]] size_t size() const { return vertices_.size(); }

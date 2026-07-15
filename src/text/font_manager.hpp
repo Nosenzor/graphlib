@@ -16,6 +16,17 @@ struct TextExtent {
     double descent = 0.0; // px below the baseline
 };
 
+enum class FaceId { regular = 0, bold = 1, oblique = 2 }; // oblique: mathtext italics
+
+struct GlyphMetrics {
+    double advance = 0.0; // px
+    double xmin = 0.0;    // ink box, px, y-up, relative to the pen position
+    double xmax = 0.0;
+    double ymin = 0.0;
+    double ymax = 0.0;
+    bool valid = false; // codepoint present in the face
+};
+
 class FontManager {
 public:
     static const FontManager& instance();
@@ -36,10 +47,21 @@ public:
     [[nodiscard]] double ascent(double em_px, bool bold = false) const;
     [[nodiscard]] double descent(double em_px, bool bold = false) const;
 
+    // ---- per-glyph access (mathtext layout) ----
+    [[nodiscard]] GlyphMetrics glyph_metrics(char32_t cp, double em_px, FaceId face) const;
+    /// Append the glyph outline with its origin at pen (x, y), y-up.
+    void append_glyph(Path& out, char32_t cp, double x, double y, double em_px,
+                      FaceId face) const;
+    /// Kerning adjustment between two codepoints of the same face, px.
+    [[nodiscard]] double kern(char32_t a, char32_t b, double em_px, FaceId face) const;
+    /// DejaVu Sans x-height (PCLT table value mpl's mathtext layout keys on).
+    [[nodiscard]] static double x_height(double em_px) { return 0.5578125 * em_px; }
+
 private:
     FontManager();
     struct Face;
     [[nodiscard]] const Face& face(bool bold) const;
+    [[nodiscard]] const Face& face_by_id(FaceId id) const;
 
     std::vector<Face> faces_;
 };
