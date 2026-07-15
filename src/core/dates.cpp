@@ -198,11 +198,21 @@ std::vector<double> AutoDateLocator::tick_values(double vmin, double vmax) const
                 }
             }
         }
-    } else if (level == 2) { // days of month in {1, 1+i, 1+2i, ...} (mpl bymonthday)
+    } else if (level == 2) { // days of month from mpl's bymonthday pattern
+        // get_locator special-cases the ragged strides so ticks stay evenly
+        // spaced across month ends: 14 -> {1, 15}, 7 -> {1, 8, 15, 22}.
+        const auto day_selected = [&](unsigned day) {
+            if (interval == 14) {
+                return day == 1 || day == 15;
+            }
+            if (interval == 7) {
+                return day == 1 || day == 8 || day == 15 || day == 22;
+            }
+            return (day - 1) % static_cast<unsigned>(interval) == 0;
+        };
         for (double d = std::floor(vmin); d <= std::floor(vmax); d += 1.0) {
             const CivilTime c = num2date(d);
-            if ((c.day - 1) % static_cast<unsigned>(interval) == 0 && d >= vmin - kEps &&
-                d <= vmax + kEps) {
+            if (day_selected(c.day) && d >= vmin - kEps && d <= vmax + kEps) {
                 ticks.push_back(d);
             }
         }

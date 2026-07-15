@@ -172,7 +172,7 @@ same figure code renders identically to file when no window is requested.
 
 ---
 
-## v0.6.0 — "Publication Grade" (PDF, mathtext, dates, annotate)
+## v0.6.0 — "Publication Grade" (PDF, mathtext, dates, annotate) — ✅ tagged 2026-07-16
 
 **Goal:** the outputs you put in a paper or a report.
 
@@ -184,9 +184,11 @@ same figure code renders identically to file when no window is requested.
 - Date axes: `std::chrono` overloads, date2num (1970 epoch), `AutoDateLocator`,
   `ConciseDateFormatter`.
 - `annotate` with arrowprops subset (`'->'`, `'-|>'`…), text bbox (round box style).
+  *(shipped without the visible round-box style — moved to v0.7)*
 - Optional FreeType path for hinted glyph quality (CMake option, default OFF).
+  *(deferred to v0.7 — stb glyph quality proved sufficient for the exit criteria)*
 
-**Play with it:** `18_paper_figure` — a two-panel publication figure with math labels, dated
+**Play with it:** `20_paper_figure` — a two-panel publication figure with math labels, dated
 x-axis, annotations → one PDF + one SVG; drop it straight into LaTeX.
 
 **Exit criteria:** the PDF opens correctly in Preview/Acrobat/Chrome; text is selectable; the

@@ -39,20 +39,23 @@ matplotlib itself.
 
 | | |
 |---|---|
-| ![bars](docs/gallery/bar_hist.svg) | ![log](docs/gallery/log_scales.svg) |
-| ![heatmap](docs/gallery/heatmap_colorbar.svg) | ![contour](docs/gallery/contour_gaussian.svg) |
+| ![paper figure](docs/gallery/paper_figure.svg) | ![mathtext](docs/gallery/mathtext.svg) |
+| ![heatmap](docs/gallery/heatmap_colorbar.svg) | ![annotations](docs/gallery/annotations.svg) |
 
-## Status: v0.4 "Images & Fields"
+## Status: v0.6 "Publication Grade"
 
-**SVG and PNG output** (any dpi, via matplotlib's own AGG rasterizer), real DejaVu
-typography, and the everyday workhorses: `plot`/`scatter`/`bar`/`hist`/`fill_between`/
-`errorbar`/`step`/`pie`, spans and reference lines, `subplots` + `GridSpec` with
-`sharex/sharey` and `twinx/twiny`, `tight_layout`, **log scales** with minor ticks,
-`legend(loc="best")`, an rcParams + style-sheet system (`ggplot`, `dark_background`),
-and the 2D field tools: **`imshow`, `pcolormesh`, `contour`/`contourf`, `colorbar`** with
-oracle-exact colormaps (`viridis` & friends) and `Normalize`/`LogNorm`.
-Tick and autoscale algorithms are faithful ports pinned by fixtures generated from
-matplotlib itself. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
+**SVG, PNG and PDF output** — the PDF is vector, byte-deterministic, with selectable
+text (embedded DejaVu, CID-keyed) — plus **mathtext** (`$\frac{a}{b}$`, scripts, greek,
+`\sum` limits, `\sqrt`) in every text element, **date axes** (`AutoDateLocator` +
+`ConciseDateFormatter` on `std::chrono`), and **`annotate`** with matplotlib's arrow
+styles. Underneath: the everyday workhorses (`plot`/`scatter`/`bar`/`hist`/
+`fill_between`/`errorbar`/`step`/`pie`, spans), `subplots` + `GridSpec` with sharing and
+twins, `tight_layout`, log scales with minor ticks, `legend(loc="best")`, rcParams +
+style sheets, and the 2D field tools (**`imshow`, `pcolormesh`, `contour`/`contourf`,
+`colorbar`**) with oracle-exact colormaps. Interactive GLFW windows with pan/zoom and
+`FuncAnimation` behind `-DGRAPHLIB_INTERACTIVE=ON`.
+Tick, autoscale, date and colormap algorithms are faithful ports pinned by fixtures
+generated from matplotlib itself. See [ROADMAP.md](ROADMAP.md) for the ladder to 1.0 and
 [docs/PARITY.md](docs/PARITY.md) for coverage.
 
 Zero mandatory dependencies. Platforms: macOS (arm64), Linux (x86_64, arm64),

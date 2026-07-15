@@ -19,6 +19,7 @@ set(GRAPHLIB_EXAMPLES
     17_annotations
     18_dates
     19_mathtext
+    20_paper_figure
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)

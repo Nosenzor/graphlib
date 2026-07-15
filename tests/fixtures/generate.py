@@ -241,6 +241,7 @@ def date_ticks():
         (datetime(2019, 3, 1), datetime(2026, 7, 1)),     # years
         (datetime(2026, 1, 15), datetime(2026, 11, 3)),   # months
         (datetime(2026, 7, 1), datetime(2026, 7, 11)),    # days
+        (datetime(2026, 4, 16), datetime(2026, 7, 15)),   # 90 days: 14-day stride {1,15}
         (datetime(2026, 7, 14, 6), datetime(2026, 7, 15, 18)),  # hours
         (datetime(2026, 7, 15, 9, 0), datetime(2026, 7, 15, 10, 30)),  # minutes
         (datetime(2026, 7, 15, 9, 0, 0), datetime(2026, 7, 15, 9, 2, 0)),  # seconds-ish

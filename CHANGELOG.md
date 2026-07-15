@@ -5,6 +5,14 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-16 — "Publication Grade"
+
+CI-verified on all five tier-1 targets + ASan + the xvfb interactive job (100 tests).
+
+Camera-ready output from one C++ file: `savefig("figure.pdf")` writes a deterministic
+vector PDF with selectable text, `$...$` math works in every label, and time series
+format themselves with matplotlib's concise date machinery.
+
 ### Added
 - Date axes (`graphlib::dates`): `date2num`/`num2date` on C++20 chrono (UTC-naive,
   1970 epoch), oracle-exact `AutoDateLocator` + `ConciseDateFormatter`, and

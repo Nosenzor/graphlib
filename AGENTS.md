@@ -197,5 +197,10 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   GLFW window backend (GRAPHLIB_INTERACTIVE, tier-2 optional dep), mpl-named events +
   mpl_connect, log-correct drag-pan/scroll-zoom + h/s/q keys, FuncAnimation-lite.
   82 tests incl. ASan.
-- **Current milestone: v0.6.0 "Publication Grade"** ([ROADMAP.md](ROADMAP.md)) — PDF backend,
-  mathtext subset, date axes, annotate.
+- **v0.6.0 "Publication Grade" — tagged 2026-07-16, CI green on all targets**: deterministic
+  PDF backend (selectable CID text, golden-testable), mathtext subset ($...$ everywhere,
+  TeX-lite over DejaVu incl. new Oblique face), date axes (chrono date2num +
+  AutoDateLocator/ConciseDateFormatter, oracle-exact), annotate with arrow styles.
+  100 tests incl. ASan; PDF verified with Preview + pypdf extraction.
+- **Current milestone: v0.7.0 "Fast Path"** ([ROADMAP.md](ROADMAP.md)) — performance
+  (path simplification, benchmarks), docs site, deferred: rounded annotate bbox, FreeType option.
