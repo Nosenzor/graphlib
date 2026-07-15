@@ -238,6 +238,10 @@ public:
     /// Linear-axis minor ticks (mirrors ax.minorticks_on with AutoMinorLocator).
     void minorticks_on();
 
+    /// Treat x values as datenums (mirrors ax.xaxis_date: AutoDateLocator +
+    /// ConciseDateFormatter; datenums via graphlib::dates::date2num).
+    void xaxis_date();
+
     /// Move y ticks/labels to the right side (mirrors ax.yaxis.tick_right()).
     void yaxis_tick_right() { yaxis_right_ = true; }
 

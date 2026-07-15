@@ -1,5 +1,7 @@
 #include "graphlib/axes.hpp"
 
+#include "graphlib/dates.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -743,6 +745,11 @@ void Axes::set_yscale(std::string_view scale) {
         yaxis_.set_minor_locator(nullptr);
     }
     autoscale_view();
+}
+
+void Axes::xaxis_date() {
+    xaxis_.set_major_locator(std::make_unique<AutoDateLocator>());
+    xaxis_.set_major_formatter(std::make_unique<ConciseDateFormatter>());
 }
 
 void Axes::minorticks_on() {

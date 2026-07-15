@@ -13,6 +13,7 @@
 #include "graphlib/color.hpp"
 #include "graphlib/colormaps.hpp"
 #include "graphlib/contour.hpp"
+#include "graphlib/dates.hpp"
 #include "graphlib/errors.hpp"
 #include "graphlib/events.hpp"
 #include "graphlib/figure.hpp"
