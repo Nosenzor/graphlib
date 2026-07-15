@@ -82,6 +82,20 @@ struct TextOpts {
     double rotation = 0.0;
 };
 
+/// kwargs of Axes::annotate. Coordinate tokens: "data" (default) and
+/// "axes fraction" for both; textcoords also accepts "offset points"
+/// (offset from xy). Other matplotlib tokens raise ValueError until needed.
+struct AnnotateOpts {
+    std::optional<std::pair<double, double>> xytext{}; // default: at xy
+    std::string_view xycoords = "data";
+    std::string_view textcoords{};                     // default: xycoords
+    std::optional<ArrowProps> arrowprops{};
+    std::optional<double> fontsize{};                  // rc font.size = 10
+    std::string_view color{};                          // rc text.color = black
+    HAlign ha = HAlign::left;
+    VAlign va = VAlign::baseline;
+};
+
 class Axes {
 public:
     Axes(Figure& figure, Bbox position_fraction);
@@ -97,6 +111,11 @@ public:
                  const LineOpts& opts = {});
 
     Text& text(double x, double y, std::string s, const TextOpts& opts = {});
+
+    /// Annotate the point `xy` with text (mirrors Axes.annotate; arrowstyle
+    /// subset "-", "->", "-|>").
+    Annotation& annotate(std::string s, std::pair<double, double> xy,
+                         const AnnotateOpts& opts = {});
 
     /// Scatter plot of y vs x with per-point sizes (mirrors Axes.scatter;
     /// c-arrays with colormaps arrive in v0.4).

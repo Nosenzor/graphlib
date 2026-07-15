@@ -10,6 +10,7 @@ add_executable(graphlib_tests
     image/png_golden.cpp
     image/stb_image_impl.cpp
     image/svg_golden.cpp
+    unit/test_annotate.cpp
     unit/test_axes.cpp
     unit/test_color.cpp
     unit/test_events_nav.cpp

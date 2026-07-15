@@ -6,6 +6,7 @@
 // arithmetic — SVG output must be byte-identical on every platform.
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "graphlib/backend/svg.hpp"
+#include "graphlib/dates.hpp"
 #include "graphlib/figure.hpp"
 #include "graphlib/util.hpp"
 
@@ -115,6 +117,46 @@ TEST_CASE("golden: manual limits, grid, clipping, NaN gap, text", "[golden]") {
     ax.grid(true);
     ax.text(-3.5, 1.5, "clipped & gapped");
     check_golden("limits_grid_clip", fig);
+}
+
+TEST_CASE("golden: annotate arrow styles and coord systems", "[golden]") {
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    std::vector<double> x = linspace(0.0, 4.0, 41);
+    std::vector<double> y(x.size());
+    for (size_t i = 0; i < x.size(); ++i) {
+        y[i] = (x[i] - 1.0) * (x[i] - 3.0); // parabola: min at (2, -1), no libm
+    }
+    ax.plot(x, y);
+    ax.set_ylim(-2.0, 4.0);
+    ax.annotate("minimum", {2.0, -1.0},
+                {.xytext = {{2.6, 1.8}}, .arrowprops = ArrowProps{.arrowstyle = "->"}});
+    ax.annotate("filled", {0.0, 3.0},
+                {.xytext = {{0.55, 0.85}},
+                 .xycoords = "data",
+                 .textcoords = "axes fraction",
+                 .arrowprops = ArrowProps{.arrowstyle = "-|>"}});
+    ax.annotate("plain", {1.0, 0.0},
+                {.xytext = {{0.4, 3.2}}, .arrowprops = ArrowProps{.arrowstyle = "-"}});
+    ax.annotate("offset", {3.0, 0.0}, {.xytext = {{8.0, 12.0}}, .textcoords = "offset points"});
+    check_golden("annotate_svg", fig);
+}
+
+TEST_CASE("golden: date axis with concise labels", "[golden]") {
+    using namespace std::chrono;
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    const double d0 = dates::date2num(year_month_day{year{2026}, month{7}, day{1}});
+    std::vector<double> x(11);
+    std::vector<double> y(x.size());
+    for (size_t i = 0; i < x.size(); ++i) {
+        x[i] = d0 + static_cast<double>(i);
+        y[i] = 0.25 * static_cast<double>(i % 4) + 0.1 * static_cast<double>(i);
+    }
+    ax.plot(x, y, "o-");
+    ax.xaxis_date();
+    ax.set_title("daily samples");
+    check_golden("dates_svg", fig);
 }
 
 TEST_CASE("golden: backend conformance scene (SVG)", "[golden]") {

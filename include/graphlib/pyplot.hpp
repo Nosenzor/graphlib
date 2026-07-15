@@ -24,6 +24,7 @@ Line2D& plot(std::span<const double> x, std::span<const double> y, std::string_v
 Line2D& plot(std::span<const double> x, std::span<const double> y, const LineOpts& opts);
 Line2D& plot(std::span<const double> y, std::string_view fmt = "", const LineOpts& opts = {});
 Text& text(double x, double y, std::string s, const TextOpts& opts = {});
+Annotation& annotate(std::string s, std::pair<double, double> xy, const AnnotateOpts& opts = {});
 PathCollection& scatter(std::span<const double> x, std::span<const double> y,
                         const ScatterOpts& opts = {});
 Legend& legend(const LegendOpts& opts = {});

@@ -66,6 +66,10 @@ Text& text(double x, double y, std::string s, const TextOpts& opts) {
     return gca().text(x, y, std::move(s), opts);
 }
 
+Annotation& annotate(std::string s, std::pair<double, double> xy, const AnnotateOpts& opts) {
+    return gca().annotate(std::move(s), xy, opts);
+}
+
 PathCollection& scatter(std::span<const double> x, std::span<const double> y,
                         const ScatterOpts& opts) {
     return gca().scatter(x, y, opts);

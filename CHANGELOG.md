@@ -5,6 +5,15 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
 
 ## [Unreleased]
 
+### Added
+- Date axes (`graphlib::dates`): `date2num`/`num2date` on C++20 chrono (UTC-naive,
+  1970 epoch), oracle-exact `AutoDateLocator` + `ConciseDateFormatter`, and
+  `Axes::xaxis_date()` (D17).
+- `annotate()` on Axes and pyplot: text placed in data / axes-fraction /
+  offset-points coordinates with FancyArrowPatch-style arrows (arrowstyle
+  '-', '->', '-|>'; text-bbox clipping, shrink, relpos — D18). Examples
+  `17_annotations`, `18_dates`; golden SVGs `annotate_svg`, `dates_svg`.
+
 ## [0.5.0] — 2026-07-15 — "It Moves"
 
 CI-verified on all five tier-1 targets + the xvfb interactive job (82 tests incl. ASan).

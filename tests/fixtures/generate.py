@@ -264,6 +264,46 @@ def date_ticks():
     return cases
 
 
+def annotate_arrows():
+    """Annotation arrow pipeline oracle: FancyArrowPatch posA->posB with
+    optional patchA clip, shrink circles, and '-'/'->'/'-|>' head transmute.
+    All inputs/outputs in display px (IdentityTransform, dpi_cor=1)."""
+    from matplotlib.patches import FancyArrowPatch, Rectangle
+    from matplotlib.transforms import IdentityTransform
+
+    cases_in = [
+        # (posA, posB, style, lw, patchA rect or None)
+        ((20.0, 30.0), (180.0, 140.0), "-", 1.0, None),
+        ((20.0, 30.0), (180.0, 140.0), "->", 1.0, None),
+        ((20.0, 30.0), (180.0, 140.0), "-|>", 1.0, None),
+        ((70.0, 32.0), (180.0, 140.0), "->", 1.0, (40.0, 20.0, 60.0, 24.0)),
+        ((120.0, 88.0), (30.0, 20.0), "-|>", 1.0, (90.0, 76.0, 60.0, 24.0)),
+        ((20.0, 30.0), (180.0, 60.0), "->", 2.0, None),
+    ]
+    cases = []
+    for posA, posB, style, lw, rect in cases_in:
+        fap = FancyArrowPatch(posA, posB, arrowstyle=style, mutation_scale=10.0,
+                              shrinkA=2.0, shrinkB=2.0, transform=IdentityTransform())
+        fap.set_linewidth(lw)
+        if rect is not None:
+            fap.set_patchA(Rectangle(rect[:2], rect[2], rect[3],
+                                     transform=IdentityTransform()))
+        paths, fillable = fap._get_path_in_displaycoord()
+        tail = paths[0].vertices
+        head = paths[1].vertices if len(paths) > 1 else []
+        cases.append({
+            "posA": list(posA), "posB": list(posB), "style": style, "lw": lw,
+            "patchA": list(rect) if rect else [],
+            "tail": [float(tail[0][0]), float(tail[0][1]),
+                     float(tail[-1][0]), float(tail[-1][1])],
+            # first three head vertices (the CLOSEPOLY vertex of filled heads
+            # is a dummy (0,0) in mpl)
+            "head": [float(v) for xy in head[:3] for v in xy],
+            "filled": bool(fillable[1]) if len(paths) > 1 else False,
+        })
+    return cases
+
+
 # ---------------------------------------------------------------- emission
 
 def cxx_str(s: str) -> str:
@@ -394,6 +434,21 @@ def emit_inc(data: dict) -> None:
                  f'{cxx_str(c["offset"])}}},')
     L.append("};\n")
 
+    L.append("struct AnnotateArrowCase { double ax; double ay; double bx; double by; "
+             "std::string style; double lw; std::vector<double> patchA; "
+             "double tail_x0; double tail_y0; double tail_x1; double tail_y1; "
+             "std::vector<double> head; bool filled; };")
+    L.append("inline const std::vector<AnnotateArrowCase> annotate_arrows = {")
+    for c in data["annotate_arrows"]:
+        L.append(f'    {{{cxx_num(c["posA"][0])}, {cxx_num(c["posA"][1])}, '
+                 f'{cxx_num(c["posB"][0])}, {cxx_num(c["posB"][1])}, '
+                 f'{cxx_str(c["style"])}, {cxx_num(c["lw"])}, '
+                 f'{cxx_vec(c["patchA"], cxx_num)}, '
+                 f'{cxx_num(c["tail"][0])}, {cxx_num(c["tail"][1])}, '
+                 f'{cxx_num(c["tail"][2])}, {cxx_num(c["tail"][3])}, '
+                 f'{cxx_vec(c["head"], cxx_num)}, {"true" if c["filled"] else "false"}}},')
+    L.append("};\n")
+
     L += ["} // namespace fixtures", "// clang-format on", ""]
     (HERE / "fixtures.inc").write_text("\n".join(L), encoding="utf-8")
 
@@ -412,6 +467,7 @@ if __name__ == "__main__":
         "colormap_samples": colormap_samples(),
         "norm_cases": norm_cases(),
         "date_ticks": date_ticks(),
+        "annotate_arrows": annotate_arrows(),
     }
     for name, cases in data.items():
         (HERE / f"{name}.json").write_text(json.dumps({**META, "cases": cases}, indent=1),

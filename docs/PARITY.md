@@ -48,8 +48,8 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | animation | `FuncAnimation` + blitting | live only | done (full redraw, D15; explicit run(), D16) |
 | save PDF | `savefig("*.pdf")` | vector + font subset | planned-v0.6 |
 | mathtext | `$...$` subset | sub/sup, greek, frac, sqrt | planned-v0.6 |
-| date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based | planned-v0.6 |
-| annotate | `annotate` + arrowprops subset | same | planned-v0.6 |
+| date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based, `xaxis_date()` | done (UTC-naive datenums, 1970 epoch; year->second levels, D17) |
+| annotate | `annotate` + arrowprops subset | arrowstyle '-', '->', '-|>' | done (straight arc3 connector; analytic clip, D18) |
 | path simplification / chunking | `path.simplify` etc. | same algorithm | planned-v0.7 |
 | 3D, widgets, TeX, quiver, streamplot, boxplot, violin, polar, pick, patheffects, sankey, table | — | — | icebox |
 
@@ -90,3 +90,5 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D14 | Navigation is always-on direct manipulation (drag=pan, scroll=zoom), no modal p/o toolbar modes | fewer modes, same capability; toolbar UI is post-1.0 |
 | D15 | Animation redraws fully each frame (no blitting yet) | AGG full-frame is fast enough pre-v0.7; blitting is a perf milestone topic |
 | D16 | FuncAnimation starts via explicit run(), not implicitly on show() | no hidden timers in a C++ API |
+| D17 | Date machinery is UTC-naive (no tz kwarg) and stops at the seconds level (no microsecond locator); unsupported: rrule/tz-aware locators | chrono `sys_days` datenums, mpl's default 1970 epoch; fixture ranges all covered |
+| D18 | Annotation arrows clip analytically (mpl bisects Béziers to 0.01 px) and support only the straight `arc3,rad=0` connector + arrowstyles '-', '->', '-|>'; legacy width/headwidth arrowprops and text-rotation-aware bboxes unsupported | endpoint differences < 0.01 px vs oracle; curved connectors on demand |

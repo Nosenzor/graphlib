@@ -16,6 +16,8 @@ set(GRAPHLIB_EXAMPLES
     14_scatter_cmap
     15_interactive_signal
     16_live_sine
+    17_annotations
+    18_dates
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)
