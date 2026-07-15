@@ -488,9 +488,14 @@ private:
             return parse_styled_group(face, /*slanted=*/name == "mathit");
         }
         // Everything else must be a plain symbol; anything structural that we
-        // do not typeset is named explicitly for the user.
-        if (name == "left" || name == "right" || name == "begin" || name == "end" ||
-            name == "over" || name == "text" || name == "operatorname") {
+        // do not typeset is named explicitly for the user (accents would
+        // otherwise draw their combining glyph beside the nucleus).
+        static constexpr std::array<std::string_view, 22> kUnsupported = {
+            "left",  "right", "begin",    "end",   "over",     "text",  "operatorname",
+            "hat",   "bar",   "dot",      "ddot",  "vec",      "tilde", "breve",
+            "acute", "grave", "check",    "mathring", "widehat", "widetilde", "overline",
+            "underline"};
+        if (std::find(kUnsupported.begin(), kUnsupported.end(), name) != kUnsupported.end()) {
             throw ValueError("mathtext: \\" + name + " is not supported by graphlib yet");
         }
         const char32_t cp = lookup_symbol(name);

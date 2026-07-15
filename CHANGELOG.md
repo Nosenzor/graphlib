@@ -19,6 +19,11 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
   `\mathrm/\mathbf/\mathit`, `\sin`-style function names, binary/relation
   spacing; unsupported commands raise `ValueError` naming the command (D19).
   Example `19_mathtext`; golden `mathtext_svg`.
+- PDF backend: `savefig("*.pdf")` — vector output at 72 units/inch with
+  selectable, extractable text (Type0/CIDFontType2, Identity-H, ToUnicode;
+  full DejaVu embed — D20), FlateDecode content + image XObjects with SMask
+  alpha, dashes/caps/joins/clip/ExtGState alpha. Byte-deterministic (no
+  timestamps, no /ID): golden PDFs `conformance_pdf`, `text_dates_pdf`.
 
 ## [0.5.0] — 2026-07-15 — "It Moves"
 

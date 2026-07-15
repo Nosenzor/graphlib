@@ -123,7 +123,6 @@ TEST_CASE("mismatched x/y sizes throw like matplotlib", "[axes]") {
 TEST_CASE("savefig rejects unknown formats with milestone hints", "[figure]") {
     Figure fig;
     fig.add_subplot();
-    CHECK_THROWS_AS(fig.savefig("out.pdf"), ValueError); // arrives v0.6
     CHECK_THROWS_AS(fig.savefig("out.bmp"), ValueError);
     CHECK_THROWS_AS(fig.savefig("noextension"), ValueError);
     CHECK_THROWS_AS(fig.savefig("out.png", {.dpi = -100}), ValueError);

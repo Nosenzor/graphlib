@@ -55,6 +55,7 @@ add_library(graphlib STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_oblique.cpp"
     src/backends/agg/agg_renderer.cpp
+    src/backends/pdf/pdf_renderer.cpp
     src/backends/svg/svg_renderer.cpp
     src/core/axes.cpp
     src/core/axis.cpp

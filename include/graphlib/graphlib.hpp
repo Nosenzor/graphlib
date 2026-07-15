@@ -7,6 +7,7 @@
 #include "graphlib/axis.hpp"
 #include "graphlib/backend/agg.hpp"
 #include "graphlib/backend/interactive.hpp"
+#include "graphlib/backend/pdf.hpp"
 #include "graphlib/backend/renderer.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/collections.hpp"

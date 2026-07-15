@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "graphlib/backend/agg.hpp"
+#include "graphlib/backend/pdf.hpp"
 #include "graphlib/backend/svg.hpp"
 #include "graphlib/errors.hpp"
 #include "graphlib/gridspec.hpp"
@@ -266,9 +267,19 @@ void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
         return;
     }
     if (ext == "pdf") {
-        throw ValueError("savefig: format 'pdf' arrives in v0.6 — supported now: svg, png");
+        // PDF is vector at 72 units/inch, like the SVG path (dpi applies to raster).
+        PdfRenderer renderer(figsize[0] * 72.0, figsize[1] * 72.0);
+        transparent_render_ = opts.transparent;
+        draw(renderer);
+        transparent_render_ = false;
+        std::ofstream out(filename, std::ios::binary);
+        out << renderer.finalize();
+        if (!out) {
+            throw Error("savefig: cannot write '" + filename + "'");
+        }
+        return;
     }
-    throw ValueError("savefig: unknown format '" + ext + "' (supported: svg, png)");
+    throw ValueError("savefig: unknown format '" + ext + "' (supported: svg, png, pdf)");
 }
 
 } // namespace graphlib

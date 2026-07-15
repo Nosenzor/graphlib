@@ -7,6 +7,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(graphlib_tests
+    image/pdf_golden.cpp
     image/png_golden.cpp
     image/stb_image_impl.cpp
     image/svg_golden.cpp
