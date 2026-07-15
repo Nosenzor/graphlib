@@ -46,7 +46,6 @@ graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSan
     graphlib_font_dejavu_sans_oblique)
 graphlib_embed_resource("${CMAKE_CURRENT_SOURCE_DIR}/third_party/fonts/DejaVuSans-Bold.ttf"
     "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_bold.cpp"
-    "${CMAKE_CURRENT_BINARY_DIR}/generated/fonts/dejavu_sans_oblique.cpp"
     graphlib_font_dejavu_sans_bold)
 
 add_library(graphlib STATIC
