@@ -230,6 +230,40 @@ def norm_cases():
     return cases
 
 
+
+
+def date_ticks():
+    """Date axis oracle: xlim (datenums, 1970 epoch days) -> ticks/labels/offset
+    via AutoDateLocator + ConciseDateFormatter."""
+    import matplotlib.dates as mdates
+    from datetime import datetime
+    spans = [
+        (datetime(2019, 3, 1), datetime(2026, 7, 1)),     # years
+        (datetime(2026, 1, 15), datetime(2026, 11, 3)),   # months
+        (datetime(2026, 7, 1), datetime(2026, 7, 11)),    # days
+        (datetime(2026, 7, 14, 6), datetime(2026, 7, 15, 18)),  # hours
+        (datetime(2026, 7, 15, 9, 0), datetime(2026, 7, 15, 10, 30)),  # minutes
+        (datetime(2026, 7, 15, 9, 0, 0), datetime(2026, 7, 15, 9, 2, 0)),  # seconds-ish
+    ]
+    cases = []
+    for d0, d1 in spans:
+        fig, ax = plt.subplots()
+        ax.set_xlim(mdates.date2num(d0), mdates.date2num(d1))
+        loc = mdates.AutoDateLocator()
+        fmt = mdates.ConciseDateFormatter(loc)
+        ax.xaxis.set_major_locator(loc)
+        ax.xaxis.set_major_formatter(fmt)
+        fig.canvas.draw()
+        cases.append({
+            "vmin": float(mdates.date2num(d0)), "vmax": float(mdates.date2num(d1)),
+            "ticks": [float(t) for t in ax.get_xticks()],
+            "labels": [t.get_text() for t in ax.get_xticklabels()],
+            "offset": ax.xaxis.get_offset_text().get_text(),
+        })
+        plt.close(fig)
+    return cases
+
+
 # ---------------------------------------------------------------- emission
 
 def cxx_str(s: str) -> str:
@@ -350,6 +384,16 @@ def emit_inc(data: dict) -> None:
                  f'{cxx_num(c["v"])}, {cxx_num(c["out"])}}},')
     L.append("};\n")
 
+
+    L.append("struct DateTicksCase { double vmin; double vmax; std::vector<double> ticks; "
+             "std::vector<std::string> labels; std::string offset; };")
+    L.append("inline const std::vector<DateTicksCase> date_ticks = {")
+    for c in data["date_ticks"]:
+        L.append(f'    {{{cxx_num(c["vmin"])}, {cxx_num(c["vmax"])}, '
+                 f'{cxx_vec(c["ticks"], cxx_num)}, {cxx_vec(c["labels"], cxx_str)}, '
+                 f'{cxx_str(c["offset"])}}},')
+    L.append("};\n")
+
     L += ["} // namespace fixtures", "// clang-format on", ""]
     (HERE / "fixtures.inc").write_text("\n".join(L), encoding="utf-8")
 
@@ -367,6 +411,7 @@ if __name__ == "__main__":
         "bar_autoscale": bar_autoscale(),
         "colormap_samples": colormap_samples(),
         "norm_cases": norm_cases(),
+        "date_ticks": date_ticks(),
     }
     for name, cases in data.items():
         (HERE / f"{name}.json").write_text(json.dumps({**META, "cases": cases}, indent=1),
