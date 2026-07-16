@@ -305,6 +305,47 @@ def annotate_arrows():
     return cases
 
 
+def path_simplify():
+    """Path simplification oracle: input polyline -> Path.cleaned(simplify=True)
+    vertices/codes at the default threshold (rc path.simplify_threshold = 1/9).
+    Inputs >= 128 vertices so should_simplify holds."""
+    import numpy as np
+    from matplotlib.path import Path as MPath
+
+    def build(name, xs, ys, codes=None):
+        p = MPath(np.column_stack([xs, ys]), codes)
+        assert p.should_simplify, name
+        # remove_nans first, like the real render pipeline (py_converters)
+        cleaned = p.cleaned(remove_nans=True, simplify=True)
+        out_v, out_c = [], []
+        for verts, code in cleaned.iter_segments(simplify=False, remove_nans=False):
+            if code == MPath.STOP:
+                break
+            out_v.append([float(verts[-2]), float(verts[-1])])
+            out_c.append(int(code))
+        return {"name": name,
+                "in_x": [float(v) for v in xs], "in_y": [float(v) for v in ys],
+                "in_codes": [int(c) for c in codes] if codes is not None else [],
+                "out": [c for xy, c in zip(out_v, out_c) for c in ([xy[0], xy[1]] + [c])]}
+
+    n = 200
+    t = np.linspace(0.0, 40.0, n)
+    cases = [
+        build("collinear", np.arange(300.0), np.full(300, 5.0)),
+        build("smallwave", t * 10.0, 0.05 * np.sin(t)),
+        build("zigzag", np.arange(256.0) * 0.02,
+              np.where(np.arange(256) % 2 == 0, 0.0, 0.04)),
+        build("bigwave", t * 3.0, 8.0 * np.sin(t)),
+        build("backtrack", np.concatenate([np.linspace(0, 30, 100),
+                                           np.linspace(30, 12, 40),
+                                           np.linspace(12, 60, 100)]),
+              np.full(240, 1.0) + np.linspace(0, 0.02, 240)),
+        build("with_gap", np.arange(200.0),
+              np.concatenate([np.full(90, 2.0), [np.nan], np.full(109, 4.0)])),
+    ]
+    return cases
+
+
 # ---------------------------------------------------------------- emission
 
 def cxx_str(s: str) -> str:
@@ -314,7 +355,9 @@ def cxx_str(s: str) -> str:
 
 def cxx_num(v: float) -> str:
     r = repr(float(v))
-    return r if ("." in r or "e" in r or "inf" in r or "nan" in r) else r + ".0"
+    if "nan" in r:
+        return 'std::nan("")'
+    return r if ("." in r or "e" in r or "inf" in r) else r + ".0"
 
 
 def cxx_vec(vals, fn) -> str:
@@ -450,6 +493,17 @@ def emit_inc(data: dict) -> None:
                  f'{cxx_vec(c["head"], cxx_num)}, {"true" if c["filled"] else "false"}}},')
     L.append("};\n")
 
+    L.append("struct PathSimplifyCase { std::string name; std::vector<double> in_x; "
+             "std::vector<double> in_y; std::vector<int> in_codes; "
+             "std::vector<double> out; };  // out: x,y,code triples")
+    L.append("inline const std::vector<PathSimplifyCase> path_simplify = {")
+    for c in data["path_simplify"]:
+        L.append(f'    {{{cxx_str(c["name"])}, {cxx_vec(c["in_x"], cxx_num)}, '
+                 f'{cxx_vec(c["in_y"], cxx_num)}, '
+                 f'{{{", ".join(str(v) for v in c["in_codes"])}}}, '
+                 f'{cxx_vec(c["out"], cxx_num)}}},')
+    L.append("};\n")
+
     L += ["} // namespace fixtures", "// clang-format on", ""]
     (HERE / "fixtures.inc").write_text("\n".join(L), encoding="utf-8")
 
@@ -469,6 +523,7 @@ if __name__ == "__main__":
         "norm_cases": norm_cases(),
         "date_ticks": date_ticks(),
         "annotate_arrows": annotate_arrows(),
+        "path_simplify": path_simplify(),
     }
     for name, cases in data.items():
         (HERE / f"{name}.json").write_text(json.dumps({**META, "cases": cases}, indent=1),

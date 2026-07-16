@@ -5,6 +5,16 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
 
 ## [Unreleased]
 
+### Added
+- Benchmarks: Google Benchmark suite (`--preset bench`, `GRAPHLIB_BUILD_BENCHMARKS`)
+  with committed baselines (benchmarks/BASELINES.md).
+- Path simplification: byte-faithful port of matplotlib's `PathSimplifier`
+  (perpendicular-distance merging with forward/backward extrema), gated by
+  `Path.should_simplify` semantics and rc `path.simplify` /
+  `path.simplify_threshold`, applied to unfilled stroke paths in display space
+  on the AGG, SVG and PDF backends; `agg.path.chunksize` chunking (default off).
+  10M-point line savefig: 1379 -> 268 ms; 100k-point SVG: 12.8 -> 1.4 ms.
+
 ## [0.6.0] — 2026-07-16 — "Publication Grade"
 
 CI-verified on all five tier-1 targets + ASan + the xvfb interactive job (100 tests).

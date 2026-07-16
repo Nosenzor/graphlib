@@ -50,7 +50,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | mathtext | `$...$` subset | sub/sup/primes, \frac, \sqrt[n], greek + 632-symbol tex2uni, \sum limits, \mathrm/bf/it, \sin-style functions, spacing | done (TeX-lite layout, D19) |
 | date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based, `xaxis_date()` | done (UTC-naive datenums, 1970 epoch; year->second levels, D17) |
 | annotate | `annotate` + arrowprops subset | arrowstyle '-', '->', '-|>' | done (straight arc3 connector; analytic clip, D18) |
-| path simplification / chunking | `path.simplify` etc. | same algorithm | planned-v0.7 |
+| path simplification / chunking | `path.simplify`, `path.simplify_threshold`, `agg.path.chunksize` | PathSimplifier port, oracle-exact | done (unfilled stroke paths, display space, all backends) |
 | 3D, widgets, TeX, quiver, streamplot, boxplot, violin, polar, pick, patheffects, sankey, table | — | — | icebox |
 
 ## Module map (headers mirror mpl modules)

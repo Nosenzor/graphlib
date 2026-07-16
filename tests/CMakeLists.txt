@@ -24,6 +24,7 @@ add_executable(graphlib_tests
     unit/test_offset_formatter.cpp
     unit/test_patches_bar.cpp
     unit/test_path.cpp
+    unit/test_path_simplify.cpp
     unit/test_rc.cpp
     unit/test_scatter_legend.cpp
     unit/test_text_metrics.cpp

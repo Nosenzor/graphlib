@@ -6,6 +6,8 @@
 #include <stb_image_write.h>
 
 #include "../../core/fmt.hpp"
+#include "core/path_simplify.hpp"
+#include "graphlib/rc.hpp"
 
 namespace graphlib {
 
@@ -149,7 +151,18 @@ void SvgRenderer::draw_path(const GraphicsContext& gc, const Path& path,
     if (path.empty()) {
         return;
     }
-    body_ += "<path" + clip_attr(gc) + " d=\"" + path_data(path, transform) + "\"" +
+    // mpl backends simplify unfilled stroke paths in display space
+    // (rc path.simplify / path.simplify_threshold; Path.should_simplify gate).
+    Path simplified_storage;
+    const Path* src = &path;
+    Affine2D tf = transform;
+    if ((!face || face->a <= 0.0) && detail::should_simplify(path)) {
+        simplified_storage = detail::simplify_path(path.transformed(transform),
+                                                   rc().number("path.simplify_threshold"));
+        src = &simplified_storage;
+        tf = Affine2D::identity();
+    }
+    body_ += "<path" + clip_attr(gc) + " d=\"" + path_data(*src, tf) + "\"" +
              fill_attrs(face) + stroke_attrs(gc) + "/>\n";
 }
 

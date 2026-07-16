@@ -75,6 +75,7 @@ add_library(graphlib STATIC
     src/core/markers.cpp
     src/core/patches.cpp
     src/core/path.cpp
+    src/core/path_simplify.cpp
     src/core/pyplot.cpp
     src/core/rc.cpp
     src/core/renderer.cpp

@@ -23,6 +23,8 @@ extern "C" unsigned char* stbi_zlib_compress(unsigned char* data, int data_len,
 #include "graphlib/errors.hpp"
 #include "text/font_manager.hpp"
 #include "text/mathtext.hpp"
+#include "core/path_simplify.hpp"
+#include "graphlib/rc.hpp"
 
 // Embedded by cmake/EmbedResource.cmake from third_party/fonts/.
 extern const unsigned char graphlib_font_dejavu_sans[];
@@ -195,26 +197,38 @@ void PdfRenderer::draw_path(const GraphicsContext& gc, const Path& path,
     }
     content_ += set_color_ops(gc, face);
 
-    const auto verts = path.vertices();
+    // mpl backends simplify unfilled stroke paths in display space
+    // (rc path.simplify / path.simplify_threshold; Path.should_simplify gate).
+    Path simplified_storage;
+    const Path* src = &path;
+    Affine2D tf = transform;
+    if ((!face || face->a <= 0.0) && detail::should_simplify(path)) {
+        simplified_storage = detail::simplify_path(path.transformed(transform),
+                                                   rc().number("path.simplify_threshold"));
+        src = &simplified_storage;
+        tf = Affine2D::identity();
+    }
+
+    const auto verts = src->vertices();
     Point cur{0, 0};
     size_t i = 0;
     while (i < verts.size()) {
-        switch (path.code_at(i)) {
+        switch (src->code_at(i)) {
         case PathCode::moveto: {
-            cur = transform.apply(verts[i]);
+            cur = tf.apply(verts[i]);
             content_ += num(cur.x) + " " + num(cur.y) + " m\n";
             i += 1;
             break;
         }
         case PathCode::lineto: {
-            cur = transform.apply(verts[i]);
+            cur = tf.apply(verts[i]);
             content_ += num(cur.x) + " " + num(cur.y) + " l\n";
             i += 1;
             break;
         }
         case PathCode::curve3: { // PDF has no quadratics: elevate to cubic
-            const Point q = transform.apply(verts[i]);
-            const Point p1 = transform.apply(verts[i + 1]);
+            const Point q = tf.apply(verts[i]);
+            const Point p1 = tf.apply(verts[i + 1]);
             const Point c1{cur.x + 2.0 / 3.0 * (q.x - cur.x), cur.y + 2.0 / 3.0 * (q.y - cur.y)};
             const Point c2{p1.x + 2.0 / 3.0 * (q.x - p1.x), p1.y + 2.0 / 3.0 * (q.y - p1.y)};
             content_ += num(c1.x) + " " + num(c1.y) + " " + num(c2.x) + " " + num(c2.y) + " " +
@@ -224,9 +238,9 @@ void PdfRenderer::draw_path(const GraphicsContext& gc, const Path& path,
             break;
         }
         case PathCode::curve4: {
-            const Point c1 = transform.apply(verts[i]);
-            const Point c2 = transform.apply(verts[i + 1]);
-            const Point p1 = transform.apply(verts[i + 2]);
+            const Point c1 = tf.apply(verts[i]);
+            const Point c2 = tf.apply(verts[i + 1]);
+            const Point p1 = tf.apply(verts[i + 2]);
             content_ += num(c1.x) + " " + num(c1.y) + " " + num(c2.x) + " " + num(c2.y) + " " +
                         num(p1.x) + " " + num(p1.y) + " c\n";
             cur = p1;

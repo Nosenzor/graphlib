@@ -1,5 +1,8 @@
 #include "graphlib/backend/agg.hpp"
 
+#include "core/path_simplify.hpp"
+#include "graphlib/rc.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -20,6 +23,21 @@
 #include "graphlib/errors.hpp"
 
 namespace graphlib {
+
+namespace {
+bool has_curves(const Path& p) {
+    if (!p.has_codes()) {
+        return false;
+    }
+    for (const PathCode c : p.codes()) {
+        if (c == PathCode::curve3 || c == PathCode::curve4) {
+            return true;
+        }
+    }
+    return false;
+}
+} // namespace
+
 
 namespace {
 
@@ -148,10 +166,51 @@ void AggRenderer::draw_path(const GraphicsContext& gc, const Path& path,
         return;
     }
     Impl& I = *impl_;
-    agg::path_storage ps = to_agg(path);
+    // mpl backends simplify unfilled stroke paths in display space
+    // (rc path.simplify / path.simplify_threshold; Path.should_simplify gate).
+    Path simplified_storage;
+    const Path* src = &path;
+    Affine2D tf = transform;
+    if ((!face || face->a <= 0.0) && detail::should_simplify(path)) {
+        simplified_storage = detail::simplify_path(path.transformed(transform),
+                                                   rc().number("path.simplify_threshold"));
+        src = &simplified_storage;
+        tf = Affine2D::identity();
+    }
+
+    // agg.path.chunksize: bound rasterizer memory on huge polylines by
+    // stroking vertex ranges (first vertex of each chunk repeats the last of
+    // the previous one, like mpl's _backend_agg chunking). Default 0 = off.
+    const double chunk_rc = rc().number("agg.path.chunksize");
+    const size_t chunksize = chunk_rc > 0.0 ? static_cast<size_t>(chunk_rc) : 0;
+    if (chunksize >= 2 && (!face || face->a <= 0.0) && src->size() > chunksize &&
+        !has_curves(*src)) {
+        const auto verts = src->vertices();
+        for (size_t start = 0; start < verts.size(); start += chunksize - 1) {
+            const size_t end = std::min(verts.size(), start + chunksize);
+            Path chunk;
+            for (size_t i = start; i < end; ++i) {
+                if (i == start || src->code_at(i) == PathCode::moveto) {
+                    if (i == start && src->code_at(i) != PathCode::moveto) {
+                        chunk.move_to(verts[i].x, verts[i].y);
+                        continue;
+                    }
+                    chunk.move_to(verts[i].x, verts[i].y);
+                } else {
+                    chunk.line_to(verts[i].x, verts[i].y);
+                }
+            }
+            draw_path(gc, chunk, tf, face);
+            if (end == verts.size()) {
+                break;
+            }
+        }
+        return;
+    }
+
+    agg::path_storage ps = to_agg(*src);
     // agg::trans_affine(sx, shy, shx, sy, tx, ty) == our [a b c d e f]
-    agg::trans_affine mtx(transform.a(), transform.b(), transform.c(), transform.d(),
-                          transform.e(), transform.f());
+    agg::trans_affine mtx(tf.a(), tf.b(), tf.c(), tf.d(), tf.e(), tf.f());
     agg::conv_transform<agg::path_storage> tp(ps, mtx);
     agg::conv_curve<agg::conv_transform<agg::path_storage>> curve(tp);
     using CurveT = decltype(curve);
