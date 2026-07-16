@@ -14,6 +14,10 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
   `path.simplify_threshold`, applied to unfilled stroke paths in display space
   on the AGG, SVG and PDF backends; `agg.path.chunksize` chunking (default off).
   10M-point line savefig: 1379 -> 268 ms; 100k-point SVG: 12.8 -> 1.4 ms.
+- Marker stamping (AGG): `draw_markers` rasterizes the marker once and replays
+  the serialized coverage spans per position, snapped to whole pixels exactly
+  like matplotlib's agg backend. 1M-point scatter draw: 5648 -> 187 ms (30x).
+  PNG baselines with markers regenerated (<= 1 px snap).
 
 ## [0.6.0] — 2026-07-16 — "Publication Grade"
 

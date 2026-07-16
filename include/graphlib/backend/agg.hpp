@@ -19,7 +19,13 @@ public:
                    const std::optional<Color>& face = std::nullopt) override;
     void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
                     Interp interpolation) override;
-    // draw_markers/draw_text: inherited implementations (stamped fast path: v0.7)
+    /// Stamped fast path: the marker is rasterized once and its scanlines
+    /// replayed per position, snapped to whole pixels (mpl _backend_agg).
+    void draw_markers(const GraphicsContext& gc, const Path& marker,
+                      const Affine2D& marker_transform, const Path& positions,
+                      const Affine2D& transform,
+                      const std::optional<Color>& face = std::nullopt) override;
+    // draw_text: inherited glyph-outline implementation
 
     [[nodiscard]] Size canvas_size() const override;
 

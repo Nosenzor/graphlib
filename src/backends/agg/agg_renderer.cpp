@@ -16,6 +16,7 @@
 #include <agg_rasterizer_scanline_aa.h>
 #include <agg_renderer_base.h>
 #include <agg_renderer_scanline.h>
+#include <agg_scanline_storage_aa.h>
 #include <agg_scanline_u.h>
 #include <agg_trans_affine.h>
 #include <stb_image_write.h>
@@ -159,6 +160,85 @@ Size AggRenderer::canvas_size() const {
 }
 
 std::span<const unsigned char> AggRenderer::buffer() const { return impl_->buf; }
+
+void AggRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
+                                const Affine2D& marker_transform, const Path& positions,
+                                const Affine2D& transform, const std::optional<Color>& face) {
+    if (marker.empty() || positions.empty()) {
+        return;
+    }
+    Impl& I = *impl_;
+
+    // Rasterize the marker once at the origin, serialize the coverage spans,
+    // then replay them per position snapped to whole pixels — mpl's
+    // _backend_agg::draw_markers (positions are x=(int)x, y=(int)y there too).
+    agg::path_storage mp = to_agg(marker);
+    agg::trans_affine mtx(marker_transform.a(), marker_transform.b(), marker_transform.c(),
+                          marker_transform.d(), marker_transform.e(), marker_transform.f());
+    agg::conv_transform<agg::path_storage> tp(mp, mtx);
+    agg::conv_curve<agg::conv_transform<agg::path_storage>> curve(tp);
+
+    std::vector<agg::int8u> fill_buf;
+    if (face && face->a > 0.0) {
+        agg::scanline_storage_aa8 storage;
+        I.ras.reset();
+        I.ras.filling_rule(agg::fill_non_zero);
+        I.ras.clip_box(-1e9, -1e9, 1e9, 1e9); // capture unclipped; clip at blend
+        I.ras.add_path(curve);
+        agg::render_scanlines(I.ras, I.sl, storage);
+        fill_buf.resize(storage.byte_size());
+        storage.serialize(fill_buf.data());
+    }
+    std::vector<agg::int8u> stroke_buf;
+    if (gc.color.a > 0.0 && gc.linewidth > 0.0) {
+        agg::conv_stroke<decltype(curve)> stroke(curve);
+        stroke.width(points_to_pixels(gc.linewidth));
+        stroke.line_cap(to_agg(gc.capstyle));
+        stroke.line_join(to_agg(gc.joinstyle));
+        agg::scanline_storage_aa8 storage;
+        I.ras.reset();
+        I.ras.filling_rule(agg::fill_non_zero);
+        I.ras.clip_box(-1e9, -1e9, 1e9, 1e9);
+        I.ras.add_path(stroke);
+        agg::render_scanlines(I.ras, I.sl, storage);
+        stroke_buf.resize(storage.byte_size());
+        storage.serialize(stroke_buf.data());
+    }
+    if (fill_buf.empty() && stroke_buf.empty()) {
+        return;
+    }
+
+    // Blend-time clipping (the serialized replay bypasses the rasterizer).
+    if (gc.clip_rect) {
+        I.rb.clip_box(static_cast<int>(gc.clip_rect->x0()), static_cast<int>(gc.clip_rect->y0()),
+                      static_cast<int>(gc.clip_rect->x1()), static_cast<int>(gc.clip_rect->y1()));
+    }
+    agg::renderer_scanline_aa_solid<Impl::RendererBase> ren(I.rb);
+    agg::scanline_u8 sl;
+    for (const Point& v : positions.vertices()) {
+        const Point px = transform.apply(v);
+        if (!std::isfinite(px.x) || !std::isfinite(px.y)) {
+            continue;
+        }
+        const double sx = static_cast<double>(static_cast<int>(px.x));
+        const double sy = static_cast<double>(static_cast<int>(px.y));
+        if (!fill_buf.empty()) {
+            agg::serialized_scanlines_adaptor_aa8 sa(fill_buf.data(),
+                                                     static_cast<unsigned>(fill_buf.size()),
+                                                     sx, sy);
+            ren.color(to_rgba8(*face));
+            agg::render_scanlines(sa, sl, ren);
+        }
+        if (!stroke_buf.empty()) {
+            agg::serialized_scanlines_adaptor_aa8 sa(stroke_buf.data(),
+                                                     static_cast<unsigned>(stroke_buf.size()),
+                                                     sx, sy);
+            ren.color(to_rgba8(gc.color));
+            agg::render_scanlines(sa, sl, ren);
+        }
+    }
+    I.rb.reset_clipping(true); // restore: draw_path relies on rasterizer clip only
+}
 
 void AggRenderer::draw_path(const GraphicsContext& gc, const Path& path,
                             const Affine2D& transform, const std::optional<Color>& face) {
