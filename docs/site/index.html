@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>graphlib — matplotlib for modern C++</title>
+<link rel="stylesheet" href="site.css"/></head>
+<body>
+<nav><strong>graphlib</strong> · <a href="quickstart.html">quick start</a> · <a href="gallery.html">gallery</a> · <a href="api/index.html">API</a> · <a href="https://github.com/Nosenzor/graphlib">GitHub</a></nav>
+
+<h1>graphlib</h1>
+<p><strong>matplotlib for modern C++.</strong> Same names, same object model, same rendering
+semantics — <code>plt::plot(x, y, "r--o")</code> does exactly what you think it does.
+Zero mandatory dependencies, byte-deterministic output, five platforms.</p>
+
+<div>
+<span class="pill">C++20</span>
+<span class="pill">SVG · PNG · PDF · window</span>
+<span class="pill">mathtext</span>
+<span class="pill">date axes</span>
+<span class="pill">10M points &lt; 300 ms</span>
+<span class="pill">macOS · Linux · Windows (x64 + arm64)</span>
+</div>
+
+<div class="hero">
+<img src="gallery/paper_figure.svg" alt="publication figure"/>
+<img src="gallery/mathtext.svg" alt="mathtext"/>
+</div>
+
+<pre><code>#include &lt;graphlib/pyplot.hpp&gt;
+namespace plt = graphlib::pyplot;
+
+int main() {
+    std::vector&lt;double&gt; x = graphlib::linspace(0, 10, 200), y;
+    for (double v : x) y.push_back(std::sin(v));
+    plt::plot(x, y, "o-", {.label = "$\\sin(x)$"});
+    plt::legend();
+    plt::title("hello, $\\sqrt{graphlib}$");
+    plt::savefig("hello.pdf");   // selectable text, drop into LaTeX
+}
+</code></pre>
+
+<h2>Why</h2>
+<ul>
+<li><strong>Familiarity is the product.</strong> Names, defaults and behaviors mirror
+matplotlib at default settings; tick positions, autoscale margins, colormaps and date
+labels are pinned by fixtures generated from matplotlib itself.</li>
+<li><strong>Determinism is a feature.</strong> The same program produces byte-identical
+SVG and PDF on every platform — output files are golden-tested in CI.</li>
+<li><strong>The core stays dependency-free.</strong> C++20 STL plus vendored
+single-file libraries (AGG — matplotlib's own rasterizer — stb, DejaVu). GLFW windows
+are an opt-in.</li>
+</ul>
+
+<p>Start with the <a href="quickstart.html">quick start</a>, browse the
+<a href="gallery.html">gallery</a>, or read the
+<a href="api/index.html">API reference</a>. Coverage and deliberate deviations live in
+<a href="https://github.com/Nosenzor/graphlib/blob/main/docs/PARITY.md">PARITY.md</a>.</p>
+
+<footer>MIT licensed. Built against the matplotlib 3.10 behavior spec.</footer>
+</body></html>

@@ -1,0 +1,46 @@
+/* graphlib docs site — deliberately tiny and dependency-free. */
+:root {
+    --fg: #1a1a1a;
+    --muted: #555;
+    --accent: #1f77b4; /* tab:blue, of course */
+    --rule: #e2e2e2;
+    --bg: #ffffff;
+    --code-bg: #f6f6f4;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fg: #e8e8e8;
+        --muted: #a8a8a8;
+        --accent: #6baed6;
+        --rule: #333;
+        --bg: #151515;
+        --code-bg: #202020;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0 auto;
+    max-width: 60rem;
+    padding: 1.5rem;
+    color: var(--fg);
+    background: var(--bg);
+    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+nav { color: var(--muted); border-bottom: 1px solid var(--rule); padding-bottom: .75rem; }
+nav a { color: var(--accent); text-decoration: none; }
+h1, h2 { line-height: 1.2; }
+a { color: var(--accent); }
+pre, code { background: var(--code-bg); border-radius: 4px; font-size: .92em; }
+code { padding: .1em .3em; }
+pre { padding: .8rem 1rem; overflow-x: auto; }
+pre code { padding: 0; background: none; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+figure { margin: 0; border: 1px solid var(--rule); border-radius: 6px; padding: .5rem; background: #fff; }
+figure img { width: 100%; height: auto; display: block; }
+figcaption { color: var(--muted); font-size: .85rem; padding-top: .4rem; }
+figcaption .src { float: right; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+.hero img { width: 100%; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+@media (max-width: 40rem) { .hero { grid-template-columns: 1fr; } }
+.pill { display: inline-block; border: 1px solid var(--rule); border-radius: 999px; padding: .1rem .6rem; margin: 0 .3rem .3rem 0; color: var(--muted); font-size: .85rem; }
+footer { color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2rem; padding-top: .75rem; font-size: .85rem; }

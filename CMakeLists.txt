@@ -150,3 +150,28 @@ endif()
 if(GRAPHLIB_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
+
+# Docs site: static pages + generated gallery + Doxygen API reference,
+# assembled into build/<preset>/docs/site by one command:
+#   cmake --build --preset <p> --target docs
+find_package(Doxygen QUIET)
+set(GRAPHLIB_DOCS_OUT "${CMAKE_CURRENT_BINARY_DIR}/docs/site")
+configure_file(docs/Doxyfile.in "${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile" @ONLY)
+add_custom_target(docs
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${GRAPHLIB_DOCS_OUT}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/docs/site" "${GRAPHLIB_DOCS_OUT}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/docs/gallery" "${GRAPHLIB_DOCS_OUT}/gallery"
+    COMMAND ${CMAKE_COMMAND}
+            -DGALLERY_DIR=${CMAKE_CURRENT_SOURCE_DIR}/docs/gallery
+            -DEXAMPLES_DIR=${CMAKE_CURRENT_SOURCE_DIR}/examples
+            -DOUT_HTML=${GRAPHLIB_DOCS_OUT}/gallery.html
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeGallery.cmake"
+    COMMAND $<IF:$<BOOL:${DOXYGEN_FOUND}>,${DOXYGEN_EXECUTABLE},${CMAKE_COMMAND}>
+            $<IF:$<BOOL:${DOXYGEN_FOUND}>,${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile,-E>
+            $<$<NOT:$<BOOL:${DOXYGEN_FOUND}>>:echo>
+            $<$<NOT:$<BOOL:${DOXYGEN_FOUND}>>:"doxygen not found - API reference skipped">
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/docs"
+    COMMENT "Assembling docs site -> ${GRAPHLIB_DOCS_OUT}"
+    VERBATIM)

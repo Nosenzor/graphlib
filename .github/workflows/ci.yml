@@ -77,6 +77,18 @@ jobs:
       - run: cmake --build --preset asan
       - run: ctest --preset asan
 
+  docs:
+    name: Docs site (one command, clean checkout)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build doxygen
+      - run: cmake --preset release
+      - run: cmake --build --preset release --target docs
+      - run: test -f build/release/docs/site/index.html
+             && test -f build/release/docs/site/gallery.html
+             && test -f build/release/docs/site/api/index.html
+
   interactive:
     name: Interactive backend (Linux + xvfb)
     runs-on: ubuntu-24.04

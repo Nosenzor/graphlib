@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>graphlib quick start</title>
+<link rel="stylesheet" href="site.css"/></head>
+<body>
+<nav><a href="index.html">graphlib</a> · <strong>quick start</strong> · <a href="gallery.html">gallery</a> · <a href="api/index.html">API</a></nav>
+
+<h1>Quick start</h1>
+<p>This mirrors matplotlib's own quick start guide — if you know one, you know the other.</p>
+
+<h2>Get it</h2>
+<pre><code># In your CMakeLists.txt
+include(FetchContent)
+FetchContent_Declare(graphlib
+    GIT_REPOSITORY https://github.com/Nosenzor/graphlib.git
+    GIT_TAG v0.7.0)
+FetchContent_MakeAvailable(graphlib)
+target_link_libraries(your_app PRIVATE graphlib::graphlib)
+</code></pre>
+
+<h2>A simple example</h2>
+<p>graphlib graphs your data on <code>Figure</code>s, each of which contains one or more
+<code>Axes</code>. The simplest way to make a figure with axes is the pyplot facade:</p>
+<pre><code>#include &lt;graphlib/pyplot.hpp&gt;
+namespace plt = graphlib::pyplot;
+
+int main() {
+    plt::plot(std::vector&lt;double&gt;{1, 2, 3, 4},
+              std::vector&lt;double&gt;{1, 4, 2, 3});
+    plt::savefig("first.svg");
+}
+</code></pre>
+
+<h2>Styling with format strings and kwargs</h2>
+<p>matplotlib's <code>fmt</code> shorthand works verbatim; keyword arguments become a
+designated-initializer struct with the same names and defaults:</p>
+<pre><code>plt::plot(x, y1, "r--o");                              // fmt shorthand
+plt::plot(x, y2, {.linewidth = 2.0, .label = "phase"}); // kwargs style
+plt::legend();
+</code></pre>
+
+<h2>Subplots, images, fields</h2>
+<pre><code>graphlib::Figure&amp; fig = plt::figure({.figsize = {{8.0, 3.6}}});
+auto axes = fig.subplots(1, 2);
+axes[0][0]-&gt;plot(x, y);
+axes[0][1]-&gt;imshow(data, rows, cols, {.cmap = "viridis"});
+fig.tight_layout();
+</code></pre>
+<p><code>scatter</code>, <code>bar</code>, <code>hist</code>, <code>errorbar</code>,
+<code>pcolormesh</code>, <code>contourf</code>, <code>colorbar</code> — all present with
+matplotlib semantics; see the <a href="gallery.html">gallery</a>.</p>
+
+<h2>Math, dates, annotations</h2>
+<pre><code>ax.set_title("$E = mc^2$");                 // mathtext in any label
+ax.xaxis_date();                            // AutoDateLocator + ConciseDateFormatter
+ax.annotate("peak", {x0, y0},
+            {.xytext = {{x1, y1}},
+             .arrowprops = graphlib::ArrowProps{.arrowstyle = "-&gt;"}});
+</code></pre>
+
+<h2>Saving</h2>
+<pre><code>plt::savefig("figure.svg");                 // vector, byte-deterministic
+plt::savefig("figure.png", {.dpi = 300});   // AGG raster at any dpi
+plt::savefig("figure.pdf");                 // vector + selectable text, LaTeX-ready
+</code></pre>
+
+<h2>Interactive windows</h2>
+<p>Configure with <code>-DGRAPHLIB_INTERACTIVE=ON</code> (fetches GLFW), then
+<code>plt::show()</code>: drag to pan, scroll to zoom, <code>h</code> home,
+<code>s</code> save, <code>q</code> quit. <code>FuncAnimation</code> drives live plots.</p>
+
+<h2>Where to next</h2>
+<ul>
+<li><a href="gallery.html">Gallery</a> — every feature as a runnable example.</li>
+<li><a href="api/index.html">API reference</a> — Doxygen over the public headers.</li>
+<li><a href="https://github.com/Nosenzor/graphlib/blob/main/docs/PARITY.md">PARITY.md</a>
+— what's covered, what deviates, what's next.</li>
+</ul>
+
+<footer>MIT licensed.</footer>
+</body></html>
