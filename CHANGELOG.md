@@ -5,6 +5,15 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-07-17 — "Fast Path"
+
+CI-verified on all tier-1 targets + ASan (macOS) + ASan/LSan (Linux) + benchmark gate +
+docs job (103 tests).
+
+Plots that used to take seconds now take milliseconds — a 10M-point line saves in
+270 ms and a million-point scatter draws 30x faster — with a benchmark suite in CI so
+it stays that way, and a docs site that builds from a clean checkout with one command.
+
 ### Added
 - Benchmarks: Google Benchmark suite (`--preset bench`, `GRAPHLIB_BUILD_BENCHMARKS`)
   with committed baselines (benchmarks/BASELINES.md).

@@ -30,6 +30,22 @@ Reading: the scatter path re-rasterizes the marker outline per point — marker
 stamping is the big win. The 10M line is stroke-bound — path simplification
 (mpl's PathSimplifier) collapses collinear/sub-threshold vertices before AGG.
 
+## v0.7.0 (after "Fast Path")
+
+| Benchmark | v0.6 | v0.7 | |
+|---|---|---|---|
+| line_draw/1M | 88.6 ms | **22 ms** | 4.0x |
+| line_savefig_png/1M | 115 ms | **34 ms** | 3.4x |
+| line_savefig_png/10M | 1379 ms | **268 ms** | 5.1x — target < 1 s met |
+| scatter_draw/10k | 58.4 ms | **2.7 ms** | 21x |
+| scatter_draw/100k | 579 ms | **19 ms** | 31x |
+| scatter_draw/1M | 5648 ms | **187 ms** | 30x |
+| line_svg/100k | 12.8 ms | **1.4 ms** | 9.3x |
+
+The 60 fps 1M-scatter pan target lands at ~187 ms/frame — a further 10x
+needs banded multithreaded blending; parked in the icebox with the MT/SIMD
+item until a use case demands it (matplotlib itself is far slower here).
+
 ## Memory (v0.7 audit)
 
 - `leaks --atExit` on the full test suite and a 3-round all-backends

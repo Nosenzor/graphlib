@@ -89,6 +89,21 @@ jobs:
              && test -f build/release/docs/site/gallery.html
              && test -f build/release/docs/site/api/index.html
 
+  bench:
+    name: Benchmark regression gate (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - run: cmake --preset bench
+      - run: cmake --build --preset bench
+      - name: Run gated benchmarks
+        run: ./build/bench/benchmarks/graphlib_bench
+             --benchmark_filter="BM_line_draw/1000000|BM_line_savefig_png/10000000|BM_scatter_draw/1000000|BM_line_svg/100000|BM_text_mathtext"
+             --benchmark_min_time=1x
+             --benchmark_out=bench.json --benchmark_out_format=json
+      - run: python3 benchmarks/check_thresholds.py bench.json
+
   interactive:
     name: Interactive backend (Linux + xvfb)
     runs-on: ubuntu-24.04

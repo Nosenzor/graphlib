@@ -202,5 +202,10 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   TeX-lite over DejaVu incl. new Oblique face), date axes (chrono date2num +
   AutoDateLocator/ConciseDateFormatter, oracle-exact), annotate with arrow styles.
   100 tests incl. ASan; PDF verified with Preview + pypdf extraction.
-- **Current milestone: v0.7.0 "Fast Path"** ([ROADMAP.md](ROADMAP.md)) — performance
-  (path simplification, benchmarks), docs site, deferred: rounded annotate bbox, FreeType option.
+- **v0.7.0 "Fast Path" — tagged 2026-07-17, CI green on all targets**: PathSimplifier
+  port (oracle-exact; 10M-pt savefig 1379->268 ms), AGG marker stamping (1M scatter
+  5648->187 ms), Google Benchmark suite + CI regression gate, ASan/LSan Linux job
+  (0 leaks), one-command docs site (Doxygen + gallery + quick start), rounded annotate
+  boxes; FreeType option iceboxed with rationale. 103 tests.
+- **Current milestone: v1.0.0 "Parity Core"** ([ROADMAP.md](ROADMAP.md)) — API freeze,
+  packaging (install/export, CPack, vcpkg port), arm64 formally tier-1, conformance report.

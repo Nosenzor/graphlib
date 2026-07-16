@@ -199,7 +199,7 @@ paper figure is accepted by `pdflatex` without warnings.
 
 ---
 
-## v0.7.0 — "Fast Path" (performance + docs)
+## v0.7.0 — "Fast Path" (performance + docs) — ✅ tagged 2026-07-17
 
 **Goal:** be fast enough that nobody asks; be documented enough that nobody's blocked.
 

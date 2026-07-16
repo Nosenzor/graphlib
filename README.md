@@ -42,10 +42,12 @@ matplotlib itself.
 | ![paper figure](docs/gallery/paper_figure.svg) | ![mathtext](docs/gallery/mathtext.svg) |
 | ![heatmap](docs/gallery/heatmap_colorbar.svg) | ![annotations](docs/gallery/annotations.svg) |
 
-## Status: v0.6 "Publication Grade"
+## Status: v0.7 "Fast Path"
 
-**SVG, PNG and PDF output** — the PDF is vector, byte-deterministic, with selectable
-text (embedded DejaVu, CID-keyed) — plus **mathtext** (`$\frac{a}{b}$`, scripts, greek,
+**Fast**: matplotlib's path simplification and marker stamping ported — a 10M-point
+line saves to PNG in ~270 ms, a 1M-point scatter draws in ~190 ms, with a benchmark
+regression gate in CI. **SVG, PNG and PDF output** — the PDF is vector,
+byte-deterministic, with selectable text (embedded DejaVu, CID-keyed) — plus **mathtext** (`$\frac{a}{b}$`, scripts, greek,
 `\sum` limits, `\sqrt`) in every text element, **date axes** (`AutoDateLocator` +
 `ConciseDateFormatter` on `std::chrono`), and **`annotate`** with matplotlib's arrow
 styles. Underneath: the everyday workhorses (`plot`/`scatter`/`bar`/`hist`/

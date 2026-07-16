@@ -20,6 +20,7 @@ set(GRAPHLIB_EXAMPLES
     18_dates
     19_mathtext
     20_paper_figure
+    21_perf
 )
 
 foreach(example IN LISTS GRAPHLIB_EXAMPLES)
