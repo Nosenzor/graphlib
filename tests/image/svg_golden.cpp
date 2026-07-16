@@ -139,6 +139,10 @@ TEST_CASE("golden: annotate arrow styles and coord systems", "[golden]") {
     ax.annotate("plain", {1.0, 0.0},
                 {.xytext = {{0.4, 3.2}}, .arrowprops = ArrowProps{.arrowstyle = "-"}});
     ax.annotate("offset", {3.0, 0.0}, {.xytext = {{8.0, 12.0}}, .textcoords = "offset points"});
+    ax.annotate("boxed", {4.0, 3.0},
+                {.xytext = {{2.9, 3.4}},
+                 .arrowprops = ArrowProps{.arrowstyle = "->"},
+                 .bbox = TextBboxProps{.facecolor = "0.9"}});
     check_golden("annotate_svg", fig);
 }
 

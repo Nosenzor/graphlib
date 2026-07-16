@@ -186,7 +186,10 @@ same figure code renders identically to file when no window is requested.
 - `annotate` with arrowprops subset (`'->'`, `'-|>'`…), text bbox (round box style).
   *(shipped without the visible round-box style — moved to v0.7)*
 - Optional FreeType path for hinted glyph quality (CMake option, default OFF).
-  *(deferred to v0.7 — stb glyph quality proved sufficient for the exit criteria)*
+  *(v0.7 decision: moved to the icebox — stb+DejaVu output has been visually
+  indistinguishable from matplotlib's through six releases of side-by-side
+  comparison, and an optional FreeType would fork the text stack the golden
+  tests depend on; revisit only on concrete rendering-quality reports)*
 
 **Play with it:** `20_paper_figure` — a two-panel publication figure with math labels, dated
 x-axis, annotations → one PDF + one SVG; drop it straight into LaTeX.
@@ -203,6 +206,9 @@ paper figure is accepted by `pdflatex` without warnings.
 **In scope:**
 - Port mpl's path simplification + chunking; fast-marker stamping; `draw_path_collection` fast
   path; optional tiled multithreaded rasterization; NEON/SSE review behind `src/simd/` dispatch.
+  *(shipped: simplification + chunking + stamping — 5-30x; MT/SIMD rasterization not needed to
+  meet the savefig target and stays icebox until a use case demands it)*
+- Rounded annotate text box (deferred from v0.6) — shipped: boxstyle 'round'/'square'.
 - Benchmarks (Google Benchmark) + tracked targets: 10M-point line `savefig` < 1 s;
   1M-point scatter pan at 60 fps (M-series).
 - Memory/lifetime audit (ASan/LSan), figure teardown, peak RSS budget.

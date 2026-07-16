@@ -53,6 +53,23 @@ TEST_CASE("annotate validates arrowstyle and coordinate tokens", "[annotate]") {
     CHECK_THROWS_AS(ax.annotate("x", {0.5, 0.5}, {.xycoords = "offset points"}), ValueError);
 }
 
+TEST_CASE("annotate draws a round text box behind the text", "[annotate]") {
+    Figure fig;
+    Axes& ax = fig.add_subplot();
+    ax.annotate("boxed", {0.5, 0.5},
+                {.xytext = {{0.2, 0.8}},
+                 .arrowprops = ArrowProps{},
+                 .bbox = TextBboxProps{.facecolor = "wheat", .alpha = 0.8}});
+    SvgRenderer renderer(fig.figsize[0] * 72.0, fig.figsize[1] * 72.0);
+    fig.draw(renderer);
+    const std::string svg = renderer.finalize();
+    CHECK(svg.find("annotation-bbox") != std::string::npos);
+
+    Annotation& bad = ax.annotate("x", {0.1, 0.1}, {.bbox = TextBboxProps{.boxstyle = "sawtooth"}});
+    SvgRenderer r2(10, 10);
+    CHECK_THROWS_AS(bad.draw(r2), ValueError);
+}
+
 TEST_CASE("annotate draws arrow and text into the SVG", "[annotate]") {
     Figure fig;
     Axes& ax = fig.add_subplot();

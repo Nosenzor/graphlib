@@ -32,6 +32,18 @@ public:
     void draw(Renderer& renderer) override;
 };
 
+/// Text box behind annotate text (mirrors the `bbox` dict: boxstyle
+/// 'round'/'square' with pad in fractions of the font size).
+struct TextBboxProps {
+    std::string boxstyle = "round";        ///< "round" or "square"
+    double pad = 0.3;                      ///< x fontsize (BoxStyle default)
+    std::optional<double> rounding_size;   ///< corner radius, x fontsize; default: pad
+    std::string facecolor;                 ///< rc patch.facecolor
+    std::string edgecolor;                 ///< rc patch.edgecolor
+    std::optional<double> linewidth;       ///< rc patch.linewidth
+    double alpha = 1.0;
+};
+
 /// Arrow options for Axes::annotate (mirrors the `arrowprops` dict with an
 /// `arrowstyle` key; the legacy width/headwidth YAArrow form is not supported).
 struct ArrowProps {
@@ -58,6 +70,7 @@ public:
     CoordSys xycoords = CoordSys::data;
     CoordSys textcoords = CoordSys::data; ///< offset_points is relative to xy
     std::optional<ArrowProps> arrowprops;
+    std::optional<TextBboxProps> bbox_props; ///< mpl's `bbox=` kwarg
 
     Axes* axes = nullptr;
 

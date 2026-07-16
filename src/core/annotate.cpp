@@ -148,10 +148,10 @@ void Annotation::draw(Renderer& renderer) {
     text.zorder = zorder;
     text.alpha = alpha;
 
-    if (arrowprops) {
-        const ArrowProps& props = *arrowprops;
-        const detail::ArrowStyleSpec style = detail::parse_arrowstyle(props.arrowstyle);
-
+    Bbox bbox = Bbox::from_extents(text_px.x, text_px.y, text_px.x, text_px.y);
+    std::optional<Bbox> box_outer; // the drawn text box's rect (arrow clip target)
+    std::optional<Path> box_path;  // painted after the arrow (mpl draw order)
+    if (arrowprops || bbox_props) {
         // Text window extent — same anchor math as Renderer::draw_text.
         const auto& fm = detail::FontManager::instance();
         const double em = renderer.points_to_pixels(text.fontsize);
@@ -181,14 +181,59 @@ void Annotation::draw(Renderer& renderer) {
         }
         const double x0 = text_px.x + dx;
         const double y1 = text_px.y + dy + asc;
-        const Bbox bbox = Bbox::from_extents(x0, y1 - ext.height, x0 + ext.width, y1);
+        bbox = Bbox::from_extents(x0, y1 - ext.height, x0 + ext.width, y1);
+    }
+
+    if (bbox_props && !text.text.empty()) {
+        const TextBboxProps& bp = *bbox_props;
+        // BoxStyle.Round/.Square: pad (and corner radius) x fontsize.
+        const double mutation = renderer.points_to_pixels(text.fontsize);
+        const double pad = mutation * bp.pad;
+        const double x0 = bbox.x0() - pad;
+        const double y0 = bbox.y0() - pad;
+        const double x1 = bbox.x1() + pad;
+        const double y1 = bbox.y1() + pad;
+        Path box;
+        if (bp.boxstyle == "round") {
+            const double dr = mutation * bp.rounding_size.value_or(bp.pad);
+            // Quadratic-Bezier corners, exactly BoxStyle.Round's vertex list.
+            box.move_to(x0 + dr, y0);
+            box.line_to(x1 - dr, y0);
+            box.curve3_to({x1, y0}, {x1, y0 + dr});
+            box.line_to(x1, y1 - dr);
+            box.curve3_to({x1, y1}, {x1 - dr, y1});
+            box.line_to(x0 + dr, y1);
+            box.curve3_to({x0, y1}, {x0, y1 - dr});
+            box.line_to(x0, y0 + dr);
+            box.curve3_to({x0, y0}, {x0 + dr, y0});
+            box.close_subpath();
+        } else if (bp.boxstyle == "square") {
+            box.move_to(x0, y0);
+            box.line_to(x1, y0);
+            box.line_to(x1, y1);
+            box.line_to(x0, y1);
+            box.close_subpath();
+        } else {
+            throw ValueError("annotate: unsupported boxstyle '" + bp.boxstyle +
+                             "' (graphlib supports 'round', 'square')");
+        }
+        box_path = std::move(box);
+        box_outer = Bbox::from_extents(x0, y0, x1, y1);
+    }
+
+    if (arrowprops) {
+        const ArrowProps& props = *arrowprops;
+        const detail::ArrowStyleSpec style = detail::parse_arrowstyle(props.arrowstyle);
 
         // Tail anchor on the text box (arrowprops relpos, default center),
-        // clipped out of the box padded by 4 points (update_positions).
+        // clipped out of the drawn box (or the 4pt-padded extent, like
+        // update_positions when no bbox patch is set).
         const Point begin{bbox.x0() + (bbox.x1() - bbox.x0()) * props.relpos.first,
                           bbox.y0() + (bbox.y1() - bbox.y0()) * props.relpos.second};
         std::optional<Bbox> patchA;
-        if (!text.text.empty()) {
+        if (box_outer) {
+            patchA = box_outer;
+        } else if (!text.text.empty()) {
             const double pad = renderer.points_to_pixels(4.0) / 2.0;
             patchA = Bbox::from_extents(bbox.x0() - pad, bbox.y0() - pad, bbox.x1() + pad,
                                         bbox.y1() + pad);
@@ -234,6 +279,20 @@ void Annotation::draw(Renderer& renderer) {
         renderer.close_group();
     }
 
+    if (box_path) {
+        const TextBboxProps& bp = *bbox_props;
+        GraphicsContext box_gc;
+        box_gc.color = bp.edgecolor.empty() ? rc().color("patch.edgecolor")
+                                            : to_color(bp.edgecolor);
+        box_gc.linewidth = bp.linewidth.value_or(rc().number("patch.linewidth"));
+        Color face = bp.facecolor.empty() ? rc().color("patch.facecolor")
+                                          : to_color(bp.facecolor);
+        box_gc.color.a *= bp.alpha * alpha.value_or(1.0);
+        face.a *= bp.alpha * alpha.value_or(1.0);
+        renderer.open_group("annotation-bbox");
+        renderer.draw_path(box_gc, *box_path, Affine2D{}, face);
+        renderer.close_group();
+    }
     text.draw(renderer);
 }
 
@@ -263,6 +322,7 @@ Annotation& Axes::annotate(std::string s, std::pair<double, double> xy,
     const auto [tx, ty] = opts.xytext.value_or(xy);
     ann->xytext = {tx, ty};
     ann->arrowprops = opts.arrowprops;
+    ann->bbox_props = opts.bbox;
     if (ann->arrowprops) {
         detail::parse_arrowstyle(ann->arrowprops->arrowstyle); // validate at call site
     }

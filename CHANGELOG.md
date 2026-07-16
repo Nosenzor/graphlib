@@ -18,6 +18,14 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
   the serialized coverage spans per position, snapped to whole pixels exactly
   like matplotlib's agg backend. 1M-point scatter draw: 5648 -> 187 ms (30x).
   PNG baselines with markers regenerated (<= 1 px snap).
+- annotate text boxes: `bbox = TextBboxProps{...}` draws a BoxStyle
+  'round'/'square' patch behind the text (quadratic-Bezier corners, pad and
+  rounding in fractions of the font size, exactly mpl's vertex list); the
+  arrow clips against the drawn box.
+- Docs site: `--target docs` assembles landing page + quick start + generated
+  gallery + Doxygen API reference into build/<preset>/docs/site (CI-verified
+  from a clean checkout).
+- CI: ASan+LSan Linux job (leak gate) and a docs-site job.
 
 ## [0.6.0] — 2026-07-16 — "Publication Grade"
 

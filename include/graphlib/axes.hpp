@@ -90,6 +90,7 @@ struct AnnotateOpts {
     std::string_view xycoords = "data";
     std::string_view textcoords{};                     // default: xycoords
     std::optional<ArrowProps> arrowprops{};
+    std::optional<TextBboxProps> bbox{};               // round/square text box
     std::optional<double> fontsize{};                  // rc font.size = 10
     std::string_view color{};                          // rc text.color = black
     HAlign ha = HAlign::left;

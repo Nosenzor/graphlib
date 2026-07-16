@@ -49,7 +49,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | save PDF | `savefig("*.pdf")` | vector, selectable text, deterministic | done (full-font CID embed, D20) |
 | mathtext | `$...$` subset | sub/sup/primes, \frac, \sqrt[n], greek + 632-symbol tex2uni, \sum limits, \mathrm/bf/it, \sin-style functions, spacing | done (TeX-lite layout, D19) |
 | date axis | date2num, AutoDateLocator, ConciseDateFormatter | `std::chrono` based, `xaxis_date()` | done (UTC-naive datenums, 1970 epoch; year->second levels, D17) |
-| annotate | `annotate` + arrowprops subset | arrowstyle '-', '->', '-|>' | done (straight arc3 connector; analytic clip, D18) |
+| annotate | `annotate` + arrowprops subset + bbox | arrowstyle '-', '->', '-|>'; boxstyle 'round'/'square' | done (straight arc3 connector; analytic clip, D18) |
 | path simplification / chunking | `path.simplify`, `path.simplify_threshold`, `agg.path.chunksize` | PathSimplifier port, oracle-exact | done (unfilled stroke paths, display space, all backends) |
 | 3D, widgets, TeX, quiver, streamplot, boxplot, violin, polar, pick, patheffects, sankey, table | — | — | icebox |
 
@@ -91,6 +91,6 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D15 | Animation redraws fully each frame (no blitting yet) | AGG full-frame is fast enough pre-v0.7; blitting is a perf milestone topic |
 | D16 | FuncAnimation starts via explicit run(), not implicitly on show() | no hidden timers in a C++ API |
 | D17 | Date machinery is UTC-naive (no tz kwarg) and stops at the seconds level (no microsecond locator); unsupported: rrule/tz-aware locators | chrono `sys_days` datenums, mpl's default 1970 epoch; fixture ranges all covered |
-| D18 | Annotation arrows clip analytically (mpl bisects Béziers to 0.01 px) and support only the straight `arc3,rad=0` connector + arrowstyles '-', '->', '-|>'; legacy width/headwidth arrowprops and text-rotation-aware bboxes unsupported | endpoint differences < 0.01 px vs oracle; curved connectors on demand |
+| D18 | Annotation arrows clip analytically (mpl bisects Béziers to 0.01 px) and support only the straight `arc3,rad=0` connector + arrowstyles '-', '->', '-|>'; legacy width/headwidth arrowprops and text-rotation-aware bboxes unsupported; with a round text box the arrow clips to the box's rect, not the rounded path | endpoint differences < 0.01 px vs oracle; curved connectors on demand |
 | D19 | Mathtext is a TeX-lite port (mpl constants: SHRINK 0.7, sup1/sub1/sub2, script_space; advance-based char packing) — near-mpl, not glyph-exact; no \left/\right auto-delimiters, \text, \operatorname, accents (\hat, \bar, ...); large operators use the DejaVu glyph (mpl pulls bigger STIX size variants); radical stretched by y-scaling U+221A | unsupported commands raise ValueError naming the command; visual twin at reading distance |
 | D20 | PDF embeds the complete DejaVu faces (no subsetting; ~450 KB/face compressed) and omits /CreationDate + /ID so files are byte-deterministic; mathtext runs are outlines, not text operators | subsetting is a v0.7+ size optimization; determinism enables golden PDFs |
