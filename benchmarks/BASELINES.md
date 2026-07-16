@@ -29,3 +29,11 @@ cmake --preset bench && cmake --build --preset bench
 Reading: the scatter path re-rasterizes the marker outline per point — marker
 stamping is the big win. The 10M line is stroke-bound — path simplification
 (mpl's PathSimplifier) collapses collinear/sub-threshold vertices before AGG.
+
+## Memory (v0.7 audit)
+
+- `leaks --atExit` on the full test suite and a 3-round all-backends
+  figure-lifecycle probe: **0 leaks** (macOS; LSan runs in the Linux CI job).
+- Peak RSS for the 10M-point line savefig: **~650 MB** (~4x the raw data:
+  artist copy + path points + display-space transform copy). Budget: stay
+  within 5x input data for line plots.

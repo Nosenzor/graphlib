@@ -63,6 +63,20 @@ jobs:
       - run: cmake --build --preset asan
       - run: ctest --preset asan
 
+  lsan:
+    # LeakSanitizer is unsupported on macOS arm64, so leaks are checked here
+    # (macOS gets a local `leaks --atExit` pass per the release checklist).
+    name: ASan + LSan (Linux x64)
+    runs-on: ubuntu-24.04
+    env:
+      ASAN_OPTIONS: detect_leaks=1
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - run: cmake --preset asan
+      - run: cmake --build --preset asan
+      - run: ctest --preset asan
+
   interactive:
     name: Interactive backend (Linux + xvfb)
     runs-on: ubuntu-24.04
