@@ -10,6 +10,7 @@ option(GRAPHLIB_BUILD_TESTS "Build graphlib tests" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_BUILD_EXAMPLES "Build graphlib examples" ${PROJECT_IS_TOP_LEVEL})
 option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
 option(GRAPHLIB_INTERACTIVE "Build the GLFW window backend (fetches GLFW)" OFF)
+option(GRAPHLIB_BUILD_BENCHMARKS "Build Google Benchmark suite (dev-only)" OFF)
 
 # Project-wide baseline (also applies to FetchContent deps like Catch2, so
 # their ABI matches ours — e.g. string_view stringification).
@@ -143,4 +144,8 @@ endif()
 
 if(GRAPHLIB_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(GRAPHLIB_BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
 endif()
