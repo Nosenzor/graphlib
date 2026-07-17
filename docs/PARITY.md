@@ -22,7 +22,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | legend | `legend` (loc, 'best', frame) | ported _find_best_position | done (rect frame — D9; ncols/bbox_to_anchor later) |
 | scatter | `scatter` (s=, colors, c=+cmap) | `c_array` field for mpl's array form | done (sizes pt², per-point cmap colors) |
 | bar / barh | `bar`, `barh` (+string x) | same | done (transparent edges, sticky 0, categorical labels) |
-| hist | `hist` (bins=10 default) | same | done (np.histogram-compatible; 'auto' bins later) |
+| hist | `hist` (bins=10 default; returns n/bins/patches) | `edges` field = mpl's bins-sequence form (D24) | done (np.histogram-compatible; 'auto' bins later) |
 | fill_between | `fill_between` | same | done (where-mask later) |
 | errorbar | `errorbar` | same | done (caps as _/| markers) |
 | step | `step` / drawstyle | same | done (pre/mid/post) |
@@ -94,3 +94,7 @@ Status: `planned-vX.Y` → `in-progress` → `done` (or `deviates` — must link
 | D18 | Annotation arrows clip analytically (mpl bisects Béziers to 0.01 px) and support only the straight `arc3,rad=0` connector + arrowstyles '-', '->', '-|>'; legacy width/headwidth arrowprops and text-rotation-aware bboxes unsupported; with a round text box the arrow clips to the box's rect, not the rounded path | endpoint differences < 0.01 px vs oracle; curved connectors on demand |
 | D19 | Mathtext is a TeX-lite port (mpl constants: SHRINK 0.7, sup1/sub1/sub2, script_space; advance-based char packing) — near-mpl, not glyph-exact; no \left/\right auto-delimiters, \text, \operatorname, accents (\hat, \bar, ...); large operators use the DejaVu glyph (mpl pulls bigger STIX size variants); radical stretched by y-scaling U+221A | unsupported commands raise ValueError naming the command; visual twin at reading distance |
 | D20 | PDF embeds the complete DejaVu faces (no subsetting; ~450 KB/face compressed) and omits /CreationDate + /ID so files are byte-deterministic; mathtext runs are outlines, not text operators | subsetting is a v0.7+ size optimization; determinism enables golden PDFs |
+| D21 | Alignment kwargs (`ha`/`va`) are strong enums (`HAlign`/`VAlign`), not strings | compile-checked; enumerator names mirror mpl's tokens exactly — frozen at 1.0 |
+| D22 | Text weight is a boolean `bold` (mpl: `fontweight` scale) | DejaVu ships two weights; a full `fontweight` field can be ADDED later without breaking `bold` |
+| D23 | `SubplotsOpts::sharex/sharey` are bool (mpl also accepts 'row'/'col'/'all') | row/col sharing arrives as an additive overload post-1.0 |
+| D24 | `HistOpts::edges` carries mpl's `bins=sequence` form (a separate field, like scatter's `c_array`, per D1) | C++ can't overload one field on int-or-array |

@@ -33,11 +33,13 @@ public:
     std::vector<double> sticky_x;
     std::vector<double> sticky_y;
 
-    /// axhspan/axvspan: interpret that coordinate as axes fraction (0..1).
+    void draw(Renderer& renderer) override;
+
+protected:
+    friend class Axes; // axhspan/axvspan set the blended-transform flags
+    // Interpret that coordinate as axes fraction (0..1).
     bool x_axes_fraction = false;
     bool y_axes_fraction = false;
-
-    void draw(Renderer& renderer) override;
 };
 
 /// Axis-aligned rectangle anchored at (x, y) with signed width/height.

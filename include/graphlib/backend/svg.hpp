@@ -15,17 +15,18 @@ public:
     SvgRenderer(double width_px, double height_px);
 
     void draw_path(const GraphicsContext& gc, const Path& path, const Affine2D& transform,
-                   const std::optional<Color>& face = std::nullopt) override;
+                   const std::optional<Color>& face) override;
     void draw_markers(const GraphicsContext& gc, const Path& marker,
                       const Affine2D& marker_transform, const Path& positions,
                       const Affine2D& transform,
-                      const std::optional<Color>& face = std::nullopt) override;
+                      const std::optional<Color>& face) override;
     // draw_text: inherited glyph-outline implementation (mpl svg.fonttype='path'
     // default; an svg.fonttype='none' native-text mode can come with rc, v0.3).
     void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
-                    Interp interpolation) override;
+                    Interp interpolation,
+                    const std::optional<Affine2D>& transform) override;
     [[nodiscard]] Size canvas_size() const override { return {width_, height_}; }
-    void open_group(std::string_view tag) override;
+    void open_group(std::string_view tag, std::string_view gid = {}) override;
     void close_group() override;
 
     /// Complete SVG document; call once, after drawing.

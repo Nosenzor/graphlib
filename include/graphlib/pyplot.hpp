@@ -24,7 +24,7 @@ Line2D& plot(std::span<const double> x, std::span<const double> y, std::string_v
 Line2D& plot(std::span<const double> x, std::span<const double> y, const LineOpts& opts);
 Line2D& plot(std::span<const double> y, std::string_view fmt = "", const LineOpts& opts = {});
 Text& text(double x, double y, std::string s, const TextOpts& opts = {});
-Annotation& annotate(std::string s, std::pair<double, double> xy, const AnnotateOpts& opts = {});
+Annotation& annotate(std::string s, Point xy, const AnnotateOpts& opts = {});
 PathCollection& scatter(std::span<const double> x, std::span<const double> y,
                         const ScatterOpts& opts = {});
 Legend& legend(const LegendOpts& opts = {});
@@ -34,7 +34,7 @@ std::vector<Rectangle*> bar(const std::vector<std::string>& labels,
                             std::span<const double> height, const BarOpts& opts = {});
 std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> width,
                              const BarOpts& opts = {});
-std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts = {});
+HistResult hist(std::span<const double> data, const HistOpts& opts = {});
 Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
                       std::span<const double> y2, const FillOpts& opts = {});
 Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
@@ -47,9 +47,9 @@ Rectangle& axhspan(double ymin, double ymax, const FillOpts& opts = {});
 Rectangle& axvspan(double xmin, double xmax, const FillOpts& opts = {});
 Line2D& hlines(std::span<const double> y, double xmin, double xmax, const LineOpts& opts = {});
 Line2D& vlines(std::span<const double> x, double ymin, double ymax, const LineOpts& opts = {});
-Line2D& errorbar(std::span<const double> x, std::span<const double> y,
-                 const ErrorbarOpts& opts = {});
-std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts = {});
+ErrorbarResult errorbar(std::span<const double> x, std::span<const double> y,
+                        const ErrorbarOpts& opts = {});
+PieResult pie(std::span<const double> sizes, const PieOpts& opts = {});
 AxesImage& imshow(std::span<const double> data, int rows, int cols,
                   const ImshowOpts& opts = {});
 QuadMesh& pcolormesh(std::span<const double> x_edges, std::span<const double> y_edges,
@@ -66,7 +66,7 @@ void xlim(double left, double right);
 void ylim(double bottom, double top);
 void grid(bool on = true);
 
-void savefig(const std::string& filename, const SaveOpts& opts = {});
+void savefig(const std::filesystem::path& filename, const SaveOpts& opts = {});
 
 /// Open windows for every figure and block until all are closed (plt.show).
 /// Requires a build with -DGRAPHLIB_INTERACTIVE=ON; throws ValueError otherwise.

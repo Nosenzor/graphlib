@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -29,9 +30,23 @@ struct SubplotsOpts {
     bool sharey = false;
 };
 
+/// Handle to a drawn colorbar (mirrors matplotlib.colorbar.Colorbar): owns
+/// nothing, exposes the dedicated axes the gradient lives in. Grows tick and
+/// label control post-1.0 without changing the colorbar() return type.
+class Colorbar {
+public:
+    explicit Colorbar(Axes& cax) : cax_(&cax) {}
+    /// The colorbar's own axes (mpl `cbar.ax`).
+    [[nodiscard]] Axes& ax() { return *cax_; }
+    [[nodiscard]] const Axes& ax() const { return *cax_; }
+
+private:
+    Axes* cax_;
+};
+
 /// kwargs of Figure::colorbar.
 struct ColorbarOpts {
-    std::string label{};
+    std::string_view label{};
 };
 
 class Figure {
@@ -54,8 +69,8 @@ public:
 
     /// Attach a colorbar for the mappable, stealing space from its host axes
     /// (mirrors fig.colorbar geometry). Returns the colorbar's own Axes.
-    Axes& colorbar(const AxesImage& mappable, const ColorbarOpts& opts = {});
-    Axes& colorbar(const QuadMesh& mappable, const ColorbarOpts& opts = {});
+    Colorbar& colorbar(const AxesImage& mappable, const ColorbarOpts& opts = {});
+    Colorbar& colorbar(const QuadMesh& mappable, const ColorbarOpts& opts = {});
 
     /// Fit decorations (tick labels, axis labels, titles) inside each axes'
     /// grid cell — a metrics-based v1 of mpl's tight_layout.
@@ -76,7 +91,7 @@ public:
 
     /// Render to file; the format comes from the extension (.svg in v0.1).
     /// Unknown extensions throw ValueError naming the milestone that adds them.
-    void savefig(const std::string& filename, const SaveOpts& opts = {}) const;
+    void savefig(const std::filesystem::path& filename, const SaveOpts& opts = {}) const;
 
     void draw(Renderer& renderer) const;
 
@@ -84,13 +99,15 @@ public:
     double dpi;
     Color facecolor;
 
-    [[nodiscard]] const std::vector<std::unique_ptr<Axes>>& axes_list() const { return axes_; }
+    [[nodiscard]] const std::vector<std::unique_ptr<Axes>>& axes() const { return axes_; }
     /// True while a savefig(transparent=true) render is in flight — the axes
     /// patch checks this to skip its background.
+private:
+    friend class Axes; // reads transparent_render_ when drawing the axes patch
     [[nodiscard]] bool transparent_render() const { return transparent_render_; }
 
-private:
     std::vector<std::unique_ptr<Axes>> axes_;
+    std::vector<std::unique_ptr<Colorbar>> colorbars_;
     std::string suptitle_;
     EventRegistry events_;
     mutable bool transparent_render_ = false; // savefig(transparent=true) scope flag

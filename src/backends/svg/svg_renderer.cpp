@@ -6,6 +6,7 @@
 #include <stb_image_write.h>
 
 #include "../../core/fmt.hpp"
+#include "graphlib/errors.hpp"
 #include "core/path_simplify.hpp"
 #include "graphlib/rc.hpp"
 
@@ -28,10 +29,11 @@ std::string opacity_attr(const char* name, double a) {
 SvgRenderer::SvgRenderer(double width_px, double height_px)
     : Renderer(/*dpi=*/72.0), width_(width_px), height_(height_px) {}
 
-void SvgRenderer::open_group(std::string_view tag) {
+void SvgRenderer::open_group(std::string_view tag, std::string_view gid) {
     const std::string name(tag);
     const int n = ++group_counters_[name];
-    body_ += "<g id=\"" + name + "_" + std::to_string(n) + "\">\n";
+    body_ += "<g id=\"" +
+             (gid.empty() ? name + "_" + std::to_string(n) : std::string(gid)) + "\">\n";
 }
 
 void SvgRenderer::close_group() { body_ += "</g>\n"; }
@@ -212,7 +214,11 @@ std::string base64(const unsigned char* data, size_t len) {
 
 // Embed as a base64 PNG data URI, exactly like matplotlib's SVG backend.
 void SvgRenderer::draw_image(const GraphicsContext& gc, const Bbox& dest,
-                             const ImageBuffer& image, Interp interpolation) {
+                                              const ImageBuffer& image, Interp interpolation,
+                                              const std::optional<Affine2D>& transform) {
+    if (transform) {
+        throw ValueError("draw_image: affine image transforms are reserved post-1.0");
+    }
     if (image.width <= 0 || image.height <= 0) {
         return;
     }

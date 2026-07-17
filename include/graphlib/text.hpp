@@ -12,18 +12,23 @@ namespace graphlib {
 
 class Axes;
 
+/// Coordinate system of a text/annotation position (one shared vocabulary;
+/// mpl's transform / xycoords equivalents). Text uses data/pixels;
+/// Annotation adds axes_fraction and offset_points (relative to xy).
+enum class CoordSys { data, pixels, axes_fraction, offset_points };
+
 class Text final : public Artist {
 public:
     Text() { zorder = 3.0; }
 
     std::string text;
     Point position;                  // interpretation depends on `coords`
-    enum class Coords { data, pixels } coords = Coords::pixels;
+    CoordSys coords = CoordSys::pixels; ///< data or pixels for plain Text
     double fontsize = 10.0;          // rc font.size, points
     Color color{0, 0, 0, 1};        // rc text.color
     HAlign ha = HAlign::left;
     VAlign va = VAlign::baseline;
-    double rotation_deg = 0.0;       // CCW
+    double rotation = 0.0;           ///< degrees CCW (mpl `rotation`)
     bool bold = false;
 
     /// Owning axes; required when coords == data (set by Axes::text()).
@@ -66,7 +71,6 @@ public:
     Text text;      ///< annotation text; its position is computed at draw time
     Point xy;       ///< annotated point, in `xycoords`
     Point xytext;   ///< text anchor, in `textcoords`
-    enum class CoordSys { data, axes_fraction, offset_points };
     CoordSys xycoords = CoordSys::data;
     CoordSys textcoords = CoordSys::data; ///< offset_points is relative to xy
     std::optional<ArrowProps> arrowprops;

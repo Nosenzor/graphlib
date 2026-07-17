@@ -72,13 +72,17 @@ TEST_CASE("hist matches np.histogram binning (oracle)", "[hist]") {
         INFO("n=" << c.data.size() << " bins=" << c.bins);
         Figure fig;
         Axes& ax = fig.add_subplot();
-        auto bars = ax.hist(c.data, {.bins = c.bins});
-        REQUIRE(bars.size() == c.counts.size());
-        for (size_t i = 0; i < bars.size(); ++i) {
+        const HistResult h = ax.hist(c.data, {.bins = c.bins});
+        REQUIRE(h.patches.size() == c.counts.size());
+        REQUIRE(h.counts.size() == c.counts.size());
+        REQUIRE(h.edges.size() == c.edges.size());
+        for (size_t i = 0; i < h.patches.size(); ++i) {
             INFO("bin " << i);
-            CHECK(close(bars[i]->height, static_cast<double>(c.counts[i])));
-            CHECK(close(bars[i]->x, c.edges[i]));
-            CHECK(close(bars[i]->x + bars[i]->width, c.edges[i + 1]));
+            CHECK(close(h.counts[i], static_cast<double>(c.counts[i])));
+            CHECK(close(h.patches[i]->height, static_cast<double>(c.counts[i])));
+            CHECK(close(h.edges[i], c.edges[i]));
+            CHECK(close(h.patches[i]->x, c.edges[i]));
+            CHECK(close(h.patches[i]->x + h.patches[i]->width, c.edges[i + 1]));
         }
     }
 }

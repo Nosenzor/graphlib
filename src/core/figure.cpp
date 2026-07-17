@@ -49,7 +49,9 @@ Axes& Figure::add_subplot(int nrows, int ncols, int index) {
     const int col = (index - 1) % ncols;
     Axes& ax = add_axes(gs.cell(row, col));
     // The full-figure cell bounds tight_layout's redistribution.
-    const GridSpec outer(nrows, ncols, Bbox::unit(), 0.0, 0.0);
+    const GridSpec outer(nrows, ncols,
+                         {.left = 0.0, .right = 1.0, .bottom = 0.0, .top = 1.0,
+                          .wspace = 0.0, .hspace = 0.0});
     ax.outer_cell = outer.cell(row, col);
     return ax;
 }
@@ -125,22 +127,26 @@ Axes& make_colorbar(Figure& fig, Axes& host, const Colormap& cmap, double vmin, 
                 .interpolation = "nearest",
                 .aspect = "auto"});
     cax.set_xticks({});     // no x axis on a colorbar
-    cax.yaxis_tick_right(); // values read on the right, like mpl
+    cax.yaxis().tick_right(); // values read on the right, like mpl
     if (!opts.label.empty()) {
-        cax.set_ylabel(opts.label);
+        cax.set_ylabel(std::string(opts.label));
     }
     return cax;
 }
 } // namespace
 
-Axes& Figure::colorbar(const AxesImage& mappable, const ColorbarOpts& opts) {
-    return make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin, mappable.vmax,
-                         opts);
+Colorbar& Figure::colorbar(const AxesImage& mappable, const ColorbarOpts& opts) {
+    Axes& cax = make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin,
+                              mappable.vmax, opts);
+    colorbars_.push_back(std::make_unique<Colorbar>(cax));
+    return *colorbars_.back();
 }
 
-Axes& Figure::colorbar(const QuadMesh& mappable, const ColorbarOpts& opts) {
-    return make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin, mappable.vmax,
-                         opts);
+Colorbar& Figure::colorbar(const QuadMesh& mappable, const ColorbarOpts& opts) {
+    Axes& cax = make_colorbar(*this, *mappable.axes, *mappable.cmap, mappable.vmin,
+                              mappable.vmax, opts);
+    colorbars_.push_back(std::make_unique<Colorbar>(cax));
+    return *colorbars_.back();
 }
 
 Axes& Figure::gca() {
@@ -232,10 +238,10 @@ void Figure::tight_layout(double pad) {
     }
 }
 
-void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
-    const std::string ext = lower_ext(filename);
+void Figure::savefig(const std::filesystem::path& filename, const SaveOpts& opts) const {
+    const std::string ext = lower_ext(filename.string());
     if (ext.empty()) {
-        throw ValueError("savefig: cannot infer format from '" + filename + "'");
+        throw ValueError("savefig: cannot infer format from '" + filename.string() + "'");
     }
     if (ext == "svg") {
         // SVG renders at 72 dpi with pt-sized canvas, exactly like matplotlib's
@@ -247,7 +253,7 @@ void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
         std::ofstream out(filename, std::ios::binary);
         out << renderer.finalize();
         if (!out) {
-            throw Error("savefig: cannot write '" + filename + "'");
+            throw Error("savefig: cannot write '" + filename.string() + "'");
         }
         return;
     }
@@ -263,7 +269,7 @@ void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
         transparent_render_ = opts.transparent;
         draw(renderer);
         transparent_render_ = false;
-        renderer.write_png(filename);
+        renderer.write_png(filename.string());
         return;
     }
     if (ext == "pdf") {
@@ -275,7 +281,7 @@ void Figure::savefig(const std::string& filename, const SaveOpts& opts) const {
         std::ofstream out(filename, std::ios::binary);
         out << renderer.finalize();
         if (!out) {
-            throw Error("savefig: cannot write '" + filename + "'");
+            throw Error("savefig: cannot write '" + filename.string() + "'");
         }
         return;
     }

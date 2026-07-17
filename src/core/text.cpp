@@ -9,7 +9,7 @@ void Text::draw(Renderer& renderer) {
         return;
     }
     Point pos = position;
-    if (coords == Coords::data) {
+    if (coords == CoordSys::data) {
         pos = axes->trans_data(renderer.canvas_size()).apply(axes->scale_point(pos));
     }
     GraphicsContext gc;
@@ -18,7 +18,7 @@ void Text::draw(Renderer& renderer) {
         gc.color.a = *alpha;
     }
     renderer.open_group("text");
-    renderer.draw_text(gc, pos, text, FontProperties{fontsize, bold, false}, rotation_deg, ha,
+    renderer.draw_text(gc, pos, text, FontProperties{fontsize, bold, false}, rotation, ha,
                        va);
     renderer.close_group();
 }

@@ -41,9 +41,6 @@ public:
     std::vector<double> xdata;
     std::vector<double> ydata;
     DrawStyle drawstyle = DrawStyle::normal;
-    /// axhline/axvline: interpret that coordinate as axes fraction (0..1).
-    bool x_axes_fraction = false;
-    bool y_axes_fraction = false;
     Color color = colors::tab10[0];
     double linewidth = 1.5;
     LineStyle linestyle{};
@@ -59,6 +56,13 @@ public:
 
     /// Extent of the raw data (NaN-aware) — the Axes dataLim contribution.
     [[nodiscard]] Bbox data_extents() const;
+
+private:
+    friend class Axes; // axhline/axvline set the blended-transform flags
+    // Interpret that coordinate as axes fraction (0..1) — mpl's blended
+    // transform for reference lines/spans.
+    bool x_axes_fraction = false;
+    bool y_axes_fraction = false;
 };
 
 namespace detail {

@@ -44,6 +44,26 @@ struct HistOpts {
     std::string_view label{};
 };
 
+/// Return of Axes::hist — matplotlib's `(n, bins, patches)` triple.
+struct HistResult {
+    std::vector<double> counts;       ///< mpl `n`
+    std::vector<double> edges;        ///< mpl `bins`
+    std::vector<Rectangle*> patches;  ///< one bar per bin
+};
+
+/// Return of Axes::pie — matplotlib's `(patches, texts)` pair.
+struct PieResult {
+    std::vector<Wedge*> wedges;
+    std::vector<Text*> texts; ///< empty when no labels were given
+};
+
+/// Return of Axes::errorbar — matplotlib's ErrorbarContainer.
+struct ErrorbarResult {
+    Line2D* line = nullptr;         ///< the data line (mpl `data_line`)
+    std::vector<Line2D*> caplines;  ///< cap markers, when capsize > 0
+    std::vector<Line2D*> barlines;  ///< the error bar segments
+};
+
 /// kwargs of Axes::fill_between / span patches.
 struct FillOpts {
     std::string_view color{}; // "" -> next cycle color
@@ -68,7 +88,7 @@ struct ErrorbarOpts {
 /// kwargs of Axes::pie.
 struct PieOpts {
     std::vector<std::string> labels{};
-    std::span<const std::string_view> colors{}; // "" -> the property cycle
+    std::vector<std::string> colors{}; // empty -> the property cycle
     double startangle = 0.0;                    // degrees CCW from +x
     std::optional<double> radius{};             // 1.0
 };
@@ -86,7 +106,7 @@ struct TextOpts {
 /// "axes fraction" for both; textcoords also accepts "offset points"
 /// (offset from xy). Other matplotlib tokens raise ValueError until needed.
 struct AnnotateOpts {
-    std::optional<std::pair<double, double>> xytext{}; // default: at xy
+    std::optional<Point> xytext{};                     // default: at xy
     std::string_view xycoords = "data";
     std::string_view textcoords{};                     // default: xycoords
     std::optional<ArrowProps> arrowprops{};
@@ -115,8 +135,7 @@ public:
 
     /// Annotate the point `xy` with text (mirrors Axes.annotate; arrowstyle
     /// subset "-", "->", "-|>").
-    Annotation& annotate(std::string s, std::pair<double, double> xy,
-                         const AnnotateOpts& opts = {});
+    Annotation& annotate(std::string s, Point xy, const AnnotateOpts& opts = {});
 
     /// Scatter plot of y vs x with per-point sizes (mirrors Axes.scatter;
     /// c-arrays with colormaps arrive in v0.4).
@@ -137,8 +156,9 @@ public:
     std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> width,
                                  const BarOpts& opts = {});
 
-    /// Histogram of `data` (np.histogram-compatible binning); returns the bars.
-    std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts = {});
+    /// Histogram of `data` (np.histogram-compatible binning); returns
+    /// counts, bin edges and the bar patches like matplotlib's (n, bins, patches).
+    HistResult hist(std::span<const double> data, const HistOpts& opts = {});
 
     /// Fill the region between y1 and y2 (default 0) along x.
     Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
@@ -162,13 +182,13 @@ public:
     Line2D& vlines(std::span<const double> x, double ymin, double ymax,
                    const LineOpts& opts = {});
 
-    /// Data line + error bars (mirrors Axes.errorbar; returns the data line).
-    Line2D& errorbar(std::span<const double> x, std::span<const double> y,
-                     const ErrorbarOpts& opts = {});
+    /// Data line + error bars (mirrors Axes.errorbar and its container return).
+    ErrorbarResult errorbar(std::span<const double> x, std::span<const double> y,
+                            const ErrorbarOpts& opts = {});
 
     /// Pie chart: wedges CCW from startangle, r=1, labels at r=1.1; the axes
     /// goes frameless with an equal-aspect box, like matplotlib.
-    std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts = {});
+    PieResult pie(std::span<const double> sizes, const PieOpts& opts = {});
 
     /// Display a 2D array as an image (mirrors Axes.imshow; data is row-major
     /// rows x cols). Sets equal aspect by default, like matplotlib.
@@ -195,32 +215,11 @@ public:
     /// data-unit is wide. "auto" removes the constraint.
     void set_aspect(double ratio);
     void set_aspect(std::string_view mode); // "auto" | "equal"
-    void set_aspect_equal() { set_aspect(1.0); }
 
     /// Twin axes sharing this x-axis, with an independent y-axis on the right.
     Axes& twinx();
     /// Twin axes sharing this y-axis, with an independent x-axis on the top.
     Axes& twiny();
-
-    // ---- sharing / layout wiring (used by Figure::subplots and twins) ----
-    struct ShareGroup {
-        std::vector<Axes*> members;
-    };
-    void join_share_x(const std::shared_ptr<ShareGroup>& group);
-    void join_share_y(const std::shared_ptr<ShareGroup>& group);
-    void set_tick_label_visibility(bool x_labels, bool y_labels) {
-        show_x_ticklabels_ = x_labels;
-        show_y_ticklabels_ = y_labels;
-    }
-    [[nodiscard]] bool yaxis_right() const { return yaxis_right_; }
-    [[nodiscard]] bool xaxis_top() const { return xaxis_top_; }
-    /// Twins overlay their host and must follow its position in layout passes.
-    [[nodiscard]] bool is_twin() const { return patch_off_; }
-    [[nodiscard]] Axes* share_host() const; // first non-twin share-group member
-    [[nodiscard]] bool x_tick_labels_shown() const { return show_x_ticklabels_; }
-    [[nodiscard]] bool y_tick_labels_shown() const { return show_y_ticklabels_; }
-    /// GridSpec cell this axes lives in (tight_layout works within it).
-    Bbox outer_cell = Bbox::null();
 
     /// Adopt a patch built by a plotting method (updates dataLim + stickies).
     Rectangle& add_patch(std::unique_ptr<Rectangle> patch);
@@ -262,9 +261,6 @@ public:
     /// ConciseDateFormatter; datenums via graphlib::dates::date2num).
     void xaxis_date();
 
-    /// Move y ticks/labels to the right side (mirrors ax.yaxis.tick_right()).
-    void yaxis_tick_right() { yaxis_right_ = true; }
-
     // ---- interactive navigation (drag-pan / scroll-zoom; log-correct) ----
     /// Shift the view by a pixel delta (drag). Works in scale space, so log
     /// axes pan multiplicatively; propagates through share groups.
@@ -274,9 +270,6 @@ public:
     /// Snapshot / restore the view for the 'h' (home) key.
     void save_home();
     void restore_home();
-
-    /// Transformed data polylines for legend 'best' placement (internal).
-    void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
 
     // ---- titles & labels ----
     void set_title(std::string t) { title_.text = std::move(t); }
@@ -315,7 +308,35 @@ public:
     /// Next color of the property cycle (tab10 until rcParams land, v0.3).
     Color next_cycle_color();
 
+    /// Twins overlay their host and must follow its position in layout passes.
+    [[nodiscard]] bool is_twin() const { return is_twin_; }
+
 private:
+    // Sharing / layout / legend plumbing — Figure (subplots, tight_layout)
+    // and Legend ('best' placement) are the only intended callers.
+    friend class Figure;
+    friend class Legend;
+
+    struct ShareGroup {
+        std::vector<Axes*> members;
+    };
+    void join_share_x(const std::shared_ptr<ShareGroup>& group);
+    void join_share_y(const std::shared_ptr<ShareGroup>& group);
+    void set_tick_label_visibility(bool x_labels, bool y_labels) {
+        show_x_ticklabels_ = x_labels;
+        show_y_ticklabels_ = y_labels;
+    }
+    [[nodiscard]] bool xaxis_top() const { return xaxis_top_; }
+    [[nodiscard]] Axes* share_host() const; // first non-twin share-group member
+    [[nodiscard]] bool x_tick_labels_shown() const { return show_x_ticklabels_; }
+    [[nodiscard]] bool y_tick_labels_shown() const { return show_y_ticklabels_; }
+    Bbox outer_cell = Bbox::null(); // GridSpec cell (tight_layout works within it)
+    bool is_twin_ = false;
+
+    /// Transformed data polylines for legend 'best' placement.
+    void collect_legend_avoidance(std::vector<std::vector<Point>>& lines_px, Size canvas) const;
+
+
     void add_line_datalim(const Line2D& line);
     void autoscale_view();
     void recompute_data_lim();
@@ -341,7 +362,6 @@ private:
     bool axis_off_ = false;
     std::optional<double> aspect_; // nullopt == 'auto'
     bool patch_off_ = false;      // twins draw no background over their host
-    bool yaxis_right_ = false;    // twinx: y ticks/label on the right
     bool xaxis_top_ = false;      // twiny: x ticks/label on the top
     bool show_x_axis_ = true;     // twins hide the shared axis entirely
     bool show_y_axis_ = true;

@@ -36,7 +36,6 @@ TEST_CASE("axhline spans axes fraction and only y joins data limits", "[spans]")
     const std::vector<double> v{10.0, 20.0};
     ax.plot(v, v);
     Line2D& hl = ax.axhline(25.0);
-    CHECK(hl.x_axes_fraction);
     const auto [x0, x1] = ax.get_xlim();
     CHECK(x0 > 9.0); // the 0..1 fraction span must NOT widen the x limits
     const auto [y0, y1] = ax.get_ylim();
@@ -60,7 +59,6 @@ TEST_CASE("axvspan is a fraction-height rectangle", "[spans]") {
     const std::vector<double> v{0.0, 10.0};
     ax.plot(v, v);
     Rectangle& span = ax.axvspan(2.0, 4.0, {.alpha = 0.3});
-    CHECK(span.y_axes_fraction);
     CHECK(span.x == 2.0);
     CHECK(span.width == 2.0);
 }

@@ -86,13 +86,13 @@ bool segment_intersects_bbox(Point p, Point q, const Bbox& box) {
 
 } // namespace
 
-int Legend::parse_loc(std::string_view loc) {
+LegendLoc Legend::parse_loc(std::string_view loc) {
     static constexpr std::array<std::string_view, 11> names = {
         "best",        "upper right",  "upper left", "lower left",   "lower right", "right",
         "center left", "center right", "lower center", "upper center", "center"};
     for (size_t i = 0; i < names.size(); ++i) {
         if (loc == names[i]) {
-            return static_cast<int>(i);
+            return static_cast<LegendLoc>(i);
         }
     }
     throw ValueError("legend: unrecognized loc '" + std::string(loc) + "'");
@@ -129,6 +129,7 @@ void Legend::draw(Renderer& renderer) {
     const Bbox container = Bbox::from_extents(axes_box.x0() + axes_pad, axes_box.y0() + axes_pad,
                                               axes_box.x1() - axes_pad, axes_box.y1() - axes_pad);
     Point origin;
+    int loc_code = static_cast<int>(loc);
     if (loc_code == 0) { // 'best': scan codes 1..10, count data overlap
         std::vector<std::vector<Point>> lines_px;
         axes->collect_legend_avoidance(lines_px, canvas);

@@ -360,7 +360,11 @@ void PdfRenderer::draw_text(const GraphicsContext& gc, Point pos, std::string_vi
 }
 
 void PdfRenderer::draw_image(const GraphicsContext& gc, const Bbox& dest,
-                             const ImageBuffer& image, Interp interpolation) {
+                                            const ImageBuffer& image, Interp interpolation,
+                                            const std::optional<Affine2D>& transform) {
+    if (transform) {
+        throw ValueError("draw_image: affine image transforms are reserved post-1.0");
+    }
     if (image.width <= 0 || image.height <= 0) {
         return;
     }

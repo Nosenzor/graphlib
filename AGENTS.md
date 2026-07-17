@@ -36,7 +36,7 @@ then [docs/PARITY.md](docs/PARITY.md) for what's in scope. Run `ctest --preset d
 | 1 | macOS arm64 *(primary dev)* | CI build + full test suite (+ sanitizers) |
 | 1 | Linux x86_64, Linux arm64 | CI build + full test suite |
 | 1 | Windows x86_64 | CI build + full test suite (MSVC) |
-| 1* | Windows arm64 | CI build + tests — `windows-11-arm` runner (free for public repos only) |
+| 1 | Windows arm64 | CI build + full test suite (`windows-11-arm` runner; repo must stay public for the free runner) |
 | 2 | macOS x86_64 | cross-compiled slice (`CMAKE_OSX_ARCHITECTURES=x86_64`), no runtime CI |
 
 ## Architecture — mirrors matplotlib's three layers

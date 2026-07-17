@@ -7,11 +7,12 @@ namespace graphlib {
 
 GridSpec::GridSpec(int nrows, int ncols)
     : GridSpec(nrows, ncols,
-               Bbox::from_extents(rc().number("figure.subplot.left"),
-                                  rc().number("figure.subplot.bottom"),
-                                  rc().number("figure.subplot.right"),
-                                  rc().number("figure.subplot.top")),
-               rc().number("figure.subplot.wspace"), rc().number("figure.subplot.hspace")) {
+               GridSpecOpts{.left = rc().number("figure.subplot.left"),
+                            .right = rc().number("figure.subplot.right"),
+                            .bottom = rc().number("figure.subplot.bottom"),
+                            .top = rc().number("figure.subplot.top"),
+                            .wspace = rc().number("figure.subplot.wspace"),
+                            .hspace = rc().number("figure.subplot.hspace")}) {
     if (nrows < 1 || ncols < 1) {
         throw ValueError("GridSpec: nrows and ncols must be positive");
     }

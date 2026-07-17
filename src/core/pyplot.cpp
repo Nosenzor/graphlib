@@ -66,7 +66,7 @@ Text& text(double x, double y, std::string s, const TextOpts& opts) {
     return gca().text(x, y, std::move(s), opts);
 }
 
-Annotation& annotate(std::string s, std::pair<double, double> xy, const AnnotateOpts& opts) {
+Annotation& annotate(std::string s, Point xy, const AnnotateOpts& opts) {
     return gca().annotate(std::move(s), xy, opts);
 }
 
@@ -89,7 +89,7 @@ std::vector<Rectangle*> barh(std::span<const double> y, std::span<const double> 
                              const BarOpts& opts) {
     return gca().barh(y, width, opts);
 }
-std::vector<Rectangle*> hist(std::span<const double> data, const HistOpts& opts) {
+HistResult hist(std::span<const double> data, const HistOpts& opts) {
     return gca().hist(data, opts);
 }
 Polygon& fill_between(std::span<const double> x, std::span<const double> y1,
@@ -122,11 +122,11 @@ Line2D& hlines(std::span<const double> y, double xmin, double xmax, const LineOp
 Line2D& vlines(std::span<const double> x, double ymin, double ymax, const LineOpts& opts) {
     return gca().vlines(x, ymin, ymax, opts);
 }
-Line2D& errorbar(std::span<const double> x, std::span<const double> y,
-                 const ErrorbarOpts& opts) {
+ErrorbarResult errorbar(std::span<const double> x, std::span<const double> y,
+                        const ErrorbarOpts& opts) {
     return gca().errorbar(x, y, opts);
 }
-std::vector<Wedge*> pie(std::span<const double> sizes, const PieOpts& opts) {
+PieResult pie(std::span<const double> sizes, const PieOpts& opts) {
     return gca().pie(sizes, opts);
 }
 AxesImage& imshow(std::span<const double> data, int rows, int cols, const ImshowOpts& opts) {
@@ -152,7 +152,9 @@ void xlim(double left, double right) { gca().set_xlim(left, right); }
 void ylim(double bottom, double top) { gca().set_ylim(bottom, top); }
 void grid(bool on) { gca().grid(on); }
 
-void savefig(const std::string& filename, const SaveOpts& opts) { gcf().savefig(filename, opts); }
+void savefig(const std::filesystem::path& filename, const SaveOpts& opts) {
+    gcf().savefig(filename, opts);
+}
 
 namespace {
 std::vector<Figure*> all_figures() {

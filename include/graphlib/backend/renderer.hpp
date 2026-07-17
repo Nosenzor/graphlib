@@ -17,6 +17,8 @@
 
 namespace graphlib {
 
+/// Canvas dimensions in device pixels. The vector backends (SVG, PDF) render
+/// at a fixed 72 dpi, so their device pixels are numerically points.
 struct Size {
     double width = 0;
     double height = 0;
@@ -29,22 +31,29 @@ struct ImageBuffer {
     std::vector<unsigned char> rgba; // width * height * 4, straight alpha
 };
 
+/// Image resampling mode for draw_image (mpl interpolation subset, D12).
 enum class Interp { nearest, bilinear };
 
+/// Font selection for draw_text. Family is the embedded DejaVu Sans (D2);
+/// the oblique face backs mathtext italics.
 struct FontProperties {
     double size_pt = 10.0; // rc font.size
     bool bold = false;
     bool italic = false;
-    // family is DejaVu Sans only pre-0.6 (deviation D2)
 };
 
+/// Horizontal text anchor (mpl `ha`).
 enum class HAlign { left, center, right };
+/// Vertical text anchor (mpl `va`); `baseline` anchors the first line's
+/// baseline — the matplotlib default.
 enum class VAlign { baseline, bottom, center, top };
 
 class Renderer {
 public:
     explicit Renderer(double dpi) : dpi_(dpi) {}
     virtual ~Renderer() = default;
+    Renderer(const Renderer&) = delete; // polymorphic base: no slicing
+    Renderer& operator=(const Renderer&) = delete;
 
     /// Stroke (and optionally fill) `path` after mapping through `transform`.
     virtual void draw_path(const GraphicsContext& gc, const Path& path,
@@ -60,26 +69,37 @@ public:
                               const std::optional<Color>& face = std::nullopt);
 
     /// Draw text at `pos` (device px), rotated `angle_deg` CCW about the anchor.
-    /// The default implementation lays out with FontManager metrics and fills
-    /// glyph outlines through draw_path — matplotlib's svg.fonttype='path'
-    /// behavior, identical on every backend. Backends with native text
-    /// (PDF, GLFW glyph atlas) may override.
+    /// `text` may contain $...$ mathtext runs — that is part of this contract.
+    /// The default implementation lays out with FontManager metrics (math
+    /// included) and fills glyph outlines through draw_path — matplotlib's
+    /// svg.fonttype='path' behavior, identical on every backend. Backends with
+    /// native text (PDF) may override; they must still handle or delegate the
+    /// mathtext case (see PdfRenderer, which falls back to outlines for it).
     virtual void draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
                            const FontProperties& font, double angle_deg, HAlign ha, VAlign va);
 
     /// Stretch `image` into `dest` (device px, y-up; image row 0 lands at the
     /// TOP of the rect). Honors gc.clip_rect and the image's alpha.
+    /// `transform` mirrors mpl RendererBase.draw_image's optional affine for
+    /// rotated/skewed images; no backend implements it yet — every backend
+    /// throws ValueError when it is set (reserved at the 1.0 freeze so adding
+    /// the capability later is not a signature break).
     virtual void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
-                            Interp interpolation) = 0;
+                            Interp interpolation,
+                            const std::optional<Affine2D>& transform = std::nullopt) = 0;
 
+    /// Canvas size in device pixels (== points on the 72-dpi vector backends).
     [[nodiscard]] virtual Size canvas_size() const = 0;
 
     /// Structure hooks for vector formats (SVG <g> nesting). Ids are generated
-    /// by the backend from deterministic counters.
-    virtual void open_group(std::string_view /*tag*/) {}
+    /// by the backend from deterministic counters; a nonempty `gid` (future
+    /// Artist::set_gid) overrides the generated id.
+    virtual void open_group(std::string_view /*tag*/, std::string_view /*gid*/ = {}) {}
     virtual void close_group() {}
 
+    /// px = pt * dpi / 72 — the single unit conversion of the library.
     [[nodiscard]] double points_to_pixels(double pt) const { return pt * dpi_ / 72.0; }
+    /// Raster resolution; fixed at 72 for the vector backends.
     [[nodiscard]] double dpi() const { return dpi_; }
 
 private:

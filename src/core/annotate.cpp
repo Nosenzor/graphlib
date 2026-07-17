@@ -143,7 +143,7 @@ void Annotation::draw(Renderer& renderer) {
     const Point xy_px = to_display(xy, xycoords, {});
     const Point text_px = to_display(xytext, textcoords, xy_px);
     text.axes = axes;
-    text.coords = Text::Coords::pixels;
+    text.coords = CoordSys::pixels;
     text.position = text_px;
     text.zorder = zorder;
     text.alpha = alpha;
@@ -296,17 +296,16 @@ void Annotation::draw(Renderer& renderer) {
     text.draw(renderer);
 }
 
-Annotation& Axes::annotate(std::string s, std::pair<double, double> xy,
-                           const AnnotateOpts& opts) {
+Annotation& Axes::annotate(std::string s, Point xy, const AnnotateOpts& opts) {
     const auto parse_coords = [](std::string_view token, bool for_text) {
         if (token == "data") {
-            return Annotation::CoordSys::data;
+            return CoordSys::data;
         }
         if (token == "axes fraction") {
-            return Annotation::CoordSys::axes_fraction;
+            return CoordSys::axes_fraction;
         }
         if (for_text && token == "offset points") {
-            return Annotation::CoordSys::offset_points;
+            return CoordSys::offset_points;
         }
         throw ValueError("annotate: unsupported coordinate system '" + std::string(token) +
                          "' (graphlib supports 'data', 'axes fraction'" +
@@ -315,12 +314,11 @@ Annotation& Axes::annotate(std::string s, std::pair<double, double> xy,
 
     auto ann = std::make_unique<Annotation>();
     ann->axes = this;
-    ann->xy = {xy.first, xy.second};
+    ann->xy = xy;
     ann->xycoords = parse_coords(opts.xycoords, false);
     const std::string_view tc = opts.textcoords.empty() ? opts.xycoords : opts.textcoords;
     ann->textcoords = parse_coords(tc, true);
-    const auto [tx, ty] = opts.xytext.value_or(xy);
-    ann->xytext = {tx, ty};
+    ann->xytext = opts.xytext.value_or(xy);
     ann->arrowprops = opts.arrowprops;
     ann->bbox_props = opts.bbox;
     if (ann->arrowprops) {

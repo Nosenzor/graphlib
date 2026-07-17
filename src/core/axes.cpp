@@ -29,7 +29,7 @@ Axes::Axes(Figure& figure, Bbox position_fraction) : position(position_fraction)
     }
     xlabel_.va = VAlign::top;
     ylabel_.va = VAlign::bottom;
-    ylabel_.rotation_deg = 90.0;
+    ylabel_.rotation = 90.0;
     grid_on_ = rc().flag("axes.grid");
     margin_x_ = rc().number("axes.xmargin");
     margin_y_ = rc().number("axes.ymargin");
@@ -108,14 +108,14 @@ Line2D& Axes::plot(std::span<const double> y, std::string_view fmt, const LineOp
 Text& Axes::text(double x, double y, std::string s, const TextOpts& opts) {
     auto t = std::make_unique<Text>();
     t->axes = this;
-    t->coords = Text::Coords::data;
+    t->coords = CoordSys::data;
     t->position = {x, y};
     t->text = std::move(s);
     t->fontsize = opts.fontsize.value_or(rc().number("font.size"));
     t->color = opts.color.empty() ? rc().color("text.color") : to_color(opts.color);
     t->ha = opts.ha;
     t->va = opts.va;
-    t->rotation_deg = opts.rotation;
+    t->rotation = opts.rotation;
     Text& ref = *t;
     children_.push_back(std::move(t));
     return ref;
@@ -180,7 +180,7 @@ PathCollection& Axes::scatter(std::span<const double> x, std::span<const double>
 Legend& Axes::legend(const LegendOpts& opts) {
     auto lg = std::make_unique<Legend>();
     lg->axes = this;
-    lg->loc_code =
+    lg->loc =
         Legend::parse_loc(opts.loc.empty() ? std::string_view(rc().str("legend.loc")) : opts.loc);
     lg->fontsize = opts.fontsize.value_or(rc().fontsize("legend.fontsize"));
     lg->frameon = opts.frameon.value_or(rc().flag("legend.frameon"));
@@ -334,7 +334,7 @@ std::vector<Rectangle*> Axes::barh(std::span<const double> y, std::span<const do
     return bars;
 }
 
-std::vector<Rectangle*> Axes::hist(std::span<const double> data, const HistOpts& opts) {
+HistResult Axes::hist(std::span<const double> data, const HistOpts& opts) {
     if (data.empty()) {
         return {};
     }
@@ -391,7 +391,7 @@ std::vector<Rectangle*> Axes::hist(std::span<const double> data, const HistOpts&
         }
         bars.push_back(&add_patch(std::move(r)));
     }
-    return bars;
+    return {std::move(counts), std::move(edges), std::move(bars)};
 }
 
 Polygon& Axes::fill_between(std::span<const double> x, std::span<const double> y1,
@@ -530,8 +530,8 @@ Line2D& Axes::vlines(std::span<const double> x, double ymin, double ymax,
     return plot(xs, ys, "", opts);
 }
 
-Line2D& Axes::errorbar(std::span<const double> x, std::span<const double> y,
-                       const ErrorbarOpts& opts) {
+ErrorbarResult Axes::errorbar(std::span<const double> x, std::span<const double> y,
+                              const ErrorbarOpts& opts) {
     if (x.size() != y.size()) {
         throw ValueError("errorbar: x and y must be the same size");
     }
@@ -555,6 +555,8 @@ Line2D& Axes::errorbar(std::span<const double> x, std::span<const double> y,
     const double elw = opts.elinewidth.value_or(line.linewidth);
     const double capsize = opts.capsize.value_or(rc().number("errorbar.capsize"));
     const double nan = std::numeric_limits<double>::quiet_NaN();
+    ErrorbarResult result;
+    result.line = &line;
 
     auto add_bars = [&](bool vertical, std::span<const double> err) {
         if (err.empty()) {
@@ -589,6 +591,7 @@ Line2D& Axes::errorbar(std::span<const double> x, std::span<const double> y,
         auto& bars = plot(sx, sy, "",
                           LineOpts{.linewidth = elw, .alpha = opts.alpha});
         bars.color = ecolor;
+        result.barlines.push_back(&bars);
         if (capsize > 0) { // mpl caps are the '_' / '|' markers, 2*capsize points wide
             for (auto [cx, cy] : {std::pair{&cap_x0, &cap_y0}, std::pair{&cap_x1, &cap_y1}}) {
                 auto& caps = plot(*cx, *cy, vertical ? "_" : "|",
@@ -597,15 +600,16 @@ Line2D& Axes::errorbar(std::span<const double> x, std::span<const double> y,
                                            .alpha = opts.alpha});
                 caps.markeredgecolor = ecolor;
                 caps.color = ecolor;
+                result.caplines.push_back(&caps);
             }
         }
     };
     add_bars(true, opts.yerr);
     add_bars(false, opts.xerr);
-    return line;
+    return result;
 }
 
-std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts) {
+PieResult Axes::pie(std::span<const double> sizes, const PieOpts& opts) {
     if (sizes.empty()) {
         throw ValueError("pie: sizes must be non-empty");
     }
@@ -623,7 +627,7 @@ std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts
         throw ValueError("pie: labels must match sizes");
     }
     const double r = opts.radius.value_or(1.0);
-    std::vector<Wedge*> wedges;
+    PieResult result;
     double theta = opts.startangle;
     for (size_t i = 0; i < sizes.size(); ++i) {
         const double sweep = 360.0 * sizes[i] / total;
@@ -632,7 +636,7 @@ std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts
                                            : to_color(opts.colors[i % opts.colors.size()]);
         w->edgecolor = Color::none();
         Wedge& ref = add_patch(std::move(w));
-        wedges.push_back(&ref);
+        result.wedges.push_back(&ref);
         if (!opts.labels.empty()) {
             const double mid = (theta + sweep / 2.0) * std::numbers::pi / 180.0;
             const double lx = 1.1 * r * std::cos(mid); // mpl labeldistance = 1.1
@@ -640,15 +644,16 @@ std::vector<Wedge*> Axes::pie(std::span<const double> sizes, const PieOpts& opts
             Text& t = text(lx, ly, opts.labels[i]);
             t.ha = lx > 0 ? HAlign::left : HAlign::right;
             t.va = VAlign::center;
+            result.texts.push_back(&t);
         }
         theta += sweep;
     }
     // mpl pie: frameless equal-aspect axes with fixed limits.
     set_axis_off();
-    set_aspect_equal();
+    set_aspect("equal");
     set_xlim(-1.25 * r, 1.25 * r);
     set_ylim(-1.25 * r, 1.25 * r);
-    return wedges;
+    return result;
 }
 
 namespace {
@@ -840,9 +845,10 @@ Axes* Axes::share_host() const {
 Axes& Axes::twinx() {
     Axes& twin = figure_->add_axes(position);
     twin.outer_cell = outer_cell;
-    twin.patch_off_ = true;   // the host's background stays visible
+    twin.patch_off_ = true; // the host's background stays visible
+    twin.is_twin_ = true;
     twin.show_x_axis_ = false; // the host draws the shared x axis
-    twin.yaxis_right_ = true;
+    twin.yaxis_.tick_right();
     twin.grid_on_ = false;
     auto group = share_x_ ? share_x_ : std::make_shared<ShareGroup>();
     join_share_x(group);
@@ -857,6 +863,7 @@ Axes& Axes::twiny() {
     Axes& twin = figure_->add_axes(position);
     twin.outer_cell = outer_cell;
     twin.patch_off_ = true;
+    twin.is_twin_ = true;
     twin.show_y_axis_ = false;
     twin.xaxis_top_ = true;
     twin.grid_on_ = false;
@@ -1295,9 +1302,9 @@ void Axes::draw(Renderer& renderer) {
                                     xaxis_top_);
         }
         if (show_y_axis_) {
-            yaxis_.draw_ticks(renderer, *this, yticks, yaxis_right_, show_y_ticklabels_);
+            yaxis_.draw_ticks(renderer, *this, yticks, yaxis_.ticks_far_side(), show_y_ticklabels_);
             yaxis_.draw_minor_ticks(renderer, *this, yaxis_.compute_minor_ticks(*this),
-                                    yaxis_right_);
+                                    yaxis_.ticks_far_side());
         }
     }
     if (legend_) {
@@ -1327,8 +1334,8 @@ void Axes::draw(Renderer& renderer) {
             labels_width = std::max(labels_width, fm.text_extent(l, tick_label_em).width);
         }
         const double off = tick_out + labels_width + labelpad;
-        ylabel_.position = {yaxis_right_ ? bpx.x1() + off : bpx.x0() - off, cy};
-        ylabel_.va = yaxis_right_ ? VAlign::top : VAlign::bottom;
+        ylabel_.position = {yaxis_.ticks_far_side() ? bpx.x1() + off : bpx.x0() - off, cy};
+        ylabel_.va = yaxis_.ticks_far_side() ? VAlign::top : VAlign::bottom;
         ylabel_.draw(renderer);
     }
     if (!title_.text.empty()) {
@@ -1348,7 +1355,7 @@ void Axes::draw(Renderer& renderer) {
         }
         if (!yticks.offset_text.empty() && show_y_axis_) {
             renderer.draw_text(offset_gc,
-                               {yaxis_right_ ? bpx.x1() : bpx.x0(), bpx.y1() + 2.0 * ppt},
+                               {yaxis_.ticks_far_side() ? bpx.x1() : bpx.x0(), bpx.y1() + 2.0 * ppt},
                                yticks.offset_text, offset_font, 0.0, HAlign::left,
                                VAlign::bottom);
         }

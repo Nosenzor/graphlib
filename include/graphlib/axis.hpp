@@ -35,6 +35,12 @@ public:
     [[nodiscard]] TickData compute_ticks(const Axes& axes) const;
 
     /// Tick marks + labels (grid lines are drawn earlier by Axes, below data).
+    /// Move ticks/labels to the far side: right for y, top for x
+    /// (mirrors ax.yaxis.tick_right() / ax.xaxis.tick_top()).
+    void tick_right() { ticks_far_side_ = true; }
+    void tick_top() { ticks_far_side_ = true; }
+    [[nodiscard]] bool ticks_far_side() const { return ticks_far_side_; }
+
     /// far_side: right for y / top for x (twin axes). with_labels: sharex/sharey
     /// hide inner labels but keep the marks.
     void draw_ticks(Renderer& renderer, const Axes& axes, const TickData& ticks,
@@ -51,6 +57,7 @@ public:
     static int tick_space(Kind kind, double length_pt, double label_fontsize_pt);
 
 private:
+    bool ticks_far_side_ = false;
     Kind kind_;
     std::unique_ptr<Locator> locator_;
     std::unique_ptr<Formatter> formatter_;

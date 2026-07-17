@@ -56,12 +56,12 @@ TEST_CASE("legend collects labeled artists in order", "[legend]") {
     CHECK(lg.entries[1].marker != nullptr);
     CHECK(lg.entries[2].label == "points");
     CHECK(lg.entries[2].marker->name == "o");
-    CHECK(lg.loc_code == 2); // matplotlib Legend.codes['upper left']
+    CHECK(lg.loc == LegendLoc::upper_left);
 }
 
 TEST_CASE("legend loc parsing mirrors matplotlib codes", "[legend]") {
-    CHECK(Legend::parse_loc("best") == 0);
-    CHECK(Legend::parse_loc("upper right") == 1);
-    CHECK(Legend::parse_loc("center") == 10);
+    CHECK(Legend::parse_loc("best") == LegendLoc::best);
+    CHECK(Legend::parse_loc("upper right") == LegendLoc::upper_right);
+    CHECK(Legend::parse_loc("center") == LegendLoc::center);
     CHECK_THROWS_AS(Legend::parse_loc("top left"), ValueError);
 }

@@ -81,7 +81,7 @@ public:
             self(win).on_resize(fbw, fbh);
         });
         glfwSetWindowCloseCallback(window_, [](GLFWwindow* win) { self(win).on_close(); });
-        for (const auto& ax : figure.axes_list()) {
+        for (const auto& ax : figure.axes()) {
             ax->save_home(); // 'h' returns here
         }
     }
@@ -158,7 +158,7 @@ private:
 
     Axes* axes_at(Point display) const {
         const Size fb = fb_size();
-        for (auto it = figure_->axes_list().rbegin(); it != figure_->axes_list().rend(); ++it) {
+        for (auto it = figure_->axes().rbegin(); it != figure_->axes().rend(); ++it) {
             if ((*it)->bbox_pixels(fb).contains(display)) {
                 return it->get();
             }
@@ -212,7 +212,7 @@ private:
     void on_key(int key, int mods) {
         // mpl-style keymap: 'h' home, 's' save, 'q' close.
         if (key == GLFW_KEY_H) {
-            for (const auto& ax : figure_->axes_list()) {
+            for (const auto& ax : figure_->axes()) {
                 ax->restore_home();
             }
             mark_dirty();

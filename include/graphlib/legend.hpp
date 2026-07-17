@@ -24,6 +24,21 @@ struct LegendOpts {
     std::optional<double> framealpha{}; // rc legend.framealpha = 0.8
 };
 
+/// matplotlib's Legend location codes, by their string names.
+enum class LegendLoc {
+    best = 0,
+    upper_right = 1,
+    upper_left = 2,
+    lower_left = 3,
+    lower_right = 4,
+    right = 5,
+    center_left = 6,
+    center_right = 7,
+    lower_center = 8,
+    upper_center = 9,
+    center = 10,
+};
+
 class Legend final : public Artist {
 public:
     Legend() { zorder = 5.0; }
@@ -46,7 +61,7 @@ public:
     };
 
     std::vector<Entry> entries;
-    int loc_code = 0; // matplotlib Legend.codes; 0 == 'best'
+    LegendLoc loc = LegendLoc::best;
     double fontsize = 10.0;
     bool frameon = true;
     double framealpha = 0.8;
@@ -55,11 +70,9 @@ public:
 
     void draw(Renderer& renderer) override;
 
-    /// matplotlib Legend.codes: 'best' 0, 'upper right' 1, 'upper left' 2,
-    /// 'lower left' 3, 'lower right' 4, 'right' 5, 'center left' 6,
-    /// 'center right' 7, 'lower center' 8, 'upper center' 9, 'center' 10.
+    /// Parse a matplotlib location string ("best", "upper right", ...).
     /// Throws graphlib::ValueError on unknown strings.
-    static int parse_loc(std::string_view loc);
+    [[nodiscard]] static LegendLoc parse_loc(std::string_view loc);
 };
 
 } // namespace graphlib

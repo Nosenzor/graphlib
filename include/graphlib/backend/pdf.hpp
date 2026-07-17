@@ -21,12 +21,13 @@ public:
     ~PdfRenderer() override;
 
     void draw_path(const GraphicsContext& gc, const Path& path, const Affine2D& transform,
-                   const std::optional<Color>& face = std::nullopt) override;
+                   const std::optional<Color>& face) override;
     void draw_text(const GraphicsContext& gc, Point pos, std::string_view text,
                    const FontProperties& font, double angle_deg, HAlign ha,
                    VAlign va) override;
     void draw_image(const GraphicsContext& gc, const Bbox& dest, const ImageBuffer& image,
-                    Interp interpolation) override;
+                    Interp interpolation,
+                    const std::optional<Affine2D>& transform) override;
     [[nodiscard]] Size canvas_size() const override { return {width_, height_}; }
 
     /// Complete PDF file bytes; call once, after drawing.
