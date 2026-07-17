@@ -207,5 +207,11 @@ stack. A new dependency, a public-API breaking change, or a determinism exceptio
   5648->187 ms), Google Benchmark suite + CI regression gate, ASan/LSan Linux job
   (0 leaks), one-command docs site (Doxygen + gallery + quick start), rounded annotate
   boxes; FreeType option iceboxed with rationale. 103 tests.
-- **Current milestone: v1.0.0 "Parity Core"** ([ROADMAP.md](ROADMAP.md)) — API freeze,
-  packaging (install/export, CPack, vcpkg port), arm64 formally tier-1, conformance report.
+- **v1.0.0 "Parity Core" — tagged 2026-07-18, CI green on all targets**: API frozen
+  (semver from here; review record in docs/decisions/API-REVIEW-1.0.md), install/export +
+  CPack + vcpkg overlay port with find_package consumer CI, arm64 formally tier-1,
+  side-by-side conformance report vs matplotlib (tools/mpl_twins.py). 103 tests.
+- **Post-1.0**: see the icebox in ROADMAP.md (polar, boxplot, quiver, blitting, MT
+  rasterization, mathtext accents/\left\right, PDF font subsetting, vcpkg registry
+  submission). New features require a PARITY.md row first; breaking changes require a
+  major version.

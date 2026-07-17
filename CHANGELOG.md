@@ -5,6 +5,41 @@ versions per [ROADMAP.md](ROADMAP.md). Pre-1.0: breaking changes allowed, always
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-07-18 — "Parity Core"
+
+CI-verified on all tier-1 targets (macOS arm64, Linux x64/arm64, Windows x64/arm64) +
+sanitizers + benchmark gate + packaging + docs jobs (103 tests).
+
+The API is frozen: **semantic versioning starts here.** An external user can
+FetchContent, `find_package`, or vcpkg-install graphlib and reproduce the whole gallery
+from the README alone — and see every figure next to matplotlib's own rendering in the
+conformance report.
+
+### Added
+- **Packaging**: CMake install/export (`find_package(graphlib 1.0)` ->
+  `graphlib::graphlib`, SameMajorVersion config), CPack TGZ/ZIP + source tarball,
+  in-repo vcpkg overlay port (`ports/graphlib`, install-tested), and a committed
+  find_package consumer smoke (tests/package) verified by a 3-OS CI job.
+- **Conformance report**: `tools/mpl_twins.py` renders the matplotlib twin of all 20
+  gallery figures; the docs site pairs them side by side (conformance.html).
+- Windows arm64 and Linux arm64 formally tier-1 (full test suites in CI).
+- Doxygen on every public symbol; `[[nodiscard]]` on pure factories; const locator
+  accessors.
+
+### Changed (breaking — the 1.0 freeze, see docs/decisions/API-REVIEW-1.0.md)
+- `hist` returns `HistResult{counts, edges, patches}` (mpl `(n, bins, patches)`);
+  `pie` returns `PieResult{wedges, texts}`; `errorbar` returns
+  `ErrorbarResult{line, caplines, barlines}`; `colorbar` returns a `Colorbar&` handle.
+- `savefig` takes `std::filesystem::path`; `annotate` takes `Point`;
+  `GridSpec(int, int, GridSpecOpts)` replaces the positional constructor.
+- One `CoordSys` enum for Text/Annotation; `LegendLoc` enum replaces the int loc code.
+- Renames: `Text::rotation_deg` -> `rotation`, `Figure::axes_list()` -> `axes()`,
+  `Axes::yaxis_tick_right()` -> `Axis::tick_right()`; `set_aspect_equal()` removed
+  (use `set_aspect("equal")`); `PieOpts`/`ColorbarOpts` string types unified.
+- Renderer contract: non-copyable base; `open_group(tag, gid)`; `draw_image` gains
+  matplotlib's reserved affine `transform` parameter (backends throw until
+  implemented); layout/share plumbing and blended-transform flags are now private.
+
 ## [0.7.0] — 2026-07-17 — "Fast Path"
 
 CI-verified on all tier-1 targets + ASan (macOS) + ASan/LSan (Linux) + benchmark gate +

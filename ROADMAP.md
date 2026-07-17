@@ -219,7 +219,7 @@ clean checkout with one command.
 
 ---
 
-## v1.0.0 — "Parity Core" (freeze & package)
+## v1.0.0 — "Parity Core" (freeze & package) — ✅ tagged 2026-07-18
 
 **In scope:**
 - API review sweep and freeze; semver from here; deprecations removed.
