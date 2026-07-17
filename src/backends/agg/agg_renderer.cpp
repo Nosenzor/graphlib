@@ -183,7 +183,11 @@ void AggRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
         agg::scanline_storage_aa8 storage;
         I.ras.reset();
         I.ras.filling_rule(agg::fill_non_zero);
-        I.ras.clip_box(-1e9, -1e9, 1e9, 1e9); // capture unclipped; clip at blend
+        // Capture unclipped (blend-time clip below). AGG rasterizes in 24.8
+        // fixed point — coords x256 must fit in int, so the box must stay
+        // small; +/-1e9 overflowed and dropped every marker on some CI
+        // toolchains.
+        I.ras.clip_box(-16384.0, -16384.0, 16384.0, 16384.0);
         I.ras.add_path(curve);
         agg::render_scanlines(I.ras, I.sl, storage);
         fill_buf.resize(storage.byte_size());
@@ -198,7 +202,7 @@ void AggRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
         agg::scanline_storage_aa8 storage;
         I.ras.reset();
         I.ras.filling_rule(agg::fill_non_zero);
-        I.ras.clip_box(-1e9, -1e9, 1e9, 1e9);
+        I.ras.clip_box(-16384.0, -16384.0, 16384.0, 16384.0);
         I.ras.add_path(stroke);
         agg::render_scanlines(I.ras, I.sl, storage);
         stroke_buf.resize(storage.byte_size());
