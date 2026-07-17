@@ -1,0 +1,11 @@
+{
+  "name": "graphlib",
+  "version": "1.0.0",
+  "description": "A modern C++20 plotting library that mimics matplotlib — same names, object model and rendering semantics. Zero mandatory dependencies; deterministic SVG/PNG/PDF output.",
+  "homepage": "https://github.com/Nosenzor/graphlib",
+  "license": "MIT",
+  "dependencies": [
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true }
+  ]
+}
