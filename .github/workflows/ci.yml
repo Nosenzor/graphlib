@@ -89,6 +89,37 @@ jobs:
              && test -f build/release/docs/site/gallery.html
              && test -f build/release/docs/site/api/index.html
 
+  package:
+    name: install + find_package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ninja (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get update && sudo apt-get install -y ninja-build; else brew install ninja; fi
+      - name: Install Ninja (Windows)
+        if: runner.os == 'Windows'
+        uses: seanmiddleditch/gha-setup-ninja@v5
+      - name: Set up MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+      - run: cmake --preset release -DGRAPHLIB_BUILD_TESTS=OFF -DGRAPHLIB_BUILD_EXAMPLES=OFF
+      - run: cmake --build --preset release
+      - run: cmake --install build/release --prefix ${{ github.workspace }}/gl_prefix
+      - name: Build + run the find_package consumer
+        run: >
+          cmake -B pkg_build -S tests/package -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/gl_prefix
+          && cmake --build pkg_build
+          && ./pkg_build/package_smoke
+        shell: bash
+
   bench:
     name: Benchmark regression gate (Linux x64)
     runs-on: ubuntu-24.04

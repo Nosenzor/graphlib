@@ -11,6 +11,7 @@ option(GRAPHLIB_BUILD_EXAMPLES "Build graphlib examples" ${PROJECT_IS_TOP_LEVEL}
 option(GRAPHLIB_WERROR "Treat warnings as errors (CI)" OFF)
 option(GRAPHLIB_INTERACTIVE "Build the GLFW window backend (fetches GLFW)" OFF)
 option(GRAPHLIB_BUILD_BENCHMARKS "Build Google Benchmark suite (dev-only)" OFF)
+option(GRAPHLIB_INSTALL "Generate install/export rules" ${PROJECT_IS_TOP_LEVEL})
 
 # Project-wide baseline (also applies to FetchContent deps like Catch2, so
 # their ABI matches ours — e.g. string_view stringification).
@@ -116,6 +117,7 @@ configure_file(cmake/version.hpp.in generated/graphlib/version.hpp @ONLY)
 target_include_directories(graphlib PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 # Vendored headers stay an implementation detail (ground rule: backends never
 # leak); SYSTEM keeps our warning flags away from them.
@@ -136,6 +138,43 @@ else()
     if(GRAPHLIB_WERROR)
         target_compile_options(graphlib PRIVATE -Werror)
     endif()
+endif()
+
+# Install & export: `find_package(graphlib)` -> graphlib::graphlib
+# (v1.0 packaging; see README "Get it").
+include(GNUInstallDirs)
+if(GRAPHLIB_INSTALL)
+    include(CMakePackageConfigHelpers)
+    install(TARGETS graphlib EXPORT graphlibTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(DIRECTORY include/graphlib DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/generated/graphlib/version.hpp"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/graphlib)
+    install(EXPORT graphlibTargets NAMESPACE graphlib::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/graphlib)
+    configure_package_config_file(cmake/graphlibConfig.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/graphlibConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/graphlib)
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/graphlibConfigVersion.cmake"
+        COMPATIBILITY SameMajorVersion)
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/graphlibConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/graphlibConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/graphlib)
+    install(FILES LICENSE README.md
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/graphlib)
+
+    set(CPACK_PACKAGE_NAME graphlib)
+    set(CPACK_PACKAGE_VENDOR "graphlib contributors")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+    set(CPACK_GENERATOR "TGZ;ZIP")
+    set(CPACK_SOURCE_GENERATOR "TGZ")
+    set(CPACK_SOURCE_IGNORE_FILES "/build/" "/\\.git/" "/\\.claude/" "/image_failures/")
+    include(CPack)
 endif()
 
 if(GRAPHLIB_BUILD_TESTS)
