@@ -71,13 +71,27 @@ cmake --preset release && cmake --build --preset release
 ./build/release/examples/01_hello_lines   # -> hello.svg, open in any browser
 ```
 
-Or consume from your own CMake project:
+Or consume from your own CMake project — three ways, all ending in
+`target_link_libraries(your_app PRIVATE graphlib::graphlib)`:
 
 ```cmake
+# 1. FetchContent
 include(FetchContent)
-FetchContent_Declare(graphlib GIT_REPOSITORY <this repo> GIT_TAG main)
+FetchContent_Declare(graphlib
+    GIT_REPOSITORY https://github.com/Nosenzor/graphlib.git GIT_TAG v1.0.0)
 FetchContent_MakeAvailable(graphlib)
-target_link_libraries(your_app PRIVATE graphlib::graphlib)
+```
+
+```bash
+# 2. Install + find_package
+cmake --preset release && cmake --build --preset release
+cmake --install build/release --prefix /your/prefix
+# then in your project: find_package(graphlib 1.0 REQUIRED) with CMAKE_PREFIX_PATH=/your/prefix
+```
+
+```bash
+# 3. vcpkg (overlay port, in-repo until the registry submission lands)
+vcpkg install graphlib --overlay-ports=path/to/graphlib/ports
 ```
 
 Tests (`ctest --preset dev`) compare against committed matplotlib-oracle fixtures and golden

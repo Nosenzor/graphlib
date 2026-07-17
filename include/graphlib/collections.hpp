@@ -32,6 +32,7 @@ struct ScatterOpts {
     std::string_view label{};
 };
 
+/// A collection of Paths, as created by e.g. Axes::scatter.
 class PathCollection final : public Artist {
 public:
     PathCollection() { zorder = 1.0; } // matplotlib Collection zorder

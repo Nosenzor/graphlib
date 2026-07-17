@@ -20,7 +20,7 @@ void show(const std::vector<Figure*>& figures);
 bool pause(const std::vector<Figure*>& figures, double seconds);
 
 /// True when the library was built with GRAPHLIB_INTERACTIVE.
-bool interactive_available();
+[[nodiscard]] bool interactive_available();
 
 } // namespace backend
 } // namespace graphlib

@@ -30,7 +30,7 @@ set(html "<!DOCTYPE html>
 <title>graphlib gallery</title>
 <link rel=\"stylesheet\" href=\"site.css\"/></head>
 <body>
-<nav><a href=\"index.html\">graphlib</a> · <a href=\"quickstart.html\">quick start</a> · <strong>gallery</strong> · <a href=\"api/index.html\">API</a></nav>
+<nav><a href=\"index.html\">graphlib</a> · <a href=\"quickstart.html\">quick start</a> · <strong>gallery</strong> · <a href=\"conformance.html\">conformance</a> · <a href=\"api/index.html\">API</a></nav>
 <h1>Gallery</h1>
 <p>Every figure below is produced by one short C++ file in <code>examples/</code>, rendered by graphlib's own SVG backend.</p>
 <main class=\"grid\">

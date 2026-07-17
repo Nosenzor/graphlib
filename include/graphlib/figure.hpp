@@ -13,12 +13,14 @@
 
 namespace graphlib {
 
+/// kwargs of the Figure constructor (mirrors plt.figure's figsize/dpi/facecolor).
 struct FigureOpts {
     std::optional<std::array<double, 2>> figsize{}; // rc figure.figsize, inches
     std::optional<double> dpi{};                    // rc figure.dpi (SVG renders at 72, like mpl)
     std::string_view facecolor{};                   // rc figure.facecolor
 };
 
+/// kwargs of Figure::savefig.
 struct SaveOpts {
     std::optional<double> dpi; // raster backends only (v0.2); ignored by SVG
     bool transparent = false;  // suppress figure/axes face patches
@@ -49,6 +51,7 @@ struct ColorbarOpts {
     std::string_view label{};
 };
 
+/// The top level container for all the plot elements.
 class Figure {
 public:
     Figure() : Figure(FigureOpts{}) {}

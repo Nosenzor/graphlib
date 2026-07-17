@@ -17,6 +17,7 @@ class Axes;
 /// Annotation adds axes_fraction and offset_points (relative to xy).
 enum class CoordSys { data, pixels, axes_fraction, offset_points };
 
+/// Handle storing and drawing of text in window or data coordinates.
 class Text final : public Artist {
 public:
     Text() { zorder = 3.0; }

@@ -55,8 +55,16 @@ using EventCallback = std::function<void(const Event&)>;
 /// Callback registry (mirrors canvas.mpl_connect/mpl_disconnect).
 class EventRegistry {
 public:
+    /// Register `callback` for an event name; returns its connection id
+    /// (positive, unique for this registry, never reused). The name is not
+    /// validated — a name that is never emitted simply never fires.
     int connect(std::string_view name, EventCallback callback);
+    /// Remove the connection `cid`; an unknown or already-disconnected id is
+    /// a no-op.
     void disconnect(int cid);
+    /// Invoke, in connection order, the callbacks registered for `event.name`
+    /// when the call starts. Dispatch runs over a snapshot, so handlers may
+    /// connect/disconnect without affecting which callbacks run for this event.
     void emit(const Event& event) const;
 
 private:

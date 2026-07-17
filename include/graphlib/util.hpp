@@ -6,7 +6,7 @@
 namespace graphlib {
 
 /// n evenly spaced values from a to b inclusive (numpy.linspace semantics; n==1 -> {a}).
-inline std::vector<double> linspace(double a, double b, std::size_t n) {
+[[nodiscard]] inline std::vector<double> linspace(double a, double b, std::size_t n) {
     std::vector<double> out;
     out.reserve(n);
     if (n == 1) {

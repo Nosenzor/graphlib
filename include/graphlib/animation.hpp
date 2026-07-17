@@ -15,8 +15,12 @@ struct AnimOpts {
     int frames = -1;    // -1: run until the window closes
 };
 
+/// Makes an animation by repeatedly calling a function (mpl FuncAnimation).
 class FuncAnimation {
 public:
+    /// `figure` must outlive the animation. `update` is called with frame =
+    /// 0, 1, 2, … and mutates artists in place; run() repaints the figure and
+    /// pumps window events for ~`interval` ms after each call.
     FuncAnimation(Figure& figure, std::function<void(int frame)> update, AnimOpts opts = {})
         : figure_(&figure), update_(std::move(update)), opts_(opts) {}
 

@@ -12,6 +12,9 @@ namespace graphlib {
 
 class AggRenderer final : public Renderer {
 public:
+    /// A canvas of exactly width_px x height_px pixels. `dpi` never resizes
+    /// it — it only scales point-sized attributes (px = pt * dpi / 72:
+    /// linewidths, fonts, markers); savefig derives both from figsize * dpi.
     AggRenderer(int width_px, int height_px, double dpi);
     ~AggRenderer() override;
 

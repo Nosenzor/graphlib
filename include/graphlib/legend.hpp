@@ -39,6 +39,7 @@ enum class LegendLoc {
     center = 10,
 };
 
+/// Place a legend on the figure/axes.
 class Legend final : public Artist {
 public:
     Legend() { zorder = 5.0; }

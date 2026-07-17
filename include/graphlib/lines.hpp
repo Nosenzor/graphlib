@@ -34,6 +34,8 @@ struct LineOpts {
 /// Line2D.drawstyle (mirrors mpl): steps hold the previous/mid/next value.
 enum class DrawStyle { normal, steps_pre, steps_mid, steps_post };
 
+/// A line - the line can have both a solid linestyle connecting all the
+/// vertices, and a marker at each vertex.
 class Line2D final : public Artist {
 public:
     Line2D() { zorder = 2.0; }

@@ -117,11 +117,13 @@ struct AnnotateOpts {
     VAlign va = VAlign::baseline;
 };
 
+/// An Axes object encapsulates all the elements of an individual (sub-)plot in a figure.
 class Axes {
 public:
     Axes(Figure& figure, Bbox position_fraction);
 
     // ---- plotting (mirrors matplotlib.axes.Axes.plot) ----
+    /// Plot y versus x as lines and/or markers ("r--o" fmt shorthand and/or kwargs).
     Line2D& plot(std::span<const double> x, std::span<const double> y, std::string_view fmt = "",
                  const LineOpts& opts = {});
     Line2D& plot(std::span<const double> x, std::span<const double> y, const LineOpts& opts) {
@@ -131,6 +133,7 @@ public:
     Line2D& plot(std::span<const double> y, std::string_view fmt = "",
                  const LineOpts& opts = {});
 
+    /// Add text to the Axes, at (x, y) in data coordinates.
     Text& text(double x, double y, std::string s, const TextOpts& opts = {});
 
     /// Annotate the point `xy` with text (mirrors Axes.annotate; arrowstyle

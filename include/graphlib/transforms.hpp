@@ -6,6 +6,8 @@
 
 namespace graphlib {
 
+/// An (x, y) pair. It carries no unit: context decides whether it holds data
+/// coordinates or device pixels (before vs after the data->display transform).
 struct Point {
     double x = 0.0;
     double y = 0.0;
@@ -18,12 +20,14 @@ public:
     constexpr Affine2D(double a, double b, double c, double d, double e, double f)
         : m_{a, b, c, d, e, f} {}
 
-    static constexpr Affine2D identity() { return {}; }
-    static constexpr Affine2D translation(double tx, double ty) {
+    [[nodiscard]] static constexpr Affine2D identity() { return {}; }
+    [[nodiscard]] static constexpr Affine2D translation(double tx, double ty) {
         return {1, 0, 0, 1, tx, ty};
     }
-    static constexpr Affine2D scaling(double sx, double sy) { return {sx, 0, 0, sy, 0, 0}; }
-    static Affine2D rotation_deg(double degrees); // counter-clockwise about the origin
+    [[nodiscard]] static constexpr Affine2D scaling(double sx, double sy) {
+        return {sx, 0, 0, sy, 0, 0};
+    }
+    [[nodiscard]] static Affine2D rotation_deg(double degrees); // CCW about the origin
 
     [[nodiscard]] constexpr Point apply(Point p) const {
         return {m_[0] * p.x + m_[2] * p.y + m_[4], m_[1] * p.x + m_[3] * p.y + m_[5]};
@@ -59,9 +63,9 @@ public:
     Bbox(); // null bbox
     constexpr Bbox(double x0, double y0, double x1, double y1) : x0_(x0), y0_(y0), x1_(x1), y1_(y1) {}
 
-    static Bbox null() { return {}; }
-    static constexpr Bbox unit() { return {0, 0, 1, 1}; }
-    static constexpr Bbox from_extents(double x0, double y0, double x1, double y1) {
+    [[nodiscard]] static Bbox null() { return {}; }
+    [[nodiscard]] static constexpr Bbox unit() { return {0, 0, 1, 1}; }
+    [[nodiscard]] static constexpr Bbox from_extents(double x0, double y0, double x1, double y1) {
         return {x0, y0, x1, y1};
     }
 
@@ -90,8 +94,8 @@ private:
 };
 
 /// unit square -> bbox (mirrors BboxTransformTo).
-Affine2D bbox_transform_to(const Bbox& box);
+[[nodiscard]] Affine2D bbox_transform_to(const Bbox& box);
 /// bbox -> unit square (mirrors BboxTransformFrom); throws ValueError on a degenerate box.
-Affine2D bbox_transform_from(const Bbox& box);
+[[nodiscard]] Affine2D bbox_transform_from(const Bbox& box);
 
 } // namespace graphlib

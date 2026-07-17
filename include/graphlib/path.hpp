@@ -27,7 +27,7 @@ public:
 
     /// Polyline from x/y spans; NaN in either coordinate opens a gap (mpl behavior).
     /// Throws ValueError if x and y differ in length.
-    static Path line(std::span<const double> x, std::span<const double> y);
+    [[nodiscard]] static Path line(std::span<const double> x, std::span<const double> y);
 
     void move_to(double x, double y);
     void line_to(double x, double y);

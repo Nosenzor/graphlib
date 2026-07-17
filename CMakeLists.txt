@@ -207,6 +207,14 @@ add_custom_target(docs
             -DEXAMPLES_DIR=${CMAKE_CURRENT_SOURCE_DIR}/examples
             -DOUT_HTML=${GRAPHLIB_DOCS_OUT}/gallery.html
             -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeGallery.cmake"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/docs/conformance/mpl"
+            "${GRAPHLIB_DOCS_OUT}/conformance"
+    COMMAND ${CMAKE_COMMAND}
+            -DGALLERY_DIR=${CMAKE_CURRENT_SOURCE_DIR}/docs/gallery
+            -DMPL_DIR=${CMAKE_CURRENT_SOURCE_DIR}/docs/conformance/mpl
+            -DOUT_HTML=${GRAPHLIB_DOCS_OUT}/conformance.html
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MakeConformance.cmake"
     COMMAND $<IF:$<BOOL:${DOXYGEN_FOUND}>,${DOXYGEN_EXECUTABLE},${CMAKE_COMMAND}>
             $<IF:$<BOOL:${DOXYGEN_FOUND}>,${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile,-E>
             $<$<NOT:$<BOOL:${DOXYGEN_FOUND}>>:echo>

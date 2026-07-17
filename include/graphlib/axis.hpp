@@ -11,6 +11,8 @@ namespace graphlib {
 class Axes;
 class Renderer;
 
+/// A single x- or y-axis: the locator/formatter tick pipeline plus tick drawing
+/// (mirrors matplotlib.axis.Axis; Kind selects x or y instead of subclassing).
 class Axis {
 public:
     enum class Kind { x, y };
@@ -21,7 +23,9 @@ public:
     void set_major_formatter(std::unique_ptr<Formatter> fmt) { formatter_ = std::move(fmt); }
     void set_minor_locator(std::unique_ptr<Locator> loc) { minor_locator_ = std::move(loc); }
     [[nodiscard]] Locator& major_locator() { return *locator_; }
+    [[nodiscard]] const Locator& major_locator() const { return *locator_; }
     [[nodiscard]] Locator* minor_locator() { return minor_locator_.get(); }
+    [[nodiscard]] const Locator* minor_locator() const { return minor_locator_.get(); }
     [[nodiscard]] Kind kind() const { return kind_; }
 
     struct TickData {
@@ -54,7 +58,7 @@ public:
 
     /// Port of X/YAxis.get_tick_space: how many labels fit along `length_pt`
     /// (heuristic: label aspect 3:1 on x, spacing 2 on y).
-    static int tick_space(Kind kind, double length_pt, double label_fontsize_pt);
+    [[nodiscard]] static int tick_space(Kind kind, double length_pt, double label_fontsize_pt);
 
 private:
     bool ticks_far_side_ = false;

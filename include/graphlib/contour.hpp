@@ -23,6 +23,7 @@ struct ContourOpts {
     std::optional<double> alpha{};
 };
 
+/// Store a set of contour lines or filled regions.
 class ContourSet final : public Artist {
 public:
     ContourSet() { zorder = 2.0; } // mpl contour zorder

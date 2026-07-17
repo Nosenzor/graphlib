@@ -8,6 +8,7 @@ namespace graphlib {
 
 class Renderer;
 
+/// Abstract base class for objects that render into a figure canvas.
 class Artist {
 public:
     virtual ~Artist() = default;

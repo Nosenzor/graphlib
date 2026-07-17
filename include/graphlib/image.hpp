@@ -26,6 +26,7 @@ struct ImshowOpts {
     std::string_view aspect{};                      // rc image.aspect = 'equal'
 };
 
+/// An image with pixels on a regular grid, attached to an Axes.
 class AxesImage final : public Artist {
 public:
     AxesImage() { zorder = 0.0; } // mpl AxesImage zorder

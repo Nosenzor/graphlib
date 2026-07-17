@@ -17,6 +17,8 @@ namespace graphlib {
 
 class PdfRenderer final : public Renderer {
 public:
+    /// Page size in 72-dpi device units — numerically points, PDF's native
+    /// unit (savefig passes figsize inches * 72; SaveOpts dpi does not apply).
     PdfRenderer(double width_pt, double height_pt);
     ~PdfRenderer() override;
 

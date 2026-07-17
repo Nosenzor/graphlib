@@ -12,6 +12,8 @@ namespace graphlib {
 
 class SvgRenderer final : public Renderer {
 public:
+    /// Canvas in 72-dpi device units — numerically points (savefig passes
+    /// figsize inches * 72; the SaveOpts dpi does not apply to SVG).
     SvgRenderer(double width_px, double height_px);
 
     void draw_path(const GraphicsContext& gc, const Path& path, const Affine2D& transform,
