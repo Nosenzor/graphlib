@@ -220,8 +220,12 @@ void AggRenderer::draw_markers(const GraphicsContext& gc, const Path& marker,
         if (!std::isfinite(px.x) || !std::isfinite(px.y)) {
             continue;
         }
-        const double sx = static_cast<double>(static_cast<int>(px.x));
-        const double sy = static_cast<double>(static_cast<int>(px.y));
+        // Quantize to 2 decimals before snapping: FMA-contraction differences
+        // between compilers are ~1 ulp, which a bare (int) cast can amplify
+        // into a whole-pixel jump. The same quantization keeps the SVG
+        // goldens byte-identical across platforms.
+        const double sx = std::floor(std::round(px.x * 100.0) / 100.0);
+        const double sy = std::floor(std::round(px.y * 100.0) / 100.0);
         if (!fill_buf.empty()) {
             agg::serialized_scanlines_adaptor_aa8 sa(fill_buf.data(),
                                                      static_cast<unsigned>(fill_buf.size()),
