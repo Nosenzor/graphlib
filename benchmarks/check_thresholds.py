@@ -8,13 +8,15 @@ Usage: check_thresholds.py <benchmark_json>
 import json
 import sys
 
-# benchmark name -> ceiling in ms
+# benchmark name -> ceiling in ms. Shared CI runners have run 3-6x slower
+# than the M-series baselines; ceilings sit ~10x above the baseline — far
+# below the 20-30x regressions the gate exists to catch (lost fast paths).
 THRESHOLDS = {
-    "BM_line_draw/1000000": 120.0,               # baseline 22 ms
-    "BM_line_savefig_png/10000000/min_warmup_time:0.500": 1500.0,  # 268 ms
-    "BM_scatter_draw/1000000": 1000.0,           # 187 ms
-    "BM_line_svg/100000": 15.0,                  # 1.4 ms
-    "BM_text_mathtext": 5.0,                     # 0.75 ms
+    "BM_line_draw/1000000": 250.0,               # baseline 22 ms
+    "BM_line_savefig_png/10000000/min_warmup_time:0.500": 2500.0,  # 268 ms
+    "BM_scatter_draw/1000000": 2000.0,           # 187 ms
+    "BM_line_svg/100000": 25.0,                  # 1.4 ms
+    "BM_text_mathtext": 10.0,                    # 0.75 ms
 }
 
 data = json.load(open(sys.argv[1]))

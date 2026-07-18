@@ -15,6 +15,10 @@ option(GRAPHLIB_INSTALL "Generate install/export rules" ${PROJECT_IS_TOP_LEVEL})
 
 # Project-wide baseline (also applies to FetchContent deps like Catch2, so
 # their ABI matches ours — e.g. string_view stringification).
+# GNUInstallDirs must come before the target's $<INSTALL_INTERFACE:...> uses
+# CMAKE_INSTALL_INCLUDEDIR — a fresh single-pass configure otherwise exports
+# an empty include dir (caught by the packaging CI job).
+include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -141,9 +145,13 @@ else()
 endif()
 
 # Install & export: `find_package(graphlib)` -> graphlib::graphlib
-# (v1.0 packaging; see README "Get it").
-include(GNUInstallDirs)
-if(GRAPHLIB_INSTALL)
+# (v1.0 packaging; see README "Get it"). Interactive builds link a
+# FetchContent GLFW that is not in the export set, so they are not
+# installable packages — build with GRAPHLIB_INTERACTIVE=OFF to install.
+if(GRAPHLIB_INSTALL AND GRAPHLIB_INTERACTIVE)
+    message(STATUS "graphlib: install/export skipped (GRAPHLIB_INTERACTIVE=ON)")
+endif()
+if(GRAPHLIB_INSTALL AND NOT GRAPHLIB_INTERACTIVE)
     include(CMakePackageConfigHelpers)
     install(TARGETS graphlib EXPORT graphlibTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
