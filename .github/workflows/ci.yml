@@ -110,14 +110,15 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       - run: cmake --preset release -DGRAPHLIB_BUILD_TESTS=OFF -DGRAPHLIB_BUILD_EXAMPLES=OFF
       - run: cmake --build --preset release
-      - run: cmake --install build/release --prefix ${{ github.workspace }}/gl_prefix
-      - name: Build + run the find_package consumer
-        run: >
-          cmake -B pkg_build -S tests/package -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_PREFIX_PATH=${{ github.workspace }}/gl_prefix
-          && cmake --build pkg_build
-          && ./pkg_build/package_smoke
+      - name: Install to a prefix, build + run the find_package consumer
+        # pwd -W: Git-Bash on Windows yields D:/... (forward slashes) — the
+        # ${{ github.workspace }} backslashes would be eaten by bash.
+        run: |
+          PREFIX="$(pwd -W 2>/dev/null || pwd)/gl_prefix"
+          cmake --install build/release --prefix "$PREFIX"
+          cmake -B pkg_build -S tests/package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$PREFIX"
+          cmake --build pkg_build
+          ./pkg_build/package_smoke
         shell: bash
 
   bench:
