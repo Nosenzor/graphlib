@@ -6,7 +6,7 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Nosenzor/graphlib
     REF v1.0.0
-    SHA512 0 # placeholder — finalized when the v1.0.0 tag exists (see header note)
+    SHA512 3e7b7357d935d1952d25f2c961dd14b67465db1564d0b7e98a1ddf8c1218ae81c2c646157965e39d85961ddda4ded3a7edad7aa82049715925c199fcfe5d73b9
     HEAD_REF main
 )
 
